@@ -1,0 +1,400 @@
+# ML Pro Final Configuration
+# 설정 파일을 통해 시스템 동작을 제어할 수 있습니다.
+
+# ValuationSnapshot 설정 (핫픽스)
+valuation_snapshot:
+  close_field: "close"
+  market_cap_field: "market_cap"
+
+# 데이터 수집 설정
+data_collection:
+  universe:
+    min_market_cap: 100000000000  # 1000억원
+    min_volume: 1000000  # 100만주
+    exclude_delisted: true
+    exclude_suspended: true
+
+  cache:
+    enable: true
+    ttl_hours: 24
+    max_size_mb: 1024
+
+  api:
+    timeout_seconds: 30
+    max_retries: 3
+    retry_delay_seconds: 1
+
+  # API 우선순위 설정 (KIS API 전용)
+  priority_order:
+    - "kis"           # 한국투자증권 API (최우선 - 실시간 데이터)
+    - "dart"          # DART API (재무제표 데이터 - KIS와 통합 사용)
+    - "fallback"      # 폴백 데이터 (최후 수단)
+    # "krx" 제거 - KIS API 전용 모드
+
+  # 일봉 데이터 수집 설정 (KIS API 전용)
+  daily_chart:
+    use_kis_only: true        # KIS API만 사용
+    disable_krx_ohlc: true    # KRX API 일봉 데이터 비활성화
+    fallback_to_krx: false    # KRX API 폴백 비활성화
+
+  # KIS + DART 통합 설정 (KRX API 제외)
+  kis_dart_integration:
+    enabled: true                    # KIS+DART 통합 활성화
+    kis_priority: true              # KIS API 우선순위 (실시간 데이터)
+    dart_priority: true             # DART API 우선순위 (재무제표 데이터)
+    fallback_enabled: true          # 폴백 활성화
+    disable_krx: true               # KRX API 완전 비활성화
+    data_quality_threshold: 0.7     # 데이터 품질 임계값 (70%)
+    max_retry_attempts: 3           # 최대 재시도 횟수
+    retry_delay_seconds: 1          # 재시도 간격 (초)
+    batch_size: 10                  # 배치 처리 크기
+    api_call_interval: 0.1          # API 호출 간격 (초)
+
+  # KIS API 우선순위 강화 설정
+  kis_priority:
+    enabled: true
+    force_primary: true        # KIS API를 강제로 최우선 사용
+    fallback_only_on_error: true  # 오류 시에만 다른 API 사용
+    retry_before_fallback: 3   # 폴백 전 KIS API 재시도 횟수
+
+# 한국투자증권 API 설정 (최우선 강화)
+kis_api:
+  enabled: true
+  priority: 1          # 최우선 순위 (절대 변경 불가)
+  timeout: 30
+  max_retries: 5       # 재시도 횟수 증가
+  force_primary: true  # 강제 최우선 사용
+  fallback_disabled: false  # 폴백 허용 (오류 시에만)
+  
+  # 토큰 자동 갱신 설정
+  token_management:
+    auto_refresh: true           # 토큰 자동 갱신 활성화
+    refresh_before_expiry: 3600  # 만료 1시간 전 갱신 (초)
+    max_retry_attempts: 3        # 토큰 발급 재시도 횟수
+    retry_delay: 5               # 재시도 간격 (초)
+    cache_enabled: true          # 토큰 캐시 활성화
+    cache_file: "cache/tokens/kis_token_cache.json"
+    
+  # 토큰 유효성 검증 설정
+  token_validation:
+    validate_on_request: true    # 요청 시 토큰 유효성 검증
+    check_expiry: true          # 만료 시간 확인
+    buffer_time: 7200           # 만료 2시간 전까지 유효로 간주 (초)
+
+  # KIS API 인증 정보 (공식 문서 스펙)
+  account_number: "4317786201"
+  account_code: "01"
+  hts_id: "KIS_USER"
+
+  # API 키 설정
+  app_key: "PSDC0a10eC3Klz083GJ8DZvYQcQwTbk6tDOA"
+  app_secret: "Nckvgu0K/I9Roz2Ed0WX1hiViT8evYyYA5HkC9qKXy87enDHqY4ivWOHtirrUICqz8Ao7lGcA0C5QxD+ZSYZE+gYENLeoOdSrdQfFySZOcWSHZPNyDI2YzbF3t9Ug8LSkLzAP77U9FIaDpYLD7yZzrVZl1hUaXzrhZJJGXDFWIOYiHs4hAI="
+
+  # 실시간 데이터 설정
+  realtime:
+    enabled: true
+    update_interval: 1  # 1초마다 업데이트"
+
+  # 장마감 후 데이터 설정
+  after_market:
+    enabled: true
+    fallback_to_krx: false  # KRX로 폴백하지 않음
+
+  # 데이터 품질 설정
+  quality:
+    min_confidence: 0.8
+    validate_prices: true
+    cross_check: false  # 다른 API와 교차 검증하지 않음
+
+# KRX API 설정 (보조)
+krx_api:
+  enabled: false       # KRX API 비활성화 (KIS API 전용 모드)
+  priority: 999        # 최하위 우선순위
+  fallback_only: true  # KIS 실패시에만 사용
+  timeout: 15
+  max_retries: 2
+
+# 피처 및 신호 설정
+features:
+  technical:
+    - rsi
+    - macd
+    - bollinger_bands
+    - volume_sma_ratio
+    - price_momentum
+    - volatility
+
+  fundamental:
+    - pe_ratio
+    - pb_ratio
+    - debt_to_equity
+    - roe
+    - roa
+    - current_ratio
+
+  quality:
+    - asset_turnover
+    - inventory_turnover
+    - receivables_turnover
+    - gross_margin
+    - operating_margin
+    - net_margin
+
+# 신호 가중치 설정
+signal_weights:
+  ml_signal: 0.4
+  value_signal: 0.25
+  quality_signal: 0.2
+  momentum_signal: 0.15
+
+# 개별 지표 가중치 설정 (float * NoneType 에러 방지)
+fundamental_weights:
+  per: 0.25      # PER 가중치
+  pbr: 0.25      # PBR 가중치
+  roe: 0.4       # ROE 가중치 (강화)
+  momentum: 0.25 # 모멘텀 가중치
+
+# 스케일링 계수 설정
+scaling_factors:
+  market_cap_scale: 1.0    # 시가총액 스케일링
+  adj_factor: 1.0          # 조정 계수
+  score_multiplier: 100.0  # 점수 배율 (스코어 * 100)
+  report_scale: 1.0        # 리포트 스케일링
+
+# ML 모델 설정
+ml_model:
+  algorithm: "lgbm"
+  hyperparameters:
+    n_estimators: 100
+    learning_rate: 0.1
+    max_depth: 6
+    random_state: 42
+
+  training:
+    test_size: 0.2
+    validation_size: 0.1
+    min_samples: 100
+
+  fallback:
+    use_rule_based: true
+    rule_threshold: 0.5
+
+# 포트폴리오 설정
+portfolio:
+  min_stocks: 4     # 3→4
+  max_stocks: 5     # 8→5로 조정하여 4~5종으로 자연히 25% 상한 준수
+  max_position_size: 0.1  # 10%
+  min_position_size: 0.01  # 1%
+  rebalance_frequency: "분기 1회"
+
+  optimization:
+    method: "hrp"  # hierarchical_risk_parity
+    risk_free_rate: 0.02
+    target_volatility: 0.15
+
+# 리스크 관리 설정
+risk_management:
+  max_drawdown: 0.2  # 20%
+  var_confidence: 0.95
+  position_limits:
+    sector_max: 0.3
+    single_stock_max: 0.35  # 33.3% 균등 가중치를 고려하여 0.35로 설정
+
+# 보고서 설정
+reporting:
+  output_format: "text"
+  include_charts: false
+  save_to_file: true
+  output_directory: "reports"
+
+  sections:
+    - summary
+    - detailed_analysis
+    - risk_metrics
+    - portfolio_allocation
+
+# 실행 모드 설정
+execution_modes:
+  strict: false
+  offline_cache_only: false
+  allow_rule_fallback: true
+  debug: false
+
+# API 설정
+api:
+  krx:
+    api_key: "D62C805E60F94D42A01C80335BCD5080A8345EFC"
+    base_url: "https://data-dbg.krx.co.kr"
+    timeout: 30
+
+  dart:
+    api_key: "881d7d29ca6d553ce02e78d22a1129c15a62ac47"  # 실제 DART API 키로 교체 필요
+    base_url: "https://opendart.fss.or.kr/api"
+    timeout: 12
+    # DART 최적화 옵션 (폴백 강제 활성화)
+    prefer_multi_company: true           # 다중지표 기본 사용 (강제)
+    use_multi_as_fallback: true          # 문서 파싱 실패시에만 다중지표 사용
+    min_coverage_threshold: 8            # 최소 커버리지 임계값 (15개 중 8개 이상)
+    force_consolidated_first: true       # 연결 재무제표 우선 사용
+    enable_batch_multi_company: true     # 런당 1회 배치 호출 활성화
+    cache_multi_company_results: true    # 다중지표 결과 캐싱
+    
+    # DART 기업 고유번호 관리 설정
+    corp_code_management:
+      enabled: true                      # 기업 고유번호 관리 활성화
+      cache_enabled: true                # 캐시 활성화
+      cache_dir: "cache"                 # 캐시 디렉토리
+      cache_expiry_hours: 24             # 캐시 만료 시간 (24시간)
+      auto_refresh: true                 # 자동 새로고침
+      refresh_threshold_hours: 12        # 12시간 후 자동 새로고침
+      
+      # 매칭 설정
+      matching:
+        exact_match_first: true          # 정확한 매칭 우선
+        fuzzy_match_enabled: true        # 유사도 매칭 활성화
+        fuzzy_threshold: 0.8             # 유사도 임계값 (0.8)
+        normalize_names: true            # 기업명 정규화
+        remove_suffixes: true            # 접미사 제거 (주식회사, ㈜ 등)
+        
+      # 성능 설정
+      performance:
+        batch_size: 100                  # 배치 처리 크기
+        max_workers: 3                   # 최대 워커 수
+        timeout_seconds: 30              # API 타임아웃
+        retry_attempts: 3                # 재시도 횟수
+        retry_delay: 1                   # 재시도 간격 (초)
+        
+      # 로깅 설정
+      logging:
+        log_matching_results: true       # 매칭 결과 로깅
+        log_failed_matches: true         # 실패한 매칭 로깅
+        log_performance: true            # 성능 로깅
+        debug_mode: false                # 디버그 모드
+
+# KRX Open API 키 (krx_data_provider.py에서 사용)
+krx_openapi_key: "D62C805E60F94D42A01C80335BCD5080A8345EFC"
+
+# 샘플 종목 (테스트용)
+sample_stocks:
+  - "005930"  # 삼성전자
+  - "000660"  # SK하이닉스
+  - "035420"  # NAVER
+  - "051910"  # LG화학
+  - "006400"  # 삼성SDI
+
+# 보유 종목 관리 (실제 투자 포트폴리오)
+current_portfolio:
+  # 보유 종목 정보
+  holdings:
+    "005930":  # 삼성전자
+      symbol: "005930"
+      name: "삼성전자"
+      quantity: 10          # 보유 주식 수
+      avg_price: 70000      # 평균 매수가 (원)
+      purchase_date: "2024-01-15"
+      sector: "전기전자"
+
+    "000660":  # SK하이닉스
+      symbol: "000660"
+      name: "SK하이닉스"
+      quantity: 5
+      avg_price: 150000
+      purchase_date: "2024-02-01"
+      sector: "반도체"
+
+    "035420":  # NAVER
+      symbol: "035420"
+      name: "NAVER"
+      quantity: 8
+      avg_price: 350000
+      purchase_date: "2024-01-20"
+      sector: "정보기술"
+
+  # 포트폴리오 설정
+  settings:
+    total_investment: 5000000  # 총 투자금액 (500만원)
+    target_allocation: "balanced"  # 투자 스타일
+    rebalance_threshold: 0.1  # 10% 이상 차이시 리밸런싱
+    update_frequency: "daily"  # 업데이트 빈도
+
+# 메타 컬럼 정의
+meta_columns:
+  - "종목코드"
+  - "종목명"
+  - "현재가"
+  - "등락률"
+  - "거래량"
+  - "시가총액"
+  - "ml_signal"
+  - "composite_signal"
+  - "rank"
+
+# 임계값 설정
+thresholds:
+  min_ml_signal: 0.3
+  min_composite_signal: 0.4
+  max_pe_ratio: 50
+  min_roe: 0.05
+  max_debt_to_equity: 2.0
+
+# 워크포워드 분석 설정 (EnhancedWalkForwardAnalyzer와 호환)
+walk_forward:
+  # 강제 활성화 옵션
+  force_enable: true           # 워크포워드 강제 활성화
+  allow_fallback: false        # 폴백 허용 여부 (false면 실패시 중단)
+
+  # 윈도우 파라미터 (더 넉넉하게 조정)
+  window_size: 504            # 2년 (약 504거래일)
+  step_size: 126              # 6개월씩 이동 (약 126거래일)
+  min_periods: 4              # 최소 4윈도우 (총 ~2년이면 충족)
+
+  # 성과 임계값
+  performance_threshold: 0.03  # 3% (완화)
+  stability_threshold: 0.7    # 70% (완화)
+  overfitting_threshold: 0.4  # 40% (완화)
+
+  # 데이터 요구사항
+  min_data_years: 2.0         # 최소 2년 데이터 필요
+  min_liquidity_threshold: 0.5  # 유동성 임계값 (완화)
+
+# 필터링 완화 설정
+filtering:
+  # 유동성 필터 완화
+  min_market_cap: 50000000000   # 500억원 (1000억원에서 완화)
+  min_volume: 500000            # 50만주 (100만주에서 완화)
+
+  # 재무 필터 완화
+  allow_negative_pe: true       # 음수 PER 허용
+  allow_negative_pb: true       # 음수 PBR 허용
+  use_clean_ratios: true        # 정제된 비율 사용
+
+  # 상장연한 필터 완화
+  min_listing_years: 1.0        # 최소 1년 (기존 2년에서 완화)
+
+  # 필터링 로깅
+  explain_filters: true         # 탈락 사유 상세 로깅
+  log_filtered_stocks: true     # 필터링된 종목 로깅
+
+# pykrx 의존성 제거됨 - KIS API로 대체
+dependencies:
+  setuptools_version: "<81"
+  log_level: "WARNING"
+
+# 메타 정보 설정
+meta:
+  run_config:
+    save_parameters: true
+    save_timestamps: true
+    save_environment: true
+
+  data_freshness:
+    stale_threshold_days: 7
+    auto_refresh: true
+    cache_ttl_hours: 24
+
+  reporting:
+    include_kpis: true
+    include_filter_stats: true
+    include_sector_distribution: true
+    include_dart_coverage: true
+    include_label_distribution: true

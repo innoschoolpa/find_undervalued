@@ -6,6 +6,8 @@ from rich.console import Console
 from rich.progress import Progress
 from kis_data_provider import KISDataProvider
 from typing import List, Dict, Any
+import investment_opinion_cli
+from enhanced_integrated_analyzer import EnhancedIntegratedAnalyzer
 
 # 로깅 설정
 logging.basicConfig(level=logging.INFO, format='%(levelname)s:%(name)s:%(message)s')
@@ -15,6 +17,25 @@ console = Console()
 
 # Typer CLI 앱 생성
 app = typer.Typer(help="KIS API 기반 주식 데이터 수집 및 분석 시스템")
+
+# 투자의견 CLI 서브앱 등록
+app.add_typer(investment_opinion_cli.app, name="opinion", help="투자의견 분석 관련 명령어")
+
+# 추정실적 CLI 서브앱 등록
+import estimate_performance_cli
+app.add_typer(estimate_performance_cli.app, name="estimate", help="추정실적 분석 관련 명령어")
+
+# 통합 분석 CLI 서브앱 등록
+import integrated_analysis_cli
+app.add_typer(integrated_analysis_cli.app, name="integrated", help="투자의견 + 추정실적 통합 분석 관련 명령어")
+
+# 통합 병렬 분석 CLI 서브앱 등록
+import integrated_parallel_analyzer
+app.add_typer(integrated_parallel_analyzer.app, name="parallel", help="통합 분석 병렬 처리 관련 명령어")
+
+# 향상된 통합 분석 CLI 서브앱 등록
+import enhanced_integrated_analyzer
+app.add_typer(enhanced_integrated_analyzer.app, name="enhanced", help="재무비율 분석이 통합된 향상된 분석 시스템")
 
 # [추가] 저평가 가치 점수를 계산하는 함수
 def calculate_valuation_score(stock_info: Dict[str, Any]) -> float:
@@ -40,12 +61,33 @@ def calculate_valuation_score(stock_info: Dict[str, Any]) -> float:
 
 @app.command(name="find-undervalued")
 def find_undervalued_stocks(
-    symbols_str: str = typer.Option("005930,000660,035420,005380,051910,035720,373220,000270", "--symbols", "-s", help="분석할 종목 코드 (쉼표로 구분)"),
+    symbols_str: str = typer.Option(None, "--symbols", "-s", help="분석할 종목 코드 (쉼표로 구분). 미입력시 시가총액 상위 종목 사용"),
+    count: int = typer.Option(15, "--count", "-c", help="동적 로드시 가져올 종목 수 (기본값: 15개)"),
+    min_market_cap: float = typer.Option(500, "--min-market-cap", help="최소 시가총액 (억원, 기본값: 500억원)"),
     history: bool = typer.Option(False, "--history", "-h", help="일봉 데이터도 함께 조회합니다.")
 ):
     """지정된 종목들의 가치를 분석하고 저평가된 순서로 정렬하여 보여줍니다."""
     
-    symbols: List[str] = [s.strip() for s in symbols_str.split(',')]
+    # 종목 코드 처리
+    if symbols_str is None:
+        # 동적으로 시가총액 상위 종목 가져오기
+        try:
+            analyzer = EnhancedIntegratedAnalyzer()
+            top_stocks = analyzer.get_top_market_cap_stocks(count=count, min_market_cap=min_market_cap)
+            symbols = [stock['symbol'] for stock in top_stocks]
+            console.print(f"🎯 [bold blue]시가총액 상위 종목[/bold blue]을 동적으로 로드했습니다 ({len(symbols)}개 종목)")
+            console.print(f"📊 조건: 상위 {count}개, 최소 시가총액 {min_market_cap:,}억원")
+            stock_names = [f"{stock['symbol']}({stock['name']})" for stock in top_stocks[:5]]
+            console.print(f"📈 로드된 종목: {', '.join(stock_names)}...")
+        except Exception as e:
+            console.print(f"[yellow]⚠️ 동적 종목 로드 실패: {e}[/yellow]")
+            console.print("[yellow]기본 종목 목록을 사용합니다.[/yellow]")
+            # 폴백용 기본 종목 목록
+            symbols = ["005930", "000660", "035420", "005380", "051910", "035720", "373220", "000270"]
+    else:
+        symbols = [s.strip() for s in symbols_str.split(',')]
+        console.print(f"🎯 [bold blue]사용자 지정 종목[/bold blue]을 사용합니다 ({len(symbols)}개 종목)")
+    
     console.print(f"🚀 [bold green]{len(symbols)}개[/bold green] 종목에 대한 가치 분석을 시작합니다...")
 
     provider = KISDataProvider()

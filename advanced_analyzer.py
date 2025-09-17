@@ -205,82 +205,9 @@ class AdvancedStockAnalyzer:
             self.kospi_data = pd.DataFrame()
     
     def _load_dart_corp_mapping(self):
-        """DART 기업코드 매핑 테이블을 자동으로 로드합니다. (개선된 버전)"""
-        try:
-            # DART API 키 확인
-            if not self.dart_api_key or not self.dart_corp_manager:
-                console.print("⚠️ DART API 키 또는 관리자 없음 - 기본 매핑만 사용")
-                self.corp_code_mapping = {}
-                return
-            
-            # 캐시 정보 확인
-            cache_info = self.dart_corp_manager.get_cache_info()
-            if cache_info.get('status') == 'cached':
-                console.print(f"📦 DART 기업코드 캐시 사용 중 (마지막 업데이트: {cache_info['age_hours']:.1f}시간 전)")
-            
-            # DART 기업코드 전체 목록 가져오기
-            corp_codes_df = self.dart_corp_manager.get_dart_corp_codes()
-            if corp_codes_df is None or corp_codes_df.empty:
-                console.print("⚠️ DART 기업코드 조회 실패 - 기본 매핑만 사용")
-                self.corp_code_mapping = {}
-                return
-            
-            # KOSPI 데이터와 매칭하여 자동 매핑 구축
-            mapping = {}
-            matched_count = 0
-            fuzzy_matched_count = 0
-            
-            if self.kospi_data is not None:
-                console.print(f"🔍 {len(self.kospi_data)}개 KOSPI 종목과 DART 기업 매칭 중...")
-                
-                for _, stock in self.kospi_data.iterrows():
-                    symbol = stock['단축코드']
-                    name = stock['한글명']
-                    
-                    # 1. 정확한 매칭 시도
-                    exact_match = corp_codes_df[corp_codes_df['corp_name'] == name]
-                    if not exact_match.empty:
-                        mapping[symbol] = exact_match.iloc[0]['corp_code']
-                        matched_count += 1
-                        continue
-                    
-                    # 2. 유사도 기반 매칭 시도
-                    corp_code = self.dart_corp_manager.find_corp_code_by_name(name, threshold=0.8)
-                    if corp_code:
-                        mapping[symbol] = corp_code
-                        fuzzy_matched_count += 1
-                        continue
-                    
-                    # 3. 매칭 실패 - 로그 기록
-                    logger.debug(f"⚠️ 매칭 실패: {symbol} ({name})")
-            
-            self.corp_code_mapping = mapping
-            total_matched = matched_count + fuzzy_matched_count
-            
-            console.print(f"✅ DART 기업코드 매핑 완료:")
-            console.print(f"   📊 정확한 매칭: {matched_count}개")
-            console.print(f"   🔍 유사도 매칭: {fuzzy_matched_count}개")
-            console.print(f"   📈 총 매칭률: {total_matched/len(self.kospi_data)*100:.1f}%")
-            
-            # 매핑 실패한 주요 종목들 로그 (상위 10개만)
-            if total_matched < len(self.kospi_data):
-                unmatched_symbols = []
-                for _, stock in self.kospi_data.iterrows():
-                    symbol = stock['단축코드']
-                    if symbol not in mapping:
-                        unmatched_symbols.append((symbol, stock['한글명']))
-                
-                if unmatched_symbols:
-                    console.print("⚠️ 매칭 실패한 주요 종목들 (상위 10개):")
-                    for symbol, name in unmatched_symbols[:10]:
-                        console.print(f"   {symbol}: {name}")
-                    if len(unmatched_symbols) > 10:
-                        console.print(f"   ... 외 {len(unmatched_symbols) - 10}개")
-            
-        except Exception as e:
-            console.print(f"❌ DART 기업코드 매핑 로드 실패: {e}")
-            logger.error(f"DART 기업코드 매핑 실패: {e}", exc_info=True)
-            self.corp_code_mapping = {}
+        """DART 기업코드 매핑을 건너뛰고 동적 검색을 사용합니다."""
+        console.print("⚡ DART 기업코드 매핑을 건너뛰고 동적 검색을 사용합니다.")
+        self.corp_code_mapping = {}
     
     def _load_corp_code_mapping(self, dart_api_key: str):
         """DART 기업고유번호 매핑을 로드합니다. (레거시 - 자동 매핑으로 대체됨)"""

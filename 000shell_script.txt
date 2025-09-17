@@ -1,0 +1,6 @@
+
+
+python advanced_analyzer.py test-parallel-processing --count 30 --display 30
+
+python main.py enhanced enhanced-top-picks --count 15 --max-workers 2 --min-score 25 --max-picks 5
+

@@ -380,6 +380,100 @@ dependencies:
   setuptools_version: "<81"
   log_level: "WARNING"
 
+# 향상된 통합 분석 가중치 설정
+enhanced_integrated_analysis:
+  # 분석 요소별 가중치 (총합 100%가 되도록 설정)
+  weights:
+    opinion_analysis: 25      # 투자의견 분석 (25%)
+    estimate_analysis: 30     # 추정실적 분석 (30%)
+    financial_ratios: 30      # 재무비율 분석 (30%)
+    growth_analysis: 10       # 성장성 분석 (10%)
+    scale_analysis: 5         # 규모 분석 (5%)
+  
+  # 재무비율 세부 가중치 (30점 만점 내에서)
+  financial_ratio_weights:
+    roe_score: 8              # ROE 점수 (8점)
+    roa_score: 5              # ROA 점수 (5점)
+    debt_ratio_score: 7       # 부채비율 점수 (7점)
+    net_profit_margin_score: 5 # 순이익률 점수 (5점)
+    current_ratio_score: 3    # 유동비율 점수 (3점)
+    growth_score: 2           # 성장성 점수 (2점)
+  
+  # 추정실적 분석 세부 가중치 (30점 만점 내에서)
+  estimate_analysis_weights:
+    financial_health: 15      # 재무건전성 점수 (15점)
+    valuation: 15             # 밸류에이션 점수 (15점)
+  
+  # 등급 기준 설정 (현실적으로 조정)
+  grade_thresholds:
+    A_plus: 35               # A+ 등급 (35점 이상)
+    A: 30                    # A 등급 (30-34점)
+    B_plus: 25               # B+ 등급 (25-29점)
+    B: 20                    # B 등급 (20-24점)
+    C_plus: 15               # C+ 등급 (15-19점)
+    C: 10                    # C 등급 (10-14점)
+    D: 5                     # D 등급 (5-9점)
+    F: 0                     # F 등급 (5점 미만)
+  
+  # 성장성 점수 기준
+  growth_score_thresholds:
+    excellent: 20            # 우수 (20% 이상)
+    good: 10                 # 양호 (10-20%)
+    average: 0               # 보통 (0-10%)
+    poor: -10                # 부진 (-10-0%)
+    very_poor: -100          # 매우 부진 (-10% 미만)
+  
+  # 규모 점수 기준 (억원 단위)
+  scale_score_thresholds:
+    mega_cap: 100000         # 메가캡 (10조원 이상)
+    large_cap: 50000         # 대형주 (5조원 이상)
+    mid_large_cap: 10000     # 중대형주 (1조원 이상)
+    mid_cap: 5000            # 중형주 (5천억원 이상)
+    small_cap: 1000          # 소형주 (1천억원 이상)
+    micro_cap: 0             # 마이크로캡 (1천억원 미만)
+  
+  # 투자 철학별 프리셋
+  investment_philosophy_presets:
+    # 가치 투자 중심
+    value_focused:
+      opinion_analysis: 20
+      estimate_analysis: 25
+      financial_ratios: 35
+      growth_analysis: 15
+      scale_analysis: 5
+    
+    # 성장 투자 중심
+    growth_focused:
+      opinion_analysis: 20
+      estimate_analysis: 35
+      financial_ratios: 20
+      growth_analysis: 20
+      scale_analysis: 5
+    
+    # 균형 투자
+    balanced:
+      opinion_analysis: 25
+      estimate_analysis: 30
+      financial_ratios: 30
+      growth_analysis: 10
+      scale_analysis: 5
+    
+    # 컨센서스 중심
+    consensus_focused:
+      opinion_analysis: 40
+      estimate_analysis: 30
+      financial_ratios: 20
+      growth_analysis: 5
+      scale_analysis: 5
+    
+    # 안정성 중심
+    stability_focused:
+      opinion_analysis: 15
+      estimate_analysis: 25
+      financial_ratios: 40
+      growth_analysis: 5
+      scale_analysis: 15
+
 # 메타 정보 설정
 meta:
   run_config:

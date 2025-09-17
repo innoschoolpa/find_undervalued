@@ -159,9 +159,91 @@ class InvestmentOpinionClient:
         # API 호출
         response = self._send_request(request_data)
         
-        if not response or not response.output:
-            logger.warning(f"⚠️ {symbol} 종목의 투자의견 데이터가 없습니다.")
-            return []
+        # 투자의견 수 임계치 도입: 30일 내 <3건이면 자동 90일 확장
+        opinion_count = len(response.output) if response and response.output else 0
+        if opinion_count < 3:
+            logger.info(f"🔍 {symbol} 투자의견 {opinion_count}건 → 임계치 규칙에 따라 90일 확장 재조회 (최소 3건 목표)")
+            try:
+                # 로컬로 고정해 스코프 이슈 방지
+                _date_from = start_date
+                _date_to = end_date
+                
+                d2 = datetime.strptime(_date_to, "%Y%m%d")
+                d1 = (d2 - timedelta(days=90)).strftime("%Y%m%d")
+                logger.info(f"🔁 {symbol} 투자의견 0건 → 기간 90일로 1회 확장 재조회: {d1}~{_date_to}")
+                
+                # 확장된 기간으로 재요청
+                request_data_expanded = InvestmentOpinionRequest(
+                    authorization=f"Bearer {self.token_manager.get_valid_token()}",
+                    appkey=self.token_manager.app_key,
+                    appsecret=self.token_manager.app_secret,
+                    FID_INPUT_ISCD=symbol,
+                    FID_INPUT_DATE_1=d1,
+                    FID_INPUT_DATE_2=_date_to
+                )
+                
+                response2 = self._send_request(request_data_expanded)
+                if response2 and response2.output:
+                    logger.info(f"✅ {symbol} 확장 기간에서 {len(response2.output)}건 발견")
+                    # 데이터 변환 - 스키마 일관성 보장
+                    processed_opinions = []
+                    schema_issues = []
+                    
+                    for i, raw_data in enumerate(response2.output):
+                        try:
+                            # 스키마 검증
+                            missing_fields = []
+                            if not hasattr(raw_data, 'sht_cd') or not raw_data.sht_cd:
+                                missing_fields.append('sht_cd')
+                            if not hasattr(raw_data, 'item_kor_nm'):
+                                missing_fields.append('item_kor_nm')
+                            
+                            if missing_fields:
+                                schema_issues.append(f"item{i}: {', '.join(missing_fields)}")
+                            
+                            # 안전한 필드 접근 및 기본값 처리
+                            processed_opinions.append(
+                                ProcessedInvestmentOpinion(
+                                    symbol=getattr(raw_data, 'sht_cd', None) or symbol,  # 기본값: 요청 종목코드
+                                    business_date=getattr(raw_data, 'stck_bsop_date', ''),
+                                    current_opinion=getattr(raw_data, 'invt_opnn', ''),
+                                    previous_opinion=getattr(raw_data, 'rgbf_invt_opnn', ''),
+                                    opinion_change=getattr(raw_data, 'rgbf_invt_opnn_cls_code', ''),
+                                    brokerage_firm=getattr(raw_data, 'mbcr_name', ''),
+                                    target_price=float(getattr(raw_data, 'tgt_prc', 0) or 0),
+                                    previous_close=float(getattr(raw_data, 'prvs_cls_prc', 0) or 0),
+                                    price_target_upside=float(getattr(raw_data, 'tgt_prc_upside', 0) or 0),
+                                    n_day_deviation=float(getattr(raw_data, 'n_day_deviation', 0) or 0),
+                                    n_day_deviation_rate=float(getattr(raw_data, 'n_day_deviation_rate', 0) or 0),
+                                    futures_deviation=float(getattr(raw_data, 'futures_deviation', 0) or 0),
+                                    deviation_rate=float(getattr(raw_data, 'deviation_rate', 0) or 0),
+                                    opinion_code=getattr(raw_data, 'invt_opnn_cls_code', ''),
+                                    previous_opinion_code=getattr(raw_data, 'rgbf_invt_opnn_cls_code', '')
+                                )
+                            )
+                        except Exception as e:
+                            logger.warning(f"⚠️ {symbol} 확장 재조회 데이터 변환 실패 (item {i}): {e}")
+                            continue
+                    
+                    # 스키마 이슈 로깅
+                    if schema_issues:
+                        logger.info(f"🔍 {symbol} 스키마 이슈: {', '.join(schema_issues[:3])}{'...' if len(schema_issues) > 3 else ''}")
+                    
+                    final_count = len(processed_opinions)
+                    original_count = len(response2.output)
+                    if final_count < 3:
+                        logger.warning(f"⚠️ {symbol} 확장 후에도 {final_count}건으로 부족 (목표: 3건 이상, 원본 {original_count}건)")
+                    else:
+                        logger.info(f"✅ {symbol} 확장 성공: {final_count}건 확보 (목표 달성, 원본 {original_count}건)")
+                    logger.info(f"📊 {symbol} 확장 재조회 완료: 원본 {original_count}건 → 유효 {final_count}건 전달")
+                    return processed_opinions
+                else:
+                    logger.info(f"ℹ️ {symbol} 투자의견 데이터 없음 (coverage=none or no_reports_in_window)")
+                    return []
+            except Exception as e:
+                # 확장 실패는 정상 플로우의 일부 → INFO 유지
+                logger.info(f"ℹ️ {symbol} 기간 확장 불가: {e}")
+                return []
         
         # 데이터 변환
         processed_opinions = []

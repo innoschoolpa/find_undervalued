@@ -40,13 +40,14 @@ class InvestmentOpinionAnalyzer:
         opinions = self.client.get_investment_opinions(symbol, days_back=days_back)
         
         if not opinions:
-            logger.warning(f"⚠️ {symbol} 종목의 투자의견 데이터가 없습니다.")
+            logger.info(f"⏭️ {symbol} 투자의견 없음 → 분석 스킵(tag=coverage_none)")
             return {
                 'symbol': symbol,
                 'analysis_period': f"{days_back}일",
                 'total_opinions': 0,
                 'status': 'no_data',
-                'message': '투자의견 데이터가 없습니다.'
+                'message': '투자의견 데이터가 없습니다.',
+                'tag': 'coverage_none'
             }
         
         # 기본 요약 생성

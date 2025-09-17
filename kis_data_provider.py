@@ -1,6 +1,7 @@
 # kis_data_provider.py
 import requests
 import time
+import random
 import pandas as pd
 import logging
 from datetime import datetime, timedelta
@@ -21,7 +22,24 @@ class KISDataProvider:
             "appkey": self.token_manager.app_key,
             "appsecret": self.token_manager.app_secret,
         }
+        # 세션 설정 개선 (연결 재사용 및 안정성 향상)
         self.session = requests.Session()
+        
+        # 연결 풀 설정
+        adapter = requests.adapters.HTTPAdapter(
+            pool_connections=10,
+            pool_maxsize=20,
+            max_retries=0  # 우리가 직접 재시도 로직 구현
+        )
+        self.session.mount('https://', adapter)
+        
+        # 세션 헤더 설정
+        self.session.headers.update({
+            'User-Agent': 'KIS-API-Client/1.0',
+            'Connection': 'keep-alive',
+            'Accept-Encoding': 'gzip, deflate'
+        })
+        
         self.last_request_time = 0
         self.request_interval = 0.12  # API TPS 20회/초 제한 준수 (50ms + 여유)
 
@@ -32,24 +50,56 @@ class KISDataProvider:
             time.sleep(self.request_interval - elapsed_time)
         self.last_request_time = time.time()
 
-    def _send_request(self, path: str, tr_id: str, params: dict) -> Optional[dict]:
-        """중앙 집중화된 API GET 요청 메서드"""
-        self._rate_limit()
-        token = self.token_manager.get_valid_token()
-        headers = {**self.headers, "authorization": f"Bearer {token}", "tr_id": tr_id}
-        
-        url = f"{self.base_url}{path}"
-        try:
-            response = self.session.get(url, headers=headers, params=params, timeout=10)
-            response.raise_for_status()
-            data = response.json()
-            if data.get('rt_cd') != '0':
-                logger.warning(f"⚠️ API 오류 ({tr_id}|{params.get('FID_INPUT_ISCD')}): {data.get('msg1', '알 수 없는 오류')}")
+    def _send_request(self, path: str, tr_id: str, params: dict, max_retries: int = 2) -> Optional[dict]:
+        """중앙 집중화된 API GET 요청 메서드 (재시도 로직 포함)"""
+        for attempt in range(max_retries + 1):
+            try:
+                self._rate_limit()
+                token = self.token_manager.get_valid_token()
+                headers = {**self.headers, "authorization": f"Bearer {token}", "tr_id": tr_id}
+                
+                url = f"{self.base_url}{path}"
+                
+                # 타임아웃 설정: 연결 10초, 읽기 30초
+                response = self.session.get(
+                    url, 
+                    headers=headers, 
+                    params=params, 
+                    timeout=(10, 30)
+                )
+                response.raise_for_status()
+                data = response.json()
+                
+                if data.get('rt_cd') != '0':
+                    logger.warning(f"⚠️ API 오류 ({tr_id}|{params.get('FID_INPUT_ISCD')}): {data.get('msg1', '알 수 없는 오류')}")
+                    return None
+                return data
+                
+            except requests.exceptions.ConnectionError as e:
+                if attempt < max_retries:
+                    # 지수형 백오프: 0.3 → 0.6 → 1.2초 + 지터
+                    backoff = 0.3 * (2 ** attempt) + random.uniform(0, 0.2)
+                    logger.debug(f"🔄 연결 오류 재시도 중... ({attempt + 1}/{max_retries}, {backoff:.1f}초 대기): {e}")
+                    time.sleep(backoff)
+                    continue
+                else:
+                    logger.error(f"❌ API 연결 실패 ({tr_id}): {e}")
+                    return None
+            except requests.exceptions.Timeout as e:
+                if attempt < max_retries:
+                    # 지수형 백오프: 0.3 → 0.6 → 1.2초 + 지터
+                    backoff = 0.3 * (2 ** attempt) + random.uniform(0, 0.2)
+                    logger.debug(f"🔄 타임아웃 재시도 중... ({attempt + 1}/{max_retries}, {backoff:.1f}초 대기): {e}")
+                    time.sleep(backoff)
+                    continue
+                else:
+                    logger.error(f"❌ API 타임아웃 ({tr_id}): {e}")
+                    return None
+            except requests.RequestException as e:
+                logger.error(f"❌ API 호출 실패 ({tr_id}): {e}")
                 return None
-            return data
-        except requests.RequestException as e:
-            logger.error(f"❌ API 호출 실패 ({tr_id}): {e}")
-            return None
+        
+        return None
 
     @staticmethod
     def _to_float(value: Any, default: float = 0.0) -> float:

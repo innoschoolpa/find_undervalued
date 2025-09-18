@@ -1,0 +1,61 @@
+{
+  "timestamp": "2025-09-18T20:06:58.222458",
+  "optimization_settings": {
+    "symbols": [
+      "005930",
+      "000660",
+      "373220"
+    ],
+    "start_date": "2024-09-23",
+    "end_date": "2025-09-18",
+    "iterations": 10
+  },
+  "optimal_parameters": {
+    "weights": {
+      "opinion_analysis": 20.37037037037037,
+      "estimate_analysis": 29.62962962962963,
+      "financial_ratios": 33.333333333333336,
+      "growth_analysis": 15.74074074074074,
+      "scale_analysis": 0.9259259259259259
+    },
+    "financial_ratio_weights": {
+      "roe_score": 6,
+      "roa_score": 5,
+      "debt_ratio_score": 10,
+      "net_profit_margin_score": 4,
+      "current_ratio_score": 4,
+      "growth_score": 1
+    }
+  },
+  "recommendations": [
+    {
+      "symbol": "000660",
+      "name": "SK하이닉스",
+      "enhanced_score": 66.68148148148148,
+      "enhanced_grade": "B+",
+      "current_price": 353000.0,
+      "market_cap": 2409687
+    },
+    {
+      "symbol": "005930",
+      "name": "삼성전자",
+      "enhanced_score": 52.388888888888886,
+      "enhanced_grade": "B",
+      "current_price": 80500.0,
+      "market_cap": 4528523
+    },
+    {
+      "symbol": "373220",
+      "name": "LG에너지솔루션",
+      "enhanced_score": 23.8462962962963,
+      "enhanced_grade": "D",
+      "current_price": 354500.0,
+      "market_cap": 831870
+    }
+  ],
+  "backtest_result": {
+    "total_return": 0.4307293885192902,
+    "sharpe_ratio": 2.2882814381272376,
+    "max_drawdown": 0.03774794699710845
+  }
+}

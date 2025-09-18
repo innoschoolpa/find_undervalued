@@ -1,0 +1,36 @@
+{
+  "total_return": 0.48411639584836985,
+  "annualized_return": 0.48411639584836985,
+  "sharpe_ratio": 3.1111120762668505,
+  "max_drawdown": 0.04077924315893853,
+  "win_rate": 0.75,
+  "profit_factor": 10.752873354065036,
+  "parameters": {
+    "weights": {
+      "opinion_analysis": 25,
+      "estimate_analysis": 30,
+      "financial_ratios": 30,
+      "growth_analysis": 10,
+      "scale_analysis": 5
+    },
+    "financial_ratio_weights": {
+      "roe_score": 8,
+      "roa_score": 5,
+      "debt_ratio_score": 7,
+      "net_profit_margin_score": 5,
+      "current_ratio_score": 3,
+      "growth_score": 2
+    },
+    "grade_thresholds": {
+      "A_plus": 80,
+      "A": 70,
+      "B_plus": 60,
+      "B": 50,
+      "C_plus": 40,
+      "C": 30,
+      "D": 20,
+      "F": 0
+    }
+  },
+  "timestamp": "2025-09-18T10:22:37.819960"
+}

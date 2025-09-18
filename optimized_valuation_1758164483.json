@@ -1,0 +1,44 @@
+{
+  "timestamp": "2025-09-18T12:01:23.325974",
+  "optimization_settings": {
+    "symbols": [
+      "005930",
+      "000660",
+      "373220",
+      "207940",
+      "012450"
+    ],
+    "start_date": "2025-06-20",
+    "end_date": "2025-09-18",
+    "iterations": 10
+  },
+  "optimal_parameters": {
+    "weights": {
+      "opinion_analysis": 26.16822429906542,
+      "estimate_analysis": 32.71028037383178,
+      "financial_ratios": 29.906542056074766,
+      "growth_analysis": 11.214953271028037,
+      "scale_analysis": 0.0
+    },
+    "financial_ratio_weights": {
+      "roe_score": 10,
+      "roa_score": 8,
+      "debt_ratio_score": 10,
+      "net_profit_margin_score": 3,
+      "current_ratio_score": 2,
+      "growth_score": 1
+    }
+  },
+  "recommendations": [
+    {
+      "symbol": "000660",
+      "name": "000660",
+      "enhanced_score": 67.28971962616822,
+      "enhanced_grade": "B+",
+      "financial_ratios": {},
+      "opinion_analysis": {
+        "symbol": "000660",
+        "analysis_period": "30일",
+        "total_opinions": 5,
+        "status": "success",
+        "summary": 

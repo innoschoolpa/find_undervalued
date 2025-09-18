@@ -4,3 +4,19 @@ python advanced_analyzer.py test-parallel-processing --count 30 --display 30
 
 python main.py enhanced enhanced-top-picks --count 15 --max-workers 2 --min-score 25 --max-picks 5
 
+python main.py enhanced test-enhanced-parallel-analysis --count 8 --min-score 15 --investment-philosophy value_focused
+python main.py enhanced test-enhanced-parallel-analysis --count 8 --min-score 15 --investment-philosophy growth_focused
+
+
+python main.py enhanced enhanced-top-picks --count 15 --max-workers 2 --min-score 20 --max-picks 5 --investment-philosophy balanced
+python main.py enhanced test-enhanced-parallel-analysis --count 20 --min-score 15 --investment-philosophy balanced
+
+python main.py enhanced enhanced-top-picks --count 5 --max-workers 1 --min-score 20 --max-picks 3 --investment-philosophy balanced
+
+
+python main.py enhanced enhanced-top-picks --count 30 --min-score 20 --max-picks 10 --investment-philosophy growth_focused --log-file logs/debug_analysis.log --log-level INFO 
+
+
+python main.py optimized-valuation --count 3 --iterations 5 --period 3
+
+python main.py optimized-valuation --count 30 --iterations 10 --period 12

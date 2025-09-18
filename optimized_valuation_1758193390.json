@@ -1,0 +1,79 @@
+{
+  "timestamp": "2025-09-18T20:03:10.114225",
+  "optimization_settings": {
+    "symbols": [
+      "005930",
+      "000660",
+      "373220",
+      "207940",
+      "012450"
+    ],
+    "start_date": "2024-09-23",
+    "end_date": "2025-09-18",
+    "iterations": 10
+  },
+  "optimal_parameters": {
+    "weights": {
+      "opinion_analysis": 29.12621359223301,
+      "estimate_analysis": 28.155339805825243,
+      "financial_ratios": 32.03883495145631,
+      "growth_analysis": 9.70873786407767,
+      "scale_analysis": 0.970873786407767
+    },
+    "financial_ratio_weights": {
+      "roe_score": 8,
+      "roa_score": 6,
+      "debt_ratio_score": 9,
+      "net_profit_margin_score": 5,
+      "current_ratio_score": 5,
+      "growth_score": 2
+    }
+  },
+  "recommendations": [
+    {
+      "symbol": "000660",
+      "name": "SK하이닉스",
+      "enhanced_score": 71.84466019417476,
+      "enhanced_grade": "A",
+      "current_price": 353000.0,
+      "market_cap": 2409687
+    },
+    {
+      "symbol": "207940",
+      "name": "삼성바이오로직스",
+      "enhanced_score": 66.02427184466019,
+      "enhanced_grade": "B+",
+      "current_price": 1029000.0,
+      "market_cap": 740209
+    },
+    {
+      "symbol": "005930",
+      "name": "삼성전자",
+      "enhanced_score": 59.087378640776706,
+      "enhanced_grade": "B",
+      "current_price": 80500.0,
+      "market_cap": 4528523
+    },
+    {
+      "symbol": "012450",
+      "name": "한화에어로스페이스",
+      "enhanced_score": 48.349514563106794,
+      "enhanced_grade": "C+",
+      "current_price": 1023000.0,
+      "market_cap": 508415
+    },
+    {
+      "symbol": "373220",
+      "name": "LG에너지솔루션",
+      "enhanced_score": 27.907766990291265,
+      "enhanced_grade": "D",
+      "current_price": 354500.0,
+      "market_cap": 831870
+    }
+  ],
+  "backtest_result": {
+    "total_return": 0.46889050766293994,
+    "sharpe_ratio": 2.313177588470169,
+    "max_drawdown": 0.09231018147283919
+  }
+}

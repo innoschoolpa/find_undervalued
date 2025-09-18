@@ -1,0 +1,134 @@
+{
+  "timestamp": "2025-09-18T12:54:25.074132",
+  "optimization_settings": {
+    "symbols": [
+      "005930",
+      "000660",
+      "373220",
+      "207940",
+      "012450",
+      "105560",
+      "329180",
+      "005380",
+      "000270",
+      "068270",
+      "034020",
+      "035420",
+      "055550",
+      "042660",
+      "028260",
+      "032830",
+      "009540",
+      "012330",
+      "035720",
+      "402340"
+    ],
+    "start_date": "2025-03-22",
+    "end_date": "2025-09-18",
+    "iterations": 20
+  },
+  "optimal_parameters": {
+    "weights": {
+      "opinion_analysis": 30.70175438596491,
+      "estimate_analysis": 18.42105263157895,
+      "financial_ratios": 26.31578947368421,
+      "growth_analysis": 15.789473684210526,
+      "scale_analysis": 8.771929824561404
+    },
+    "financial_ratio_weights": {
+      "roe_score": 11,
+      "roa_score": 4,
+      "debt_ratio_score": 8,
+      "net_profit_margin_score": 7,
+      "current_ratio_score": 2,
+      "growth_score": 1
+    }
+  },
+  "recommendations": [
+    {
+      "symbol": "000660",
+      "name": "SK하이닉스",
+      "enhanced_score": 81.57894736842104,
+      "enhanced_grade": "A+",
+      "current_price": 355500.0,
+      "market_cap": 2409687
+    },
+    {
+      "symbol": "207940",
+      "name": "삼성바이오로직스",
+      "enhanced_score": 75.29824561403507,
+      "enhanced_grade": "A",
+      "current_price": 1024000.0,
+      "market_cap": 740209
+    },
+    {
+      "symbol": "035420",
+      "name": "NAVER",
+      "enhanced_score": 69.39473684210526,
+      "enhanced_grade": "B+",
+      "current_price": 236250.0,
+      "market_cap": 367035
+    },
+    {
+      "symbol": "402340",
+      "name": "SK스퀘어",
+      "enhanced_score": 65.78947368421052,
+      "enhanced_grade": "B+",
+      "current_price": 207000.0,
+      "market_cap": 265744
+    },
+    {
+      "symbol": "329180",
+      "name": "HD현대중공업",
+      "enhanced_score": 65.5701754385965,
+      "enhanced_grade": "B+",
+      "current_price": 505000.0,
+      "market_cap": 442533
+    },
+    {
+      "symbol": "009540",
+      "name": "HD한국조선해양",
+      "enhanced_score": 65.14035087719299,
+      "enhanced_grade": "B+",
+      "current_price": 413000.0,
+      "market_cap": 291231
+    },
+    {
+      "symbol": "005930",
+      "name": "삼성전자",
+      "enhanced_score": 64.34210526315789,
+      "enhanced_grade": "B+",
+      "current_price": 80250.0,
+      "market_cap": 4528523
+    },
+    {
+      "symbol": "000270",
+      "name": "기아",
+      "enhanced_score": 64.11403508771929,
+      "enhanced_grade": "B+",
+      "current_price": 101400.0,
+      "market_cap": 400483
+    },
+    {
+      "symbol": "068270",
+      "name": "셀트리온",
+      "enhanced_score": 63.824561403508774,
+      "enhanced_grade": "B+",
+      "current_price": 168700.0,
+      "market_cap": 392596
+    },
+    {
+      "symbol": "042660",
+      "name": "한화오션",
+      "enhanced_score": 63.56140350877193,
+      "enhanced_grade": "B+",
+      "current_price": 111200.0,
+      "market_cap": 335522
+    }
+  ],
+  "backtest_result": {
+    "total_return": 0.2134909440580266,
+    "sharpe_ratio": 2.3931132744301817,
+    "max_drawdown": 0.04729717038591168
+  }
+}

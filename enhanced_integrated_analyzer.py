@@ -22,6 +22,7 @@ from profit_ratio_analyzer import ProfitRatioAnalyzer
 from stability_ratio_analyzer import StabilityRatioAnalyzer
 from growth_ratio_analyzer import GrowthRatioAnalyzer
 from test_integrated_analysis import create_integrated_analysis
+# 백테스팅 관련 import는 함수 내부에서 처리
 
 # 로깅 설정
 def setup_logging(log_file: str = None, log_level: str = "INFO"):
@@ -479,13 +480,25 @@ class EnhancedIntegratedAnalyzer:
     def calculate_enhanced_integrated_score(self, opinion_analysis: Dict[str, Any], 
                                           estimate_analysis: Dict[str, Any], 
                                           financial_data: Dict[str, Any],
-                                          market_cap: float) -> Dict[str, Any]:
-        """향상된 통합 점수를 계산합니다."""
+                                          market_cap: float, 
+                                          current_price: float = None,
+                                          price_position: float = None) -> Dict[str, Any]:
+        """저평가 가치주 발굴을 위한 향상된 통합 점수를 계산합니다."""
         score = 0
         score_breakdown = {}
         
-        # 1. 투자의견 점수 (설정 가능) - 안전한 키 경로 병합
-        opinion_weight = self.weights['opinion_analysis']
+        # 저평가 가치주 발굴을 위한 가중치 조정
+        valuation_focused_weights = {
+            'opinion_analysis': 0.15,      # 15% (기존 25%에서 감소)
+            'estimate_analysis': 0.20,     # 20% (기존 30%에서 감소)
+            'financial_ratios': 0.35,      # 35% (기존 30%에서 증가)
+            'growth_analysis': 0.15,       # 15% (기존 10%에서 증가)
+            'scale_analysis': 0.10,        # 10% (기존 5%에서 증가)
+            'valuation_bonus': 0.05        # 5% (신규 추가)
+        }
+        
+        # 1. 투자의견 점수 (저평가 중심 가중치 적용)
+        opinion_weight = valuation_focused_weights['opinion_analysis'] * 100
         consensus_score = None
         if isinstance(opinion_analysis, dict):
             cs_top = opinion_analysis.get('consensus_score')
@@ -505,8 +518,8 @@ class EnhancedIntegratedAnalyzer:
         else:
             score_breakdown['투자의견'] = 0
         
-        # 2. 추정실적 점수 (설정 가능)
-        estimate_weight = self.weights['estimate_analysis']
+        # 2. 추정실적 점수 (저평가 중심 가중치 적용)
+        estimate_weight = valuation_focused_weights['estimate_analysis'] * 100
         if 'financial_health_score' in estimate_analysis and 'valuation_score' in estimate_analysis:
             financial_health_weight = self.estimate_analysis_weights['financial_health']
             valuation_weight = self.estimate_analysis_weights['valuation']
@@ -520,8 +533,8 @@ class EnhancedIntegratedAnalyzer:
             score_breakdown['재무건전성'] = financial_score
             score_breakdown['밸류에이션'] = valuation_score
         
-        # 3. 재무비율 점수 (설정 가능)
-        financial_ratio_weight = self.weights['financial_ratios']
+        # 3. 재무비율 점수 (저평가 중심 가중치 적용)
+        financial_ratio_weight = valuation_focused_weights['financial_ratios'] * 100
         financial_ratio_score = self._calculate_financial_ratio_score(financial_data)
         # 재무비율 점수를 설정된 가중치에 맞게 스케일링
         scale_factor = financial_ratio_weight / 30  # 기본 30점에서 설정 가중치로 스케일링
@@ -529,8 +542,8 @@ class EnhancedIntegratedAnalyzer:
         score += financial_ratio_score_scaled
         score_breakdown['재무비율'] = financial_ratio_score_scaled
         
-        # 4. 성장성 점수 (설정 가능)
-        growth_weight = self.weights['growth_analysis']
+        # 4. 성장성 점수 (저평가 중심 가중치 적용)
+        growth_weight = valuation_focused_weights['growth_analysis'] * 100
         # 성장률 소스 일원화: estimate → financial_data → 0
         revenue_growth = estimate_analysis.get('latest_revenue_growth',
                          financial_data.get('revenue_growth', 0))
@@ -539,17 +552,84 @@ class EnhancedIntegratedAnalyzer:
             score += growth_score
             score_breakdown['성장성'] = growth_score
         
-        # 5. 규모 점수 (설정 가능)
-        scale_weight = self.weights['scale_analysis']
+        # 5. 규모 점수 (저평가 중심 가중치 적용)
+        scale_weight = valuation_focused_weights['scale_analysis'] * 100
         scale_score = self._calculate_scale_score(market_cap, scale_weight)
         score += scale_score
         score_breakdown['규모'] = scale_score
+        
+        # 6. 저평가 보너스 점수 (신규 추가)
+        valuation_bonus_weight = valuation_focused_weights['valuation_bonus'] * 100
+        valuation_bonus_score = self._calculate_valuation_bonus_score(
+            estimate_analysis, financial_data, valuation_bonus_weight
+        )
+        score += valuation_bonus_score
+        score_breakdown['저평가보너스'] = valuation_bonus_score
+        
+        # 7. 52주 최고가 근처 페널티 (신규 추가)
+        if price_position is not None:
+            high_price_penalty = self._calculate_high_price_penalty(price_position)
+            score -= high_price_penalty
+            score_breakdown['고가페널티'] = -high_price_penalty
         
         return {
             'total_score': min(100, max(0, score)),
             'score_breakdown': score_breakdown
         }
     
+    def _calculate_valuation_bonus_score(self, estimate_analysis: Dict[str, Any], 
+                                       financial_data: Dict[str, Any], 
+                                       max_bonus: float) -> float:
+        """저평가 보너스 점수를 계산합니다."""
+        bonus_score = 0
+        
+        # PER 기반 저평가 보너스
+        per = estimate_analysis.get('per', 0)
+        if per > 0:
+            if per <= 8:  # 매우 저평가
+                bonus_score += max_bonus * 0.4
+            elif per <= 12:  # 저평가
+                bonus_score += max_bonus * 0.3
+            elif per <= 15:  # 적정가
+                bonus_score += max_bonus * 0.2
+            elif per <= 20:  # 약간 고평가
+                bonus_score += max_bonus * 0.1
+        
+        # PBR 기반 저평가 보너스
+        pbr = estimate_analysis.get('pbr', 0)
+        if pbr > 0:
+            if pbr <= 0.8:  # 매우 저평가
+                bonus_score += max_bonus * 0.3
+            elif pbr <= 1.2:  # 저평가
+                bonus_score += max_bonus * 0.2
+            elif pbr <= 1.5:  # 적정가
+                bonus_score += max_bonus * 0.1
+        
+        # ROE 대비 PER 저평가 보너스
+        roe = financial_data.get('roe', 0)
+        if roe > 0 and per > 0:
+            pe_roe_ratio = per / roe
+            if pe_roe_ratio <= 0.5:  # 매우 저평가
+                bonus_score += max_bonus * 0.3
+            elif pe_roe_ratio <= 0.8:  # 저평가
+                bonus_score += max_bonus * 0.2
+            elif pe_roe_ratio <= 1.0:  # 적정가
+                bonus_score += max_bonus * 0.1
+        
+        return min(max_bonus, bonus_score)
+    
+    def _calculate_high_price_penalty(self, price_position: float) -> float:
+        """52주 최고가 근처 페널티를 계산합니다."""
+        if price_position >= 95:  # 52주 최고가 95% 이상
+            return 20  # 20점 페널티
+        elif price_position >= 90:  # 52주 최고가 90% 이상
+            return 15  # 15점 페널티
+        elif price_position >= 80:  # 52주 최고가 80% 이상
+            return 10  # 10점 페널티
+        elif price_position >= 70:  # 52주 최고가 70% 이상
+            return 5   # 5점 페널티
+        else:
+            return 0   # 페널티 없음
 
     def _calculate_roe_score(self, roe: float) -> float:
         """ROE 점수를 계산합니다."""
@@ -788,9 +868,23 @@ class EnhancedIntegratedAnalyzer:
                         logger.warning(f"❌ {symbol} 현재가 조회 최종 실패: {e}")
                         current_price = 0
             
-            # 향상된 통합 점수 계산
+            # 52주 최고가 위치 계산 (저평가 가치주 발굴을 위한 페널티 적용)
+            price_position = None
+            if current_price > 0:
+                try:
+                    price_info = self.provider.get_stock_price_info(symbol)
+                    if price_info and 'w52_high' in price_info and 'w52_low' in price_info:
+                        w52_high = float(price_info.get('w52_high', 0))
+                        w52_low = float(price_info.get('w52_low', 0))
+                        if w52_high > w52_low > 0:
+                            price_position = ((current_price - w52_low) / (w52_high - w52_low)) * 100
+                except Exception as e:
+                    logger.debug(f"52주 최고가 위치 계산 실패: {e}")
+            
+            # 향상된 통합 점수 계산 (저평가 가치주 발굴 중심)
             enhanced_score = self.calculate_enhanced_integrated_score(
-                opinion_analysis, estimate_analysis, financial_data, market_cap
+                opinion_analysis, estimate_analysis, financial_data, market_cap, 
+                current_price, price_position
             )
             
             # 기존 통합 분석 결과
@@ -1459,6 +1553,251 @@ def test_presets():
             table.add_row(element.replace('_', ' ').title(), f"{weight}%")
         
         console.print(table)
+
+@app.command()
+def run_backtest(
+    symbols: str = typer.Option("005930,000660,035420,051910,006400", help="백테스팅할 종목 코드 (쉼표로 구분)"),
+    start_date: str = typer.Option("2023-01-01", help="시작 날짜 (YYYY-MM-DD)"),
+    end_date: str = typer.Option("2024-12-31", help="종료 날짜 (YYYY-MM-DD)"),
+    rebalance_frequency: str = typer.Option("monthly", help="리밸런싱 주기 (monthly, quarterly)"),
+    initial_capital: float = typer.Option(10000000, help="초기 자본 (원)"),
+    log_file: str = typer.Option(None, help="로그 파일 경로"),
+    log_level: str = typer.Option("INFO", help="로그 레벨")
+):
+    """백테스팅 실행"""
+    
+    # 로깅 설정
+    if log_file:
+        setup_logging(log_file, log_level)
+        logger.info(f"백테스팅 시작 - 로그 파일: {log_file}")
+    else:
+        logger.info("백테스팅 시작")
+    
+    # 종목 리스트 파싱
+    symbol_list = [s.strip() for s in symbols.split(",")]
+    
+    # 백테스팅 엔진 초기화
+    from backtesting_engine import BacktestingEngine
+    engine = BacktestingEngine()
+    analyzer = EnhancedIntegratedAnalyzer()
+    engine.initialize(analyzer.provider)
+    
+    # 백테스팅 실행
+    result = engine.run_backtest(
+        symbols=symbol_list,
+        start_date=start_date,
+        end_date=end_date,
+        rebalance_frequency=rebalance_frequency,
+        initial_capital=initial_capital
+    )
+    
+    # 결과 표시
+    engine.display_results(result)
+    
+    # 결과 저장
+    try:
+        import json
+        from datetime import datetime
+        
+        result_data = {
+            'total_return': result.total_return,
+            'annualized_return': result.annualized_return,
+            'sharpe_ratio': result.sharpe_ratio,
+            'max_drawdown': result.max_drawdown,
+            'win_rate': result.win_rate,
+            'profit_factor': result.profit_factor,
+            'parameters': result.parameters,
+            'timestamp': datetime.now().isoformat()
+        }
+        
+        filename = f"backtest_result_{int(time.time())}.json"
+        with open(filename, 'w', encoding='utf-8') as f:
+            json.dump(result_data, f, ensure_ascii=False, indent=2)
+        
+        console.print(f"\n💾 백테스팅 결과가 {filename}에 저장되었습니다.")
+        
+    except Exception as e:
+        console.print(f"[red]❌ 결과 저장 실패: {e}[/red]")
+
+@app.command()
+def optimize_parameters(
+    symbols: str = typer.Option("005930,000660,035420,051910,006400", help="최적화할 종목 코드 (쉼표로 구분)"),
+    start_date: str = typer.Option("2023-01-01", help="시작 날짜 (YYYY-MM-DD)"),
+    end_date: str = typer.Option("2024-12-31", help="종료 날짜 (YYYY-MM-DD)"),
+    optimization_method: str = typer.Option("grid_search", help="최적화 방법 (grid_search, random_search)"),
+    max_iterations: int = typer.Option(50, help="최대 반복 횟수"),
+    log_file: str = typer.Option(None, help="로그 파일 경로"),
+    log_level: str = typer.Option("INFO", help="로그 레벨")
+):
+    """파라미터 최적화 실행"""
+    
+    # 로깅 설정
+    if log_file:
+        setup_logging(log_file, log_level)
+        logger.info(f"파라미터 최적화 시작 - 로그 파일: {log_file}")
+    else:
+        logger.info("파라미터 최적화 시작")
+    
+    # 종목 리스트 파싱
+    symbol_list = [s.strip() for s in symbols.split(",")]
+    
+    # 백테스팅 엔진 초기화
+    from backtesting_engine import BacktestingEngine, ParameterOptimizer
+    engine = BacktestingEngine()
+    analyzer = EnhancedIntegratedAnalyzer()
+    engine.initialize(analyzer.provider)
+    
+    # 최적화 실행
+    optimizer = ParameterOptimizer(engine)
+    optimal_params = optimizer.optimize_parameters(
+        symbols=symbol_list,
+        start_date=start_date,
+        end_date=end_date,
+        optimization_method=optimization_method,
+        max_iterations=max_iterations
+    )
+    
+    # 최적 파라미터 표시
+    console.print("\n🎯 [bold]최적화된 파라미터[/bold]")
+    
+    param_table = Table(title="최적 파라미터")
+    param_table.add_column("구분", style="cyan")
+    param_table.add_column("값", style="green")
+    
+    for category, params in optimal_params.items():
+        if isinstance(params, dict):
+            for key, value in params.items():
+                param_table.add_row(f"{category}.{key}", str(value))
+        else:
+            param_table.add_row(category, str(params))
+    
+    console.print(param_table)
+    
+    # 최적 파라미터로 백테스팅 실행
+    console.print("\n🚀 [bold]최적 파라미터로 백테스팅 실행[/bold]")
+    result = engine.run_backtest(
+        symbols=symbol_list,
+        start_date=start_date,
+        end_date=end_date,
+        parameters=optimal_params
+    )
+    
+    engine.display_results(result)
+    
+    # 최적 파라미터 저장
+    try:
+        import json
+        from datetime import datetime
+        
+        optimization_data = {
+            'optimal_parameters': optimal_params,
+            'backtest_result': {
+                'total_return': result.total_return,
+                'annualized_return': result.annualized_return,
+                'sharpe_ratio': result.sharpe_ratio,
+                'max_drawdown': result.max_drawdown,
+                'win_rate': result.win_rate,
+                'profit_factor': result.profit_factor
+            },
+            'optimization_settings': {
+                'method': optimization_method,
+                'max_iterations': max_iterations,
+                'symbols': symbol_list,
+                'start_date': start_date,
+                'end_date': end_date
+            },
+            'timestamp': datetime.now().isoformat()
+        }
+        
+        filename = f"optimization_result_{int(time.time())}.json"
+        with open(filename, 'w', encoding='utf-8') as f:
+            json.dump(optimization_data, f, ensure_ascii=False, indent=2)
+        
+        console.print(f"\n💾 최적화 결과가 {filename}에 저장되었습니다.")
+        
+    except Exception as e:
+        console.print(f"[red]❌ 결과 저장 실패: {e}[/red]")
+
+@app.command()
+def compare_strategies(
+    symbols: str = typer.Option("005930,000660,035420,051910,006400", help="비교할 종목 코드 (쉼표로 구분)"),
+    start_date: str = typer.Option("2023-01-01", help="시작 날짜 (YYYY-MM-DD)"),
+    end_date: str = typer.Option("2024-12-31", help="종료 날짜 (YYYY-MM-DD)"),
+    strategies: str = typer.Option("balanced,value_focused,growth_focused", help="비교할 전략들 (쉼표로 구분)"),
+    log_file: str = typer.Option(None, help="로그 파일 경로"),
+    log_level: str = typer.Option("INFO", help="로그 레벨")
+):
+    """여러 전략 비교"""
+    
+    # 로깅 설정
+    if log_file:
+        setup_logging(log_file, log_level)
+        logger.info(f"전략 비교 시작 - 로그 파일: {log_file}")
+    else:
+        logger.info("전략 비교 시작")
+    
+    # 종목 리스트 파싱
+    symbol_list = [s.strip() for s in symbols.split(",")]
+    strategy_list = [s.strip() for s in strategies.split(",")]
+    
+    # 백테스팅 엔진 초기화
+    from backtesting_engine import BacktestingEngine
+    engine = BacktestingEngine()
+    analyzer = EnhancedIntegratedAnalyzer()
+    engine.initialize(analyzer.provider)
+    
+    # 각 전략별 백테스팅 실행
+    results = {}
+    
+    for strategy in strategy_list:
+        console.print(f"\n📊 [bold]{strategy} 전략 백테스팅[/bold]")
+        
+        # 전략별 파라미터 적용
+        analyzer._apply_investment_philosophy_preset(strategy)
+        strategy_params = {
+            'weights': analyzer.weights,
+            'financial_ratio_weights': analyzer.financial_ratio_weights,
+            'grade_thresholds': analyzer.grade_thresholds
+        }
+        
+        # 백테스팅 실행
+        result = engine.run_backtest(
+            symbols=symbol_list,
+            start_date=start_date,
+            end_date=end_date,
+            parameters=strategy_params
+        )
+        
+        results[strategy] = result
+    
+    # 비교 결과 표시
+    console.print("\n🏆 [bold]전략 비교 결과[/bold]")
+    
+    comparison_table = Table(title="전략별 성과 비교")
+    comparison_table.add_column("전략", style="cyan")
+    comparison_table.add_column("총 수익률", style="green", justify="right")
+    comparison_table.add_column("연평균 수익률", style="green", justify="right")
+    comparison_table.add_column("샤프 비율", style="yellow", justify="right")
+    comparison_table.add_column("최대 낙폭", style="red", justify="right")
+    comparison_table.add_column("승률", style="blue", justify="right")
+    
+    for strategy, result in results.items():
+        comparison_table.add_row(
+            strategy,
+            f"{result.total_return:.2%}",
+            f"{result.annualized_return:.2%}",
+            f"{result.sharpe_ratio:.2f}",
+            f"{result.max_drawdown:.2%}",
+            f"{result.win_rate:.2%}"
+        )
+    
+    console.print(comparison_table)
+    
+    # 최고 성과 전략 찾기
+    best_strategy = max(results.keys(), key=lambda s: results[s].sharpe_ratio)
+    console.print(f"\n🥇 [bold green]최고 성과 전략: {best_strategy}[/bold green]")
+    console.print(f"   샤프 비율: {results[best_strategy].sharpe_ratio:.2f}")
+    console.print(f"   총 수익률: {results[best_strategy].total_return:.2%}")
 
 if __name__ == "__main__":
     app()

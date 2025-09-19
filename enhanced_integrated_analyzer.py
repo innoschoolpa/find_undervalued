@@ -79,10 +79,8 @@ def setup_logging(log_file: str = None, log_level: str = "INFO"):
         file_handler.setFormatter(formatter)
         root_logger.addHandler(file_handler)
         
-        try:
-            console.print(f"📝 로그 파일 저장: {log_file}")
-        except NameError:
-            pass  # 콘솔 미존재 환경에서도 문제 없게
+        # 콘솔 유무와 무관하게 조용히 동작 (환경 의존성 제거)
+        # 로그 파일 경로는 logger를 통해서만 확인하도록 일원화
     
     return root_logger
 
@@ -123,6 +121,7 @@ class TPSRateLimiter:
                     self.ts.popleft()
             
             self.ts.append(time.time())
+            time.sleep(0.002)  # 아주 짧은 간격으로 버스트 완화
 
 # 전역 레이트리미터 인스턴스
 rate_limiter = TPSRateLimiter(max_tps=8)
@@ -139,6 +138,8 @@ class EnhancedIntegratedAnalyzer:
         self.stability_ratio_analyzer = StabilityRatioAnalyzer(self.provider)
         self.growth_ratio_analyzer = GrowthRatioAnalyzer(self.provider)
         self.kospi_data = None
+        # 공급자 호출 경합 완화용(부분적) 락
+        self._provider_lock = Lock()
         
         # 설정 로드
         self.config = self._load_config(config_file)
@@ -325,13 +326,18 @@ class EnhancedIntegratedAnalyzer:
         if self.kospi_data is None or self.kospi_data.empty:
             return []
         
-        # 우선주/전환/신형 등 변형 + 코드 휴리스틱까지 동시 적용
-        # ✅ 종목명 끝이 '우', '우A/B/C', '우(…)' 로 끝나는 케이스만 제외
-        pref_name_pat = r'우(?:[ABC])?(?:\(.+\))?$'
-        is_pref_name = self.kospi_data['한글명'].str.contains(pref_name_pat, na=False, regex=True)
-        # KRX 관행상 우선주 코드 말미가 5/6인 사례 다수 → 휴리스틱
-        is_pref_code = self.kospi_data['단축코드'].astype(str).str.endswith(('5', '6'))
-        base = self.kospi_data[(self.kospi_data['시가총액'] >= min_market_cap) & (~(is_pref_name | is_pref_code))]
+        # 우선주/전환/신형 등 변형 제외: 이름 기반 + (가능 시) '주식종류' 우선 사용
+        pref_name_pat = r'우(?:[ABC])?(?:\(.+\))?$'  # 이름 끝 '우', '우A/B/C', '우(…)'
+        exclude_name_pat = r'(스팩|리츠|ETF|ETN|인수권|BW|CB)'  # 스팩/리츠/ETF 등 제외
+        has_kind_col = '주식종류' in self.kospi_data.columns
+        if has_kind_col:
+            is_common = self.kospi_data['주식종류'].astype(str).str.contains('보통주', na=False)
+            is_excluded = self.kospi_data['한글명'].str.contains(exclude_name_pat, na=False, regex=True)
+            base = self.kospi_data[(self.kospi_data['시가총액'] >= min_market_cap) & (is_common) & (~is_excluded)]
+        else:
+            is_pref_name = self.kospi_data['한글명'].str.contains(pref_name_pat, na=False, regex=True)
+            is_excluded = self.kospi_data['한글명'].str.contains(exclude_name_pat, na=False, regex=True)
+            base = self.kospi_data[(self.kospi_data['시가총액'] >= min_market_cap) & (~is_pref_name) & (~is_excluded)]
         filtered_stocks = base.nlargest(count, '시가총액')
         
         stocks = []
@@ -482,7 +488,8 @@ class EnhancedIntegratedAnalyzer:
                                           financial_data: Dict[str, Any],
                                           market_cap: float, 
                                           current_price: float = None,
-                                          price_position: float = None) -> Dict[str, Any]:
+                                          price_position: float = None,
+                                          risk_score: int = None) -> Dict[str, Any]:
         """저평가 가치주 발굴을 위한 향상된 통합 점수를 계산합니다."""
         score = 0
         score_breakdown = {}
@@ -526,8 +533,10 @@ class EnhancedIntegratedAnalyzer:
             
             # 추정실적 점수를 설정된 가중치에 맞게 스케일링
             scale_factor = estimate_weight / 30  # 기본 30점에서 설정 가중치로 스케일링
-            financial_score = estimate_analysis['financial_health_score'] * scale_factor * (financial_health_weight / 15)
-            valuation_score = estimate_analysis['valuation_score'] * scale_factor * (valuation_weight / 15)
+            fh = max(0.0, min(15.0, float(estimate_analysis['financial_health_score'] or 0)))
+            vs = max(0.0, min(15.0, float(estimate_analysis['valuation_score'] or 0)))
+            financial_score = fh * scale_factor * (financial_health_weight / 15)
+            valuation_score = vs * scale_factor * (valuation_weight / 15)
             
             score += financial_score + valuation_score
             score_breakdown['재무건전성'] = financial_score
@@ -568,9 +577,20 @@ class EnhancedIntegratedAnalyzer:
         
         # 7. 52주 최고가 근처 페널티 (신규 추가)
         if price_position is not None:
-            high_price_penalty = self._calculate_high_price_penalty(price_position)
+            # 범위 가드
+            try:
+                pp = max(0.0, min(100.0, float(price_position)))
+            except Exception:
+                pp = None
+            high_price_penalty = self._calculate_high_price_penalty(pp) if pp is not None else 0
             score -= high_price_penalty
             score_breakdown['고가페널티'] = -high_price_penalty
+        
+        # 8. 리스크 점수 반영 (신규 추가)
+        if risk_score is not None:
+            risk_penalty = self._calculate_risk_penalty(risk_score)
+            score -= risk_penalty
+            score_breakdown['리스크페널티'] = -risk_penalty
         
         return {
             'total_score': min(100, max(0, score)),
@@ -627,6 +647,21 @@ class EnhancedIntegratedAnalyzer:
         elif price_position >= 80:  # 52주 최고가 80% 이상
             return 10  # 10점 페널티
         elif price_position >= 70:  # 52주 최고가 70% 이상
+            return 5   # 5점 페널티
+        else:
+            return 0   # 페널티 없음
+    
+    def _calculate_risk_penalty(self, risk_score: int) -> float:
+        """리스크 점수에 따른 페널티를 계산합니다."""
+        if risk_score >= 8:  # 매우 높은 리스크
+            return 25  # 25점 페널티
+        elif risk_score >= 6:  # 높은 리스크
+            return 20  # 20점 페널티
+        elif risk_score >= 4:  # 중간 리스크
+            return 15  # 15점 페널티
+        elif risk_score >= 2:  # 낮은 리스크
+            return 10  # 10점 페널티
+        elif risk_score >= 1:  # 매우 낮은 리스크
             return 5   # 5점 페널티
         else:
             return 0   # 페널티 없음
@@ -698,12 +733,15 @@ class EnhancedIntegratedAnalyzer:
         """유동비율 점수를 계산합니다. (200% = 2.0 이상이 이상적)"""
         current_ratio_weight = self.financial_ratio_weights.get('current_ratio_score', 3)
         score = 0
-        # NOTE: current_ratio는 % 단위(예: 150 == 150%)로 들어옴
-        if current_ratio >= 200: # 200% 기준
+        # NOTE: 소스에 따라 배수(1.8)로 들어오는 경우가 있어 정규화
+        cr = float(current_ratio) if current_ratio is not None else 0.0
+        if cr < 10:  # 10 미만이면 배수로 판단, %로 변환
+            cr *= 100.0
+        if cr >= 200:  # 200% 기준
             score += current_ratio_weight
-        elif current_ratio >= 150:
+        elif cr >= 150:
             score += current_ratio_weight * 0.67
-        elif current_ratio >= 100:
+        elif cr >= 100:
             score += current_ratio_weight * 0.33
         return score
 
@@ -790,9 +828,19 @@ class EnhancedIntegratedAnalyzer:
     def analyze_single_stock_enhanced(self, symbol: str, name: str, days_back: int = 30) -> Dict[str, Any]:
         """단일 종목의 향상된 통합 분석을 수행합니다. (고급 재시도 로직 적용)"""
         try:
-            # 우선주 휴리스틱: 이름/코드로 1차 스킵 (false-positive 최소화)
+            # 우선주 스킵: 이름 기반 + (가능 시) '주식종류' 확인. 코드 접미사 휴리스틱 제거.
             sym_str = str(symbol)
-            if (name.endswith(('우', '우A', '우B', '우C', '우(전환)'))) or sym_str.endswith(('5','6')):
+            row = self._kospi_index.get(sym_str)
+            is_pref_name = name.endswith(('우', '우A', '우B', '우C', '우(전환)'))
+            if row and hasattr(row, '주식종류'):
+                if getattr(row, '주식종류', '') not in ('보통주', ''):
+                    logger.info(f"⏭️ {name}({symbol}) 우선주/변형주로 판단되어 분석에서 제외합니다.")
+                    return {
+                        'symbol': symbol, 'name': name, 'status': 'skipped_pref',
+                        'enhanced_score': 0, 'enhanced_grade': 'F',
+                        'financial_data': {}, 'opinion_analysis': {}, 'estimate_analysis': {}
+                    }
+            elif is_pref_name:
                 logger.info(f"⏭️ {name}({symbol}) 우선주로 판단되어 분석에서 제외합니다.")
                 return {
                     'symbol': symbol, 'name': name, 'status': 'skipped_pref',
@@ -835,21 +883,28 @@ class EnhancedIntegratedAnalyzer:
             # 재무비율 데이터 수집 (이미 고급 재시도 로직 적용됨)
             financial_data = self.get_financial_ratios_data(symbol)
             
-            # 시가총액 정보 및 현재가 정보 (KOSPI 데이터에서) - 최적화된 O(1) 룩업
+            # 시가총액/현재가 (KOSPI 데이터 O(1) 룩업)
             market_cap = 0
             current_price = 0
             row = self._kospi_index.get(str(symbol))
             if row:
-                market_cap = row.시가총액
-                current_price = getattr(row, '현재가', 0)
+                market_cap = float(getattr(row, '시가총액', 0) or 0)
+                current_price = float(getattr(row, '현재가', 0) or 0)
             
-            # 항상 KIS API에서 현재가 조회 (재시도 로직 적용)
+            # KIS API에서 현재가/52주 고저 **1회 조회** (재시도 로직 + 락)
+            price_position = None  # ✅ 루프 전 안전 초기화 (재시도 실패 시 UnboundLocal 방지)
             for attempt in range(max_retries + 1):
                 try:
                     rate_limiter.acquire()
-                    price_info = self.provider.get_stock_price_info(symbol)
+                    with self._provider_lock:
+                        price_info = self.provider.get_stock_price_info(symbol)
                     if price_info and 'current_price' in price_info and price_info['current_price'] > 0:
                         current_price = float(price_info['current_price'])
+                        # 52주 위치 계산 (동일 응답 사용)
+                        w52_high = float(price_info.get('w52_high', 0) or 0)
+                        w52_low = float(price_info.get('w52_low', 0) or 0)
+                        if w52_high > w52_low > 0:
+                            price_position = ((current_price - w52_low) / (w52_high - w52_low)) * 100
                         break
                     else:
                         if attempt < max_retries:
@@ -868,23 +923,27 @@ class EnhancedIntegratedAnalyzer:
                         logger.warning(f"❌ {symbol} 현재가 조회 최종 실패: {e}")
                         current_price = 0
             
-            # 52주 최고가 위치 계산 (저평가 가치주 발굴을 위한 페널티 적용)
-            price_position = None
-            if current_price > 0:
-                try:
-                    price_info = self.provider.get_stock_price_info(symbol)
-                    if price_info and 'w52_high' in price_info and 'w52_low' in price_info:
-                        w52_high = float(price_info.get('w52_high', 0))
-                        w52_low = float(price_info.get('w52_low', 0))
-                        if w52_high > w52_low > 0:
-                            price_position = ((current_price - w52_low) / (w52_high - w52_low)) * 100
-                except Exception as e:
-                    logger.debug(f"52주 최고가 위치 계산 실패: {e}")
+            # price_position은 위 루프에서 함께 계산됨 (중복 호출 제거)
             
-            # 향상된 통합 점수 계산 (저평가 가치주 발굴 중심)
+            # 리스크 점수 계산 (시장 리스크 분석기 사용)
+            risk_score = None
+            risk_analysis = {}
+            try:
+                from market_risk_analyzer import create_market_risk_analyzer
+                risk_analyzer = create_market_risk_analyzer(self.provider)
+                risk_analysis = risk_analyzer.analyze_stock_risk(symbol)
+                rs = risk_analysis.get('risk_score', 0)
+                try:
+                    risk_score = max(0.0, min(10.0, float(rs or 0)))
+                except Exception:
+                    risk_score = None
+            except Exception as e:
+                logger.debug(f"리스크 점수 계산 실패: {e}")
+            
+            # 향상된 통합 점수 계산 (저평가 가치주 발굴 중심, 리스크 반영)
             enhanced_score = self.calculate_enhanced_integrated_score(
                 opinion_analysis, estimate_analysis, financial_data, market_cap, 
-                current_price, price_position
+                current_price, price_position, risk_score
             )
             
             # 기존 통합 분석 결과
@@ -896,6 +955,7 @@ class EnhancedIntegratedAnalyzer:
                 'name': name,
                 'market_cap': market_cap,
                 'current_price': current_price,
+                'price_position': price_position,
                 'status': 'success',
                 'enhanced_score': enhanced_score['total_score'],
                 'score_breakdown': enhanced_score['score_breakdown'],
@@ -903,7 +963,8 @@ class EnhancedIntegratedAnalyzer:
                 'financial_data': financial_data,
                 'opinion_analysis': opinion_analysis,
                 'estimate_analysis': estimate_analysis,
-                'integrated_analysis': integrated_analysis
+                'integrated_analysis': integrated_analysis,
+                'risk_analysis': risk_analysis
             }
             
             return enhanced_analysis
@@ -950,6 +1011,14 @@ class EnhancedIntegratedAnalyzer:
             return v * 100.0 if -1.0 <= v <= 1.0 else v
         except Exception:
             return 0.0
+    
+    def _as_pct_number(self, x: Any) -> float:
+        """퍼센트 값을 정수%로 정규화하여 반환 (0.12 -> 12.0, 12 -> 12.0)."""
+        v = self._normalize_pct(x)   # 0.12 -> 12.0, 12 -> 12.0
+        try:
+            return float(v)
+        except Exception:
+            return 0.0
 
     def _has_numeric(self, data: Dict[str, Any], key: str) -> bool:
         """해당 키가 존재하고 수치로 파싱되면 True (0 포함)."""
@@ -961,12 +1030,15 @@ class EnhancedIntegratedAnalyzer:
         except Exception:
             return False
 
-    def _fmt_pct(self, x: Any) -> str:
+    def _fmt_pct(self, x: Any, *, assume_ratio_if_abs_lt_1: bool = True) -> str:
         """퍼센트 출력 헬퍼로 N/A 표기 일관화."""
         try:
             if x is None or (isinstance(x, float) and pd.isna(x)):
                 return "N/A"
             xf = float(x)
+            # 값이 [-1,1] 범위면 비율로 간주하여 ×100 (명시적 제어 가능)
+            if assume_ratio_if_abs_lt_1 and -1.0 <= xf <= 1.0:
+                xf *= 100.0
             return f"{xf:.1f}%"
         except Exception:
             return "N/A"
@@ -1066,6 +1138,8 @@ class EnhancedIntegratedAnalyzer:
                     'enhanced_grade': enhanced_grade,
                     'enhanced_score': enhanced_score,
                     'current_price': current_price,
+                    'price_position': result.get('price_position', None),  # ✅ 일관성 향상
+                    'risk_score': (result.get('risk_analysis', {}) or {}).get('risk_score', None),  # ✅ 대시보드용
                     'analysis_timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
                 })
             
@@ -1270,10 +1344,12 @@ def test_enhanced_parallel_analysis(
     table.add_column("ROE", style="magenta", width=8)
     table.add_column("부채비율", style="red", width=10)
     table.add_column("순이익률", style="blue", width=10)
+    table.add_column("52주위치", style="green", width=9)
     
     for i, result in enumerate(filtered_results[:display], 1):
         financial_data = result.get('financial_data', {})
         current_price = result.get('current_price', 0)
+        price_pos = result.get('price_position', None)
         
         
         table.add_row(
@@ -1286,7 +1362,8 @@ def test_enhanced_parallel_analysis(
             result['enhanced_grade'],
             analyzer._fmt_pct(financial_data.get('roe')),
             analyzer._fmt_pct(financial_data.get('debt_ratio')),
-            analyzer._fmt_pct(financial_data.get('net_profit_margin'))
+            analyzer._fmt_pct(financial_data.get('net_profit_margin')),
+            f"{price_pos:.1f}%" if isinstance(price_pos, (int,float)) else "N/A"
         )
     
     console.print(table)
@@ -1308,15 +1385,23 @@ def test_enhanced_parallel_analysis(
             for category, score in breakdown.items():
                 console.print(f"  • {category}: {score:.1f}점")
         
+        # 52주 위치 및 리스크
+        pp = result.get('price_position', None)
+        rs = (result.get('risk_analysis', {}) or {}).get('risk_score', None)
+        if pp is not None:
+            console.print(f"  • 52주 위치: {pp:.1f}%")
+        if rs is not None:
+            console.print(f"  • 리스크 점수: {rs}")
+        
         # 재무비율 상세
         financial_data = result.get('financial_data', {})
         if financial_data:
             console.print("💰 주요 재무비율:")
-            console.print(f"  • ROE: {analyzer._fmt_pct(financial_data.get('roe'))}")
-            console.print(f"  • ROA: {analyzer._fmt_pct(financial_data.get('roa'))}")
-            console.print(f"  • 부채비율: {analyzer._fmt_pct(financial_data.get('debt_ratio'))}")
-            console.print(f"  • 순이익률: {analyzer._fmt_pct(financial_data.get('net_profit_margin'))}")
-            console.print(f"  • 유동비율: {analyzer._fmt_pct(financial_data.get('current_ratio'))}")
+            console.print(f"  • ROE: {analyzer._fmt_pct(financial_data.get('roe'), assume_ratio_if_abs_lt_1=True)}")
+            console.print(f"  • ROA: {analyzer._fmt_pct(financial_data.get('roa'), assume_ratio_if_abs_lt_1=True)}")
+            console.print(f"  • 부채비율: {analyzer._fmt_pct(financial_data.get('debt_ratio'), assume_ratio_if_abs_lt_1=True)}")
+            console.print(f"  • 순이익률: {analyzer._fmt_pct(financial_data.get('net_profit_margin'), assume_ratio_if_abs_lt_1=True)}")
+            console.print(f"  • 유동비율: {analyzer._fmt_pct(financial_data.get('current_ratio'), assume_ratio_if_abs_lt_1=False)}")
             console.print(f"  • 매출 성장률: {analyzer._fmt_pct(financial_data.get('revenue_growth', financial_data.get('revenue_growth_rate')))}")
             
             # 결측 플래그 시각화
@@ -1410,14 +1495,17 @@ def enhanced_top_picks(
     table.add_column("현재가", style="bold green", width=10)
     table.add_column("향상점수", style="green", width=10)
     table.add_column("등급", style="yellow", width=6)
+    table.add_column("시가총액", style="blue", width=10)
     table.add_column("ROE", style="magenta", width=8)
     table.add_column("부채비율", style="red", width=10)
     table.add_column("순이익률", style="blue", width=10)
     table.add_column("매출성장률", style="green", width=10)
+    table.add_column("52주위치", style="green", width=9)
     
     for i, pick in enumerate(top_picks, 1):
         financial_data = pick.get('financial_data', {})
         current_price = pick.get('current_price', 0)
+        price_pos = pick.get('price_position', None)
         
         
         table.add_row(
@@ -1427,10 +1515,12 @@ def enhanced_top_picks(
             f"{current_price:,.0f}원" if current_price and current_price > 0 else "N/A",
             f"{pick['enhanced_score']:.1f}",
             pick['enhanced_grade'],
+            f"{pick['market_cap']:,}억",
             analyzer._fmt_pct(financial_data.get('roe')),
             analyzer._fmt_pct(financial_data.get('debt_ratio')),
             analyzer._fmt_pct(financial_data.get('net_profit_margin')),
-            analyzer._fmt_pct(financial_data.get('revenue_growth', financial_data.get('revenue_growth_rate')))
+            analyzer._fmt_pct(financial_data.get('revenue_growth', financial_data.get('revenue_growth_rate'))),
+            f"{price_pos:.1f}%" if isinstance(price_pos, (int,float)) else "N/A"
         )
     
     console.print(table)
@@ -1453,10 +1543,15 @@ def enhanced_top_picks(
                     'enhanced_grade': pick['enhanced_grade'],
                     'roe': financial_data.get('roe', 0),
                     'roa': financial_data.get('roa', 0),
-                    'debt_ratio': financial_data.get('debt_ratio', 0),
+                    'debt_ratio': float(financial_data.get('debt_ratio', 0) or 0),
                     'net_profit_margin': financial_data.get('net_profit_margin', 0),
                     'current_ratio': financial_data.get('current_ratio', 0),
                     'revenue_growth_rate': financial_data.get('revenue_growth', financial_data.get('revenue_growth_rate', 0)),
+                    'price_position': pick.get('price_position', None),
+                    'risk_score': (
+                        None if (pick.get('risk_analysis', {}) or {}).get('risk_score') is None
+                        else max(0.0, min(10.0, float((pick.get('risk_analysis', {}) or {}).get('risk_score') or 0)))
+                    ),
                     'opinion_score': breakdown.get('투자의견', 0),
                     'financial_score': breakdown.get('재무건전성', 0) + breakdown.get('밸류에이션', 0),
                     'financial_ratio_score': breakdown.get('재무비율', 0),
@@ -1465,6 +1560,11 @@ def enhanced_top_picks(
                 })
             
             df = pd.DataFrame(export_data)
+            # CSV 포맷 일관화 (정수%로 저장)
+            df['roe'] = df['roe'].apply(analyzer._as_pct_number).round(2)
+            df['debt_ratio'] = df['debt_ratio'].apply(analyzer._as_pct_number).round(2)
+            df['net_profit_margin'] = df['net_profit_margin'].apply(analyzer._as_pct_number).round(2)
+            df['revenue_growth_rate'] = df['revenue_growth_rate'].apply(analyzer._as_pct_number).round(2)
             filename = f"enhanced_top_picks_{int(time.time())}.csv"
             df.to_csv(filename, index=False, encoding='utf-8-sig')
             console.print(f"\n💾 향상된 분석 결과가 {filename}에 저장되었습니다.")

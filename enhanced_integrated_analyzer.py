@@ -5,6 +5,7 @@ import logging
 import time
 import os
 import yaml
+from datetime import datetime
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from threading import Lock
 from collections import deque
@@ -30,8 +31,14 @@ def setup_logging(log_file: str = None, log_level: str = "INFO"):
     import os
     from datetime import datetime
     
+    # typer.OptionInfo 객체 처리
+    if hasattr(log_level, 'value'):
+        log_level = log_level.value
+    if hasattr(log_file, 'value'):
+        log_file = log_file.value
+    
     # 로그 레벨 설정
-    level = getattr(logging, log_level.upper(), logging.INFO)
+    level = getattr(logging, str(log_level).upper(), logging.INFO)
     
     # 로그 포맷 설정
     formatter = logging.Formatter(
@@ -56,25 +63,33 @@ def setup_logging(log_file: str = None, log_level: str = "INFO"):
     # 파일 핸들러 추가 (옵션)
     if log_file:
         # 로그 디렉토리 생성
-        if os.path.dirname(log_file):
-            log_dir = os.path.dirname(log_file)
+        if os.path.dirname(str(log_file)):
+            log_dir = os.path.dirname(str(log_file))
         else:
             log_dir = "logs"
         
         os.makedirs(log_dir, exist_ok=True)
         
         # 타임스탬프가 포함된 파일명 생성
-        if not os.path.isabs(log_file):
+        try:
+            log_file_str = str(log_file)
+            # OptionInfo 객체인 경우 기본값 사용
+            if '<typer.models' in log_file_str or 'OptionInfo' in log_file_str:
+                log_file_str = "enhanced_analysis.log"
+        except:
+            log_file_str = "enhanced_analysis.log"
+            
+        if not os.path.isabs(log_file_str):
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            name, ext = os.path.splitext(os.path.basename(log_file))
-            log_file = os.path.join(log_dir, f"{name}_{timestamp}{ext}")
+            name, ext = os.path.splitext(os.path.basename(log_file_str))
+            final_log_file = os.path.join(log_dir, f"{name}_{timestamp}{ext}")
         else:
             # 절대 경로인 경우 타임스탬프 추가
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            name, ext = os.path.splitext(log_file)
-            log_file = f"{name}_{timestamp}{ext}"
+            name, ext = os.path.splitext(log_file_str)
+            final_log_file = f"{name}_{timestamp}{ext}"
         
-        file_handler = logging.FileHandler(log_file, encoding='utf-8')
+        file_handler = logging.FileHandler(final_log_file, encoding='utf-8')
         file_handler.setLevel(level)
         file_handler.setFormatter(formatter)
         root_logger.addHandler(file_handler)
@@ -126,8 +141,26 @@ class TPSRateLimiter:
 # 전역 레이트리미터 인스턴스
 rate_limiter = TPSRateLimiter(max_tps=8)
 
+# Typer 입력 검증 함수들
+def _positive_float(value: float):
+    """양수 검증"""
+    if value < 0:
+        raise typer.BadParameter("0 이상이어야 합니다.")
+    return value
+
+def _positive_int(value: int):
+    """양의 정수 검증"""
+    if value <= 0:
+        raise typer.BadParameter("1 이상이어야 합니다.")
+    return value
+
 class EnhancedIntegratedAnalyzer:
     """재무비율 분석이 통합된 향상된 분석 클래스"""
+    
+    # 품질 점수 임계값 상수
+    QUALITY_EXCELLENT = 1.00
+    QUALITY_GOOD = 0.65
+    QUALITY_LOWQ = 0.50
     
     def __init__(self, config_file: str = "config.yaml"):
         self.opinion_analyzer = InvestmentOpinionAnalyzer()
@@ -144,6 +177,27 @@ class EnhancedIntegratedAnalyzer:
         # 설정 로드
         self.config = self._load_config(config_file)
         self._load_kospi_data()
+    
+    def _effective_weights(self) -> Tuple[Dict[str, float], float]:
+        """
+        self.weights에서 valuation_bonus를 분리하고,
+        보너스 포함 총합을 100으로 정규화하여 일관성을 유지.
+        """
+        base = dict(self.weights) if isinstance(self.weights, dict) else {}
+        vb = float(base.pop('valuation_bonus', 0) or 0)
+
+        base_total = sum(base.values())
+        total = base_total + vb
+        if total <= 0:
+            # 완전 비정상 보호
+            base = {k: 0.0 for k in ('opinion_analysis','estimate_analysis','financial_ratios','growth_analysis','scale_analysis')}
+            return base, 0.0
+
+        # 전체 100으로 정규화 (보너스 포함)
+        scale = 100.0 / total
+        base = {k: v * scale for k, v in base.items()}
+        vb = vb * scale
+        return base, vb
     
     def _load_config(self, config_file: str) -> Dict[str, Any]:
         """설정 파일을 로드합니다."""
@@ -197,17 +251,16 @@ class EnhancedIntegratedAnalyzer:
             self.estimate_analysis_weights = enhanced_config.get('estimate_analysis_weights', default_estimate_weights)
             self.grade_thresholds = enhanced_config.get('grade_thresholds', default_grade_thresholds)
             
-            # 가중치 합계 정규화(필요시) + 경고
+            # 가중치 합계 검증 + 경고 (정규화는 _effective_weights()에서 수행)
             try:
                 total = sum(self.weights.values())
                 if total <= 0:
                     raise ValueError("Weights total is zero or negative")
+                # ✅ 여기서는 정규화하지 않고 경고만: 최종 스케일은 _effective_weights()에서 처리
                 if abs(total - 100) > 1e-6:
-                    norm = {k: v * 100.0 / total for k, v in self.weights.items()}
-                    console.print(f"⚠️ 가중치 합({total})가 100이 아니어서 자동 보정합니다 → {sum(norm.values()):.1f}")
-                    self.weights = norm
+                    console.print(f"⚠️ 가중치 합({total})가 100이 아닙니다. 계산 시 자동 보정됩니다.")
             except Exception as e:
-                console.print(f"⚠️ 가중치 보정 중 문제 발생: {e} (기존값 사용)")
+                console.print(f"⚠️ 가중치 검증 중 문제 발생: {e} (기본값 사용)")
             self.growth_score_thresholds = enhanced_config.get('growth_score_thresholds', {
                 'excellent': 20,
                 'good': 10,
@@ -281,7 +334,7 @@ class EnhancedIntegratedAnalyzer:
             # KOSPI 마스터 데이터 로드
             kospi_file = 'kospi_code.xlsx'
             if os.path.exists(kospi_file):
-                self.kospi_data = pd.read_excel(kospi_file)  # engine 자동 선택(권장: openpyxl)
+                self.kospi_data = pd.read_excel(kospi_file, engine="openpyxl")  # 명시적 엔진 지정
                 # ✅ 단축코드 6자리 0패딩 강제 (문자열 기준)
                 self.kospi_data['단축코드'] = (
                     self.kospi_data['단축코드']
@@ -327,7 +380,7 @@ class EnhancedIntegratedAnalyzer:
             return []
         
         # 우선주/전환/신형 등 변형 제외: 이름 기반 + (가능 시) '주식종류' 우선 사용
-        pref_name_pat = r'우(?:[ABC])?(?:\(.+\))?$'  # 이름 끝 '우', '우A/B/C', '우(…)'
+        pref_name_pat = r'\s*우(?:[ABC])?(?:\(.+?\))?\s*$'  # 끝 공백/괄호/서픽스 모두 커버
         exclude_name_pat = r'(스팩|리츠|ETF|ETN|인수권|BW|CB)'  # 스팩/리츠/ETF 등 제외
         has_kind_col = '주식종류' in self.kospi_data.columns
         if has_kind_col:
@@ -491,21 +544,14 @@ class EnhancedIntegratedAnalyzer:
                                           price_position: float = None,
                                           risk_score: int = None) -> Dict[str, Any]:
         """저평가 가치주 발굴을 위한 향상된 통합 점수를 계산합니다."""
-        score = 0
+        score = 0.0
         score_breakdown = {}
         
-        # 저평가 가치주 발굴을 위한 가중치 조정
-        valuation_focused_weights = {
-            'opinion_analysis': 0.15,      # 15% (기존 25%에서 감소)
-            'estimate_analysis': 0.20,     # 20% (기존 30%에서 감소)
-            'financial_ratios': 0.35,      # 35% (기존 30%에서 증가)
-            'growth_analysis': 0.15,       # 15% (기존 10%에서 증가)
-            'scale_analysis': 0.10,        # 10% (기존 5%에서 증가)
-            'valuation_bonus': 0.05        # 5% (신규 추가)
-        }
+        # 실제 계산용 가중치/보너스 분리
+        base_w, vb_points = self._effective_weights()
         
-        # 1. 투자의견 점수 (저평가 중심 가중치 적용)
-        opinion_weight = valuation_focused_weights['opinion_analysis'] * 100
+        # 1. 투자의견 점수
+        opinion_weight = float(base_w.get('opinion_analysis', 0.0))
         consensus_score = None
         if isinstance(opinion_analysis, dict):
             cs_top = opinion_analysis.get('consensus_score')
@@ -516,7 +562,7 @@ class EnhancedIntegratedAnalyzer:
             try:
                 cs = float(consensus_score)
                 cs = max(-1.0, min(1.0, cs))  # 범위 가드
-                opinion_score = (cs + 1) * (opinion_weight / 2.0)  # -1~1 → 0~가중치
+                opinion_score = (cs + 1.0) * (opinion_weight / 2.0)  # -1~1 → 0~가중치
                 opinion_score = max(0.0, min(opinion_weight, opinion_score))
                 score += opinion_score
                 score_breakdown['투자의견'] = opinion_score
@@ -525,14 +571,14 @@ class EnhancedIntegratedAnalyzer:
         else:
             score_breakdown['투자의견'] = 0
         
-        # 2. 추정실적 점수 (저평가 중심 가중치 적용)
-        estimate_weight = valuation_focused_weights['estimate_analysis'] * 100
+        # 2. 추정실적 점수
+        estimate_weight = float(base_w.get('estimate_analysis', 0.0))
         if 'financial_health_score' in estimate_analysis and 'valuation_score' in estimate_analysis:
             financial_health_weight = self.estimate_analysis_weights['financial_health']
             valuation_weight = self.estimate_analysis_weights['valuation']
             
-            # 추정실적 점수를 설정된 가중치에 맞게 스케일링
-            scale_factor = estimate_weight / 30  # 기본 30점에서 설정 가중치로 스케일링
+            # 내부 원점수(30점 기준) → 목표 포인트(estimate_weight)로 스케일
+            scale_factor = estimate_weight / 30.0
             fh = max(0.0, min(15.0, float(estimate_analysis['financial_health_score'] or 0)))
             vs = max(0.0, min(15.0, float(estimate_analysis['valuation_score'] or 0)))
             financial_score = fh * scale_factor * (financial_health_weight / 15)
@@ -542,17 +588,15 @@ class EnhancedIntegratedAnalyzer:
             score_breakdown['재무건전성'] = financial_score
             score_breakdown['밸류에이션'] = valuation_score
         
-        # 3. 재무비율 점수 (저평가 중심 가중치 적용)
-        financial_ratio_weight = valuation_focused_weights['financial_ratios'] * 100
-        financial_ratio_score = self._calculate_financial_ratio_score(financial_data)
-        # 재무비율 점수를 설정된 가중치에 맞게 스케일링
-        scale_factor = financial_ratio_weight / 30  # 기본 30점에서 설정 가중치로 스케일링
-        financial_ratio_score_scaled = financial_ratio_score * scale_factor
-        score += financial_ratio_score_scaled
-        score_breakdown['재무비율'] = financial_ratio_score_scaled
+        # 3. 재무비율 점수
+        fr_weight = float(base_w.get('financial_ratios', 0.0))
+        fr_raw = self._calculate_financial_ratio_score(financial_data)  # 30점 만점
+        fr_scaled = fr_raw * (fr_weight / 30.0)
+        score += fr_scaled
+        score_breakdown['재무비율'] = fr_scaled
         
-        # 4. 성장성 점수 (저평가 중심 가중치 적용)
-        growth_weight = valuation_focused_weights['growth_analysis'] * 100
+        # 4. 성장성 점수
+        growth_weight = float(base_w.get('growth_analysis', 0.0))
         # 성장률 소스 일원화: estimate → financial_data → 0
         revenue_growth = estimate_analysis.get('latest_revenue_growth',
                          financial_data.get('revenue_growth', 0))
@@ -561,19 +605,18 @@ class EnhancedIntegratedAnalyzer:
             score += growth_score
             score_breakdown['성장성'] = growth_score
         
-        # 5. 규모 점수 (저평가 중심 가중치 적용)
-        scale_weight = valuation_focused_weights['scale_analysis'] * 100
+        # 5. 규모 점수
+        scale_weight = float(base_w.get('scale_analysis', 0.0))
         scale_score = self._calculate_scale_score(market_cap, scale_weight)
         score += scale_score
         score_breakdown['규모'] = scale_score
         
-        # 6. 저평가 보너스 점수 (신규 추가)
-        valuation_bonus_weight = valuation_focused_weights['valuation_bonus'] * 100
-        valuation_bonus_score = self._calculate_valuation_bonus_score(
-            estimate_analysis, financial_data, valuation_bonus_weight
-        )
-        score += valuation_bonus_score
-        score_breakdown['저평가보너스'] = valuation_bonus_score
+        # 6. 저평가 보너스 점수 (valuation_bonus)
+        vb = float(vb_points or 0.0)
+        if vb > 0:
+            vb_score = self._calculate_valuation_bonus_score(estimate_analysis, financial_data, vb)
+            score += vb_score
+            score_breakdown['저평가보너스'] = vb_score
         
         # 7. 52주 최고가 근처 페널티 (신규 추가)
         if price_position is not None:
@@ -588,9 +631,13 @@ class EnhancedIntegratedAnalyzer:
         
         # 8. 리스크 점수 반영 (신규 추가)
         if risk_score is not None:
-            risk_penalty = self._calculate_risk_penalty(risk_score)
-            score -= risk_penalty
-            score_breakdown['리스크페널티'] = -risk_penalty
+            try:
+                risk_score = int(round(float(risk_score)))  # 타입 가드
+                risk_penalty = self._calculate_risk_penalty(risk_score)
+                score -= risk_penalty
+                score_breakdown['리스크페널티'] = -risk_penalty
+            except Exception:
+                pass  # 리스크 점수 변환 실패 시 무시
         
         return {
             'total_score': min(100, max(0, score)),
@@ -601,10 +648,20 @@ class EnhancedIntegratedAnalyzer:
                                        financial_data: Dict[str, Any], 
                                        max_bonus: float) -> float:
         """저평가 보너스 점수를 계산합니다."""
-        bonus_score = 0
-        
+        bonus_score = 0.0
+
+        def _safe_pos_float(v):
+            try:
+                x = float(v)
+                return x if x > 0 and not pd.isna(x) else 0.0
+            except Exception:
+                return 0.0
+
+        per = _safe_pos_float(estimate_analysis.get('per', 0))
+        pbr = _safe_pos_float(estimate_analysis.get('pbr', 0))
+        roe = _safe_pos_float(financial_data.get('roe', 0))
+
         # PER 기반 저평가 보너스
-        per = estimate_analysis.get('per', 0)
         if per > 0:
             if per <= 8:  # 매우 저평가
                 bonus_score += max_bonus * 0.4
@@ -616,7 +673,6 @@ class EnhancedIntegratedAnalyzer:
                 bonus_score += max_bonus * 0.1
         
         # PBR 기반 저평가 보너스
-        pbr = estimate_analysis.get('pbr', 0)
         if pbr > 0:
             if pbr <= 0.8:  # 매우 저평가
                 bonus_score += max_bonus * 0.3
@@ -626,7 +682,6 @@ class EnhancedIntegratedAnalyzer:
                 bonus_score += max_bonus * 0.1
         
         # ROE 대비 PER 저평가 보너스
-        roe = financial_data.get('roe', 0)
         if roe > 0 and per > 0:
             pe_roe_ratio = per / roe
             if pe_roe_ratio <= 0.5:  # 매우 저평가
@@ -698,10 +753,21 @@ class EnhancedIntegratedAnalyzer:
         """부채비율 점수를 계산합니다. (낮을수록 좋음)"""
         debt_ratio_weight = self.financial_ratio_weights.get('debt_ratio_score', 7)
         score = 0
-        # 비정상 값(음수) 또는 결측치 대체값(>=999)은 0점 처리
+        
+        # 🔧 정규화: (0 < dr < 5) 범위는 배수로 간주 → %
+        try:
+            dr = float(debt_ratio)
+            if 0 < dr < 5:
+                debt_ratio = dr * 100.0
+            else:
+                debt_ratio = dr
+        except Exception:
+            return 0
+        
+        # 비정상/결측 처리
         if debt_ratio < 0 or debt_ratio >= 999:
             return 0
-        # 0%도 최상 구간에 포함
+        
         if debt_ratio <= 30:
             score += debt_ratio_weight
         elif debt_ratio <= 50:
@@ -710,9 +776,8 @@ class EnhancedIntegratedAnalyzer:
             score += debt_ratio_weight * 0.6
         elif debt_ratio <= 100:
             score += debt_ratio_weight * 0.4
-        elif debt_ratio <= 150:  # 완충 구간 추가 (업종 편향 완화)
+        elif debt_ratio <= 150:
             score += debt_ratio_weight * 0.2
-        # 150% 초과 시 0점
         return score
 
     def _calculate_net_profit_margin_score(self, net_profit_margin: float) -> float:
@@ -735,7 +800,7 @@ class EnhancedIntegratedAnalyzer:
         score = 0
         # NOTE: 소스에 따라 배수(1.8)로 들어오는 경우가 있어 정규화
         cr = float(current_ratio) if current_ratio is not None else 0.0
-        if cr < 10:  # 10 미만이면 배수로 판단, %로 변환
+        if 0 < cr <= 5.0:  # 0 < cr <= 5.0 이면 배수(=x100), 그 외는 이미 %라고 가정
             cr *= 100.0
         if cr >= 200:  # 200% 기준
             score += current_ratio_weight
@@ -831,7 +896,8 @@ class EnhancedIntegratedAnalyzer:
             # 우선주 스킵: 이름 기반 + (가능 시) '주식종류' 확인. 코드 접미사 휴리스틱 제거.
             sym_str = str(symbol)
             row = self._kospi_index.get(sym_str)
-            is_pref_name = name.endswith(('우', '우A', '우B', '우C', '우(전환)'))
+            import re
+            is_pref_name = bool(re.search(r'\s*우(?:[ABC])?(?:\(.+?\))?\s*$', str(name)))
             if row and hasattr(row, '주식종류'):
                 if getattr(row, '주식종류', '') not in ('보통주', ''):
                     logger.info(f"⏭️ {name}({symbol}) 우선주/변형주로 판단되어 분석에서 제외합니다.")
@@ -1060,7 +1126,7 @@ class EnhancedIntegratedAnalyzer:
         """배치 분석을 수행하고 요약 메트릭을 제공합니다."""
         results = []
         no_data_counts = {"opinion": 0, "estimate": 0, "financial": 0}
-        quality_pipeline = {"excellent": 0, "good": 0, "poor": 0}  # 1.00, 0.65, 0.30
+        quality_pipeline = {"excellent": 0, "good": 0, "poor": 0}  # 상수 기반 임계값
         
         for sym, name in symbols:
             r = self.analyze_single_stock_enhanced(sym, name, days_back=days_back)
@@ -1073,17 +1139,17 @@ class EnhancedIntegratedAnalyzer:
             
             # 품질점수별 파이프라인 분기
             if est_q is not None:
-                if est_q >= 1.0:
+                if est_q >= self.QUALITY_EXCELLENT:
                     quality_pipeline["excellent"] += 1
                     quality_tag = "🏆 우수"
-                elif est_q >= 0.65:
+                elif est_q >= self.QUALITY_GOOD:
                     quality_pipeline["good"] += 1
                     quality_tag = "⚠️ 보통"
                 else:
                     quality_pipeline["poor"] += 1
                     quality_tag = "❌ 낮음"
-                    # 품질점수 < 0.5 종목에 (low Q) 플래그 추가
-                    if est_q < 0.5:
+                    # 품질점수 < QUALITY_LOWQ 종목에 (low Q) 플래그 추가
+                    if est_q < self.QUALITY_LOWQ:
                         quality_tag += " (low Q)"
             else:
                 quality_tag = "N/A"
@@ -1097,13 +1163,13 @@ class EnhancedIntegratedAnalyzer:
             # 메트릭 집계
             if op_ct == 0: 
                 no_data_counts["opinion"] += 1
-            if est_q is not None and est_q < 0.5: 
+            if est_q is not None and est_q < self.QUALITY_LOWQ: 
                 no_data_counts["estimate"] += 1
             if not fin_ok: 
                 no_data_counts["financial"] += 1
         
         logger.info(f"✅ 배치 완료 | 의견無:{no_data_counts['opinion']} | 저품질추정:{no_data_counts['estimate']} | 재무無:{no_data_counts['financial']}")
-        logger.info(f"📈 품질분포 | 우수(1.00):{quality_pipeline['excellent']} | 보통(0.65):{quality_pipeline['good']} | 낮음(0.30):{quality_pipeline['poor']}")
+        logger.info(f"📈 품질분포 | 우수({self.QUALITY_EXCELLENT}):{quality_pipeline['excellent']} | 보통({self.QUALITY_GOOD}):{quality_pipeline['good']} | 낮음({self.QUALITY_LOWQ}):{quality_pipeline['poor']}")
         
         # 요약 메트릭 CSV 저장
         self._save_summary_metrics(results)
@@ -1165,11 +1231,19 @@ class EnhancedIntegratedAnalyzer:
             if preset_name in presets:
                 preset_weights = presets[preset_name]
                 self.weights.update(preset_weights)
-                # ✅ 프리셋 적용 후 가중치 정규화
-                total = sum(self.weights.values()) or 100.0
-                self.weights = {k: (v * 100.0 / total) for k, v in self.weights.items()}
+                # 🔁 _effective_weights()와 동일 개념으로 정규화(보너스 포함)
+                base = dict(self.weights)
+                vb = float(base.pop('valuation_bonus', 0) or 0)
+                total = sum(base.values()) + vb
+                if total > 0:
+                    scale = 100.0 / total
+                    base = {k: v * scale for k, v in base.items()}
+                    vb = vb * scale
+                    # 저장 형식은 원본 형태 유지(보너스 되돌려 넣음)
+                    base['valuation_bonus'] = vb
+                    self.weights = base
                 console.print(f"✅ 투자 철학 프리셋 '{preset_name}' 적용 완료")
-                console.print(f"   📊 새로운 가중치: {self.weights}")
+                console.print(f"   📊 새로운 가중치(보너스 포함 100%): {self.weights}")
             else:
                 console.print(f"⚠️ 투자 철학 프리셋 '{preset_name}'을 찾을 수 없습니다. 기본값 사용.")
                 
@@ -1196,12 +1270,12 @@ app = typer.Typer(help="향상된 통합 분석 병렬 처리 시스템")
 
 @app.command()
 def test_enhanced_parallel_analysis(
-    count: int = typer.Option(15, help="분석할 종목 수 (기본값: 15개)"),
-    display: int = typer.Option(10, help="표시할 결과 수 (기본값: 10개)"),
-    max_workers: int = typer.Option(2, help="병렬 워커 수 (기본값: 2개, 재무비율 분석으로 인한 높은 API 사용량 고려)"),
-    min_market_cap: float = typer.Option(500, help="최소 시가총액 (억원, 기본값: 500억원)"),
-    min_score: float = typer.Option(50, help="최소 향상된 통합 점수 (기본값: 50점)"),
-    days_back: int = typer.Option(30, help="투자의견 분석 기간 (일, 기본값: 30일)"),
+    count: int = typer.Option(15, callback=_positive_int, help="분석할 종목 수"),
+    display: int = typer.Option(10, callback=_positive_int, help="표시할 결과 수"),
+    max_workers: int = typer.Option(2, callback=_positive_int, help="병렬 워커 수 (KIS TPS 고려해 2~4 권장)"),
+    min_market_cap: float = typer.Option(500, callback=_positive_float, help="최소 시가총액(억원)"),
+    min_score: float = typer.Option(50, callback=_positive_float, help="최소 향상 점수"),
+    days_back: int = typer.Option(30, callback=_positive_int, help="투자의견 분석 기간(일)"),
     investment_philosophy: str = typer.Option("balanced", help="투자 철학 프리셋 (balanced, value_focused, growth_focused, consensus_focused, stability_focused)"),
     log_file: str = typer.Option(None, help="로그 파일 경로 (예: logs/test_analysis.log)"),
     log_level: str = typer.Option("INFO", help="로그 레벨 (DEBUG, INFO, WARNING, ERROR)")
@@ -1425,6 +1499,25 @@ def enhanced_top_picks(
 ):
     """향상된 통합 분석을 통한 최고 투자 후보 검색 (고급 재시도 로직 적용)"""
     
+    # OptionInfo 객체 처리
+    def safe_value(v, default):
+        if hasattr(v, 'value'):
+            return v.value
+        elif hasattr(v, '__class__') and 'OptionInfo' in str(v.__class__):
+            return default
+        else:
+            return v
+    
+    count = safe_value(count, 20)
+    min_score = safe_value(min_score, 60)
+    max_picks = safe_value(max_picks, 5)
+    min_market_cap = safe_value(min_market_cap, 1000)
+    days_back = safe_value(days_back, 30)
+    export_csv = safe_value(export_csv, False)
+    investment_philosophy = safe_value(investment_philosophy, "balanced")
+    log_file = safe_value(log_file, None)
+    log_level = safe_value(log_level, "INFO")
+    
     # 로깅 설정 초기화
     if log_file:
         setup_logging(log_file, log_level)
@@ -1553,7 +1646,7 @@ def enhanced_top_picks(
                         else max(0.0, min(10.0, float((pick.get('risk_analysis', {}) or {}).get('risk_score') or 0)))
                     ),
                     'opinion_score': breakdown.get('투자의견', 0),
-                    'financial_score': breakdown.get('재무건전성', 0) + breakdown.get('밸류에이션', 0),
+                    'estimate_score': breakdown.get('재무건전성', 0) + breakdown.get('밸류에이션', 0),
                     'financial_ratio_score': breakdown.get('재무비율', 0),
                     'growth_score': breakdown.get('성장성', 0),
                     'scale_score': breakdown.get('규모', 0)
@@ -1579,20 +1672,31 @@ def show_config():
     
     console.print("🔧 [bold]현재 향상된 통합 분석 설정[/bold]")
     
-    # 가중치 표시
-    console.print("\n📊 [bold]분석 요소별 가중치[/bold]")
+    # 실제 계산용 가중치 표시 (보너스 포함)
+    base_w, vb = analyzer._effective_weights()
+    
+    console.print("\n📊 [bold]분석 요소별 가중치 (실제 계산 반영)[/bold]")
     table = Table(title="가중치 설정")
     table.add_column("분석 요소", style="cyan")
     table.add_column("가중치", style="green", justify="right")
     table.add_column("설명", style="white")
     
-    table.add_row("투자의견", f"{analyzer.weights['opinion_analysis']}%", "증권사 투자의견 및 컨센서스")
-    table.add_row("추정실적", f"{analyzer.weights['estimate_analysis']}%", "미래 실적 전망 및 투자지표")
-    table.add_row("재무비율", f"{analyzer.weights['financial_ratios']}%", "ROE, ROA, 부채비율, 순이익률, 유동비율")
-    table.add_row("성장성", f"{analyzer.weights['growth_analysis']}%", "매출액/영업이익 성장률")
-    table.add_row("규모", f"{analyzer.weights['scale_analysis']}%", "시가총액 기반 안정성")
+    table.add_row("투자의견", f"{base_w.get('opinion_analysis', 0):.2f}%", "증권사 투자의견 및 컨센서스")
+    table.add_row("추정실적", f"{base_w.get('estimate_analysis', 0):.2f}%", "미래 실적 전망 및 투자지표")
+    table.add_row("재무비율", f"{base_w.get('financial_ratios', 0):.2f}%", "ROE, ROA, 부채비율, 순이익률, 유동비율")
+    table.add_row("성장성", f"{base_w.get('growth_analysis', 0):.2f}%", "매출액/영업이익 성장률")
+    table.add_row("규모", f"{base_w.get('scale_analysis', 0):.2f}%", "시가총액 기반 안정성")
+    
+    if vb > 0:
+        table.add_row("저평가 보너스", f"{vb:.2f}%", "PER/PBR/ROE-대비-PER 보너스")
     
     console.print(table)
+    
+    # 합계 표시 (가독성 향상)
+    sum_base = sum(base_w.values())
+    total_with_bonus = sum_base + vb
+    console.print(f"\n합계(보너스 포함): {total_with_bonus:.2f}%  "
+                  f"[dim](기본:{sum_base:.2f}% + 보너스:{vb:.2f}%)[/dim]")
     
     # 재무비율 세부 가중치 표시
     console.print("\n💰 [bold]재무비율 세부 가중치 (30점 만점 내에서)[/bold]")
@@ -1628,8 +1732,16 @@ def show_config():
             grade_table.add_row(label_map[grade], f"{threshold}점 이상")
     
     # F 기준은 최저 등급으로 안내(일관성 유지)
-    f_max = min(v for k, v in analyzer.grade_thresholds.items() if k != 'F')
-    grade_table.add_row("F", f"{analyzer.grade_thresholds.get('F', 0)}점 이상 ~ {f_max}점 미만")
+    try:
+        others = [v for k, v in analyzer.grade_thresholds.items() if k != 'F']
+        f_max = min(others) if others else 0
+        f_min = analyzer.grade_thresholds.get('F', 0)
+        if others:
+            grade_table.add_row("F", f"{f_min}점 이상 ~ {f_max}점 미만")
+        else:
+            grade_table.add_row("F", f"{f_min}점 이상 (다른 등급 설정 없음)")
+    except Exception:
+        grade_table.add_row("F", f"{analyzer.grade_thresholds.get('F', 0)}점 이상")
     console.print(grade_table)
 
 @app.command()

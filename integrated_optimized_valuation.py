@@ -246,8 +246,27 @@ def integrated_optimized_valuation(
                         except:
                             stock_name = symbol
                     
-                    # 상세 분석 실행
-                    result = analyzer.analyze_single_stock_enhanced(symbol, stock_name)
+                    # 상세 분석 실행 (타임아웃 적용)
+                    console.print(f"🔍 {symbol} ({stock_name}) 분석 시작...")
+                    try:
+                        # Windows 호환 타임아웃 적용 (ThreadPoolExecutor 사용)
+                        from concurrent.futures import ThreadPoolExecutor, TimeoutError as FutureTimeout
+                        import time
+                        
+                        start_time = time.time()
+                        with ThreadPoolExecutor(max_workers=1) as executor:
+                            future = executor.submit(analyzer.analyze_single_stock_enhanced, symbol, stock_name)
+                            try:
+                                result = future.result(timeout=30)  # 30초 타임아웃
+                                elapsed = time.time() - start_time
+                                console.print(f"✅ {symbol} 분석 완료 ({elapsed:.1f}초)")
+                            except FutureTimeout:
+                                console.print(f"[red]⏱️ {symbol} 분석 타임아웃 (30초 초과)[/red]")
+                                result = None
+                        
+                    except Exception as e:
+                        console.print(f"[red]❌ {symbol} 분석 오류: {e}[/red]")
+                        result = None
                     
                     if result and result.get('status') == 'success':
                         analysis_results.append({

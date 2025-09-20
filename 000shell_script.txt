@@ -22,3 +22,5 @@ python main.py optimized-valuation --count 3 --iterations 5 --period 3
 python main.py optimized-valuation --count 30 --iterations 10 --period 12
 
 python main.py optimized-valuation --count 3 --period 3
+
+python main.py optimized-valuation --count 50 --min-market-cap 1000 --exclude-preferred

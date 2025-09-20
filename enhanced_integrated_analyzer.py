@@ -949,6 +949,24 @@ class EnhancedIntegratedAnalyzer:
             # 재무비율 데이터 수집 (이미 고급 재시도 로직 적용됨)
             financial_data = self.get_financial_ratios_data(symbol)
             
+            # PER 데이터 추가 (estimate_analysis에서 가져오기, 없으면 0으로 초기화)
+            if estimate_analysis and 'valuation_analysis' in estimate_analysis:
+                valuation = estimate_analysis['valuation_analysis']
+                financial_data.update({
+                    'per': valuation.get('per', {}).get('value', 0) if 'per' in valuation else 0,
+                    'pbr': 0,  # PBR은 KIS API에서 조회
+                    'eps': 0,  # EPS는 KIS API에서 조회
+                    'bps': 0   # BPS는 KIS API에서 조회
+                })
+            else:
+                # 추정실적 데이터가 없으면 0으로 초기화
+                financial_data.update({
+                    'per': 0,
+                    'pbr': 0,
+                    'eps': 0,
+                    'bps': 0
+                })
+            
             # 시가총액/현재가 (KOSPI 데이터 O(1) 룩업)
             market_cap = 0
             current_price = 0
@@ -971,6 +989,19 @@ class EnhancedIntegratedAnalyzer:
                         w52_low = float(price_info.get('w52_low', 0) or 0)
                         if w52_high > w52_low > 0:
                             price_position = ((current_price - w52_low) / (w52_high - w52_low)) * 100
+                        
+                        # PER, PBR, EPS, BPS 데이터 추가 (KIS API에서 직접 조회)
+                        per_value = price_info.get('per', 0)
+                        pbr_value = price_info.get('pbr', 0)
+                        eps_value = price_info.get('eps', 0)
+                        bps_value = price_info.get('bps', 0)
+                        
+                        financial_data.update({
+                            'per': float(per_value) if per_value is not None and per_value != '' else 0,
+                            'pbr': float(pbr_value) if pbr_value is not None and pbr_value != '' else 0,
+                            'eps': float(eps_value) if eps_value is not None and eps_value != '' else 0,
+                            'bps': float(bps_value) if bps_value is not None and bps_value != '' else 0
+                        })
                         break
                     else:
                         if attempt < max_retries:

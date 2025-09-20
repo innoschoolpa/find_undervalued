@@ -21,8 +21,6 @@ from rich.panel import Panel
 
 # 프로젝트 모듈 임포트
 from enhanced_integrated_analyzer import EnhancedIntegratedAnalyzer
-from backtesting_engine import BacktestingEngine
-from market_risk_analyzer import MarketRiskAnalyzer, create_market_risk_analyzer
 from kospi_master_download import kospi_master_download, get_kospi_master_dataframe
 
 app = typer.Typer()
@@ -252,32 +250,229 @@ def find_undervalued_stocks(
 @app.command(name="optimized-valuation")
 def find_optimized_undervalued_stocks(
     symbols_str: str = typer.Option(None, "--symbols", "-s", help="분석할 종목 코드 (쉼표로 구분). 미입력시 시가총액 상위 종목 자동 선정"),
-    count: int = typer.Option(100, "--count", "-c", help="동적 로드시 가져올 종목 수 (기본값: 100개)"),
+    count: int = typer.Option(50, "--count", "-c", help="동적 로드시 가져올 종목 수 (기본값: 50개)"),
     min_market_cap: float = typer.Option(1000, "--min-market-cap", help="최소 시가총액 (억원, 기본값: 1000억원)"),
-    optimization_iterations: int = typer.Option(30, "--iterations", "-i", help="최적화 반복 횟수 (기본값: 30회)"),
-    backtest_period: str = typer.Option("12", "--period", "-p", help="백테스팅 기간 (개월, 기본값: 12개월)"),
-    min_sharpe_ratio: float = typer.Option(0.3, "--min-sharpe", help="최소 샤프 비율 임계값 (기본값: 0.3)"),
-    min_return: float = typer.Option(0.05, "--min-return", help="최소 수익률 임계값 (기본값: 0.05 = 5%)"),
-    exclude_preferred: bool = typer.Option(True, "--exclude-preferred", help="우선주 제외 여부 (기본값: True)"),
-    use_ensemble_params: bool = typer.Option(False, "--ensemble", help="앙상블 파라미터 사용 여부 (기본값: False)"),
-    use_backtest_driven: bool = typer.Option(True, "--backtest-driven", help="백테스팅 기반 추천 사용 여부 (기본값: True)")
+    exclude_preferred: bool = typer.Option(True, "--exclude-preferred", help="우선주 제외 여부 (기본값: True)")
 ):
-    """백테스팅 결과를 반영하여 최적의 저평가 가치주를 추천합니다. (통합 개선 버전)"""
+    """최적화된 저평가 가치주를 추천합니다. (백테스팅 제거 버전)"""
     
-    # 통합된 최적화 시스템 실행
-    from integrated_optimized_valuation import integrated_optimized_valuation
-    integrated_optimized_valuation(
-        symbols_str=symbols_str,
-        count=count,
-        min_market_cap=min_market_cap,
-        optimization_iterations=optimization_iterations,
-        backtest_period=backtest_period,
-        min_sharpe_ratio=min_sharpe_ratio,
-        min_return=min_return,
-        exclude_preferred=exclude_preferred,
-        use_ensemble_params=use_ensemble_params,
-        use_backtest_driven=use_backtest_driven
-    )
+    console.print("🚀 [bold green]최적화 저평가 가치주 추천 시스템[/bold green]")
+    console.print("=" * 70)
+    console.print("💡 [bold cyan]종합 분석 → 가치 평가 → 추천[/bold cyan]")
+    console.print("=" * 70)
+    
+    # 0단계: KOSPI 마스터 데이터 자동 업데이트
+    console.print("\n🔄 [bold yellow]0단계: KOSPI 마스터 데이터 자동 업데이트[/bold yellow]")
+    try:
+        # 기존 파일 확인
+        kospi_file = 'kospi_code.xlsx'
+        if os.path.exists(kospi_file):
+            console.print("📊 기존 KOSPI 마스터 데이터를 발견했습니다.")
+            console.print("🔄 최신 데이터로 업데이트 중...")
+        else:
+            console.print("📥 KOSPI 마스터 데이터를 다운로드 중...")
+        
+        # KOSPI 마스터 데이터 다운로드 및 업데이트
+        kospi_master_download(os.getcwd(), verbose=False)
+        df = get_kospi_master_dataframe(os.getcwd())
+        try:
+            df.to_excel(kospi_file, index=False)
+        except ImportError as e:
+            console.print("[red]openpyxl 패키지가 필요합니다: pip install openpyxl[/red]")
+            raise
+        console.print(f"✅ KOSPI 마스터 데이터 업데이트 완료: {len(df)}개 종목")
+        
+    except Exception as e:
+        console.print(f"⚠️ KOSPI 마스터 데이터 업데이트 실패: {e}")
+        console.print("기존 데이터로 계속 진행합니다...")
+    
+    # 1단계: 분석 대상 종목 선정
+    console.print("\n🔍 [bold yellow]1단계: 분석 대상 종목 선정[/bold yellow]")
+    
+    # 분석기 초기화
+    analyzer = EnhancedIntegratedAnalyzer()
+    
+    if symbols_str is None or not symbols_str:
+        try:
+            # 시가총액 상위 종목 조회
+            top_stocks = analyzer.get_top_market_cap_stocks(
+                count=count,
+                min_market_cap=min_market_cap
+            )
+            
+            if not top_stocks:
+                console.print("[red]❌ 조건에 맞는 종목을 찾을 수 없습니다.[/red]")
+                return
+            
+            # 우선주 제외 옵션 반영
+            if exclude_preferred:
+                filtered = []
+                for stock in top_stocks:
+                    name = stock.get("name") or stock.get("stock_name") or ""
+                    if not any(suffix in name for suffix in ("우", "우B", "우(전환)", "우선", "1우", "2우")):
+                        filtered.append(stock)
+                top_stocks = filtered or top_stocks  # 전부 빠지면 원본 유지
+            
+            # 분석할 종목들
+            symbols = [stock['symbol'] for stock in top_stocks]
+            console.print(f"✅ 시가총액 상위 {len(symbols)}개 종목 선정 완료")
+            console.print(f"📊 조건: {len(symbols)}개 분석, 최소 시가총액 {min_market_cap:.0f}억원")
+            
+        except Exception as e:
+            console.print(f"[red]❌ 종목 선정 실패: {e}[/red]")
+            return
+    else:
+        try:
+            symbols = [s.strip() for s in symbols_str.split(',')]
+            console.print(f"📋 지정된 종목 {len(symbols)}개 분석: {', '.join(symbols[:5])}{'...' if len(symbols) > 5 else ''}")
+        except Exception as e:
+            console.print(f"[red]❌ 종목 코드 처리 실패: {e}[/red]")
+            return
+    
+    # 2단계: 종목별 상세 분석 실행
+    console.print("\n📊 [bold yellow]2단계: 종목별 상세 분석 실행[/bold yellow]")
+    
+    analysis_results = []
+    
+    with Progress(console=console) as progress:
+        task = progress.add_task("[cyan]종목 분석 중...", total=len(symbols))
+        
+        for symbol in symbols:
+            try:
+                # 종목명 조회
+                if hasattr(analyzer, '_get_stock_name'):
+                    stock_name = analyzer._get_stock_name(symbol)
+                else:
+                    try:
+                        if hasattr(analyzer, '_kospi_index') and symbol in analyzer._kospi_index:
+                            stock_name = analyzer._kospi_index[symbol].한글명
+                        else:
+                            stock_name = symbol
+                    except:
+                        stock_name = symbol
+                
+                # 상세 분석 실행 (타임아웃 적용)
+                console.print(f"🔍 {symbol} ({stock_name}) 분석 시작...")
+                try:
+                    from concurrent.futures import ThreadPoolExecutor, TimeoutError as FutureTimeout
+                    t0 = time.time()
+                    with ThreadPoolExecutor(max_workers=1) as executor:
+                        future = executor.submit(analyzer.analyze_single_stock_enhanced, symbol, stock_name)
+                        try:
+                            result = future.result(timeout=30)
+                            elapsed = time.time() - t0
+                            console.print(f"✅ {symbol} 분석 완료 ({elapsed:.1f}초)")
+                        except FutureTimeout:
+                            console.print(f"[red]⏱️ {symbol} 분석 타임아웃 (30초 초과)[/red]")
+                            result = None
+                except Exception as e:
+                    console.print(f"[red]❌ {symbol} 분석 오류: {e}[/red]")
+                    result = None
+                
+                if result and result.get('status') == 'success':
+                    analysis_results.append({
+                        'symbol': symbol,
+                        'name': stock_name,
+                        'enhanced_score': result.get('enhanced_score', 0),
+                        'enhanced_grade': result.get('enhanced_grade', 'F'),
+                        'financial_data': result.get('financial_data', {}),
+                        'opinion_analysis': result.get('opinion_analysis', {}),
+                        'estimate_analysis': result.get('estimate_analysis', {}),
+                        'current_price': result.get('current_price', 0),
+                        'market_cap': result.get('market_cap', 0),
+                        'risk_analysis': result.get('risk_analysis', {})
+                    })
+                
+                progress.update(task, advance=1, description=f"[cyan]분석 중... {symbol} 완료")
+                
+            except Exception as e:
+                progress.update(task, advance=1, description=f"[red]분석 중... {symbol} 실패")
+                continue
+    
+    if not analysis_results:
+        console.print("[red]❌ 분석 결과가 없습니다.[/red]")
+        return
+    
+    # 3단계: 종목 랭킹 및 추천
+    console.print("\n🏆 [bold yellow]3단계: 종목 랭킹 및 추천[/bold yellow]")
+    
+    # 점수 기준으로 정렬
+    analysis_results.sort(key=lambda x: x['enhanced_score'], reverse=True)
+    
+    # 상위 count개 종목 표시
+    top_picks = analysis_results[:count]
+    
+    console.print(f"\n📈 [bold green]TOP {len(top_picks)} 최적화 저평가 가치주 추천[/bold green]")
+    console.print(f"💡 {len(analysis_results)}개 종목 분석 후 상위 {len(top_picks)}개 추천")
+    
+    recommendation_table = Table(title="최적화 저평가 가치주 추천")
+    recommendation_table.add_column("순위", style="bold cyan", justify="center")
+    recommendation_table.add_column("종목코드", style="cyan")
+    recommendation_table.add_column("종목명", style="white")
+    recommendation_table.add_column("종합점수", style="bold green", justify="right")
+    recommendation_table.add_column("등급", style="blue", justify="center")
+    recommendation_table.add_column("현재가", style="magenta", justify="right")
+    recommendation_table.add_column("시가총액", style="cyan", justify="right")
+    recommendation_table.add_column("PER", style="yellow", justify="right")
+    recommendation_table.add_column("PBR", style="yellow", justify="right")
+    recommendation_table.add_column("ROE", style="yellow", justify="right")
+    
+    for i, stock in enumerate(top_picks, 1):
+        financial_data = stock.get('financial_data', {})
+        recommendation_table.add_row(
+            str(i),
+            stock['symbol'],
+            stock['name'][:8] + "..." if len(stock['name']) > 8 else stock['name'],
+            f"{stock['enhanced_score']:.1f}",
+            stock['enhanced_grade'],
+            f"{stock['current_price']:,}원" if stock['current_price'] > 0 else "N/A",
+            f"{stock['market_cap']:,}억원" if stock['market_cap'] > 0 else "N/A",
+            f"{financial_data.get('per', 0):.2f}" if financial_data.get('per', 0) != 0 else "N/A",
+            f"{financial_data.get('pbr', 0):.2f}" if financial_data.get('pbr', 0) != 0 else "N/A",
+            f"{financial_data.get('roe', 0):.2f}%" if financial_data.get('roe', 0) != 0 else "N/A"
+        )
+    
+    console.print(recommendation_table)
+    
+    # 4단계: 결과 저장
+    try:
+        def serialize_recommendations(recommendations):
+            serialized = []
+            for rec in recommendations:
+                serialized_rec = {
+                    'symbol': rec.get('symbol', ''),
+                    'name': rec.get('name', ''),
+                    'enhanced_score': rec.get('enhanced_score', 0),
+                    'enhanced_grade': rec.get('enhanced_grade', 'F'),
+                    'current_price': rec.get('current_price', 0),
+                    'market_cap': rec.get('market_cap', 0),
+                    'financial_data': rec.get('financial_data', {})
+                }
+                serialized.append(serialized_rec)
+            return serialized
+        
+        result_data = {
+            'timestamp': datetime.now().isoformat(),
+            'method': 'optimized_valuation_no_backtest',
+            'settings': {
+                'symbols': symbols,
+                'min_market_cap': min_market_cap,
+                'exclude_preferred': exclude_preferred
+            },
+            'recommendations': serialize_recommendations(top_picks)
+        }
+        
+        filename = f"optimized_valuation_{int(datetime.now().timestamp())}.json"
+        with open(filename, 'w', encoding='utf-8') as f:
+            json.dump(result_data, f, ensure_ascii=False, indent=2)
+        
+        console.print(f"\n💾 [bold green]분석 결과가 {filename}에 저장되었습니다.[/bold green]")
+        
+    except Exception as e:
+        console.print(f"[yellow]⚠️ 결과 저장 실패: {e}[/yellow]")
+    
+    console.print("\n🎉 [bold green]최적화 저평가 가치주 추천 완료![/bold green]")
+    console.print("💡 [bold cyan]종합 분석을 통해 추천했습니다.[/bold cyan]")
 
 @app.command(name="update-kospi")
 def update_kospi_data():

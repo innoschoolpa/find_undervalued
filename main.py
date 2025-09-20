@@ -2,530 +2,395 @@
 # -*- coding: utf-8 -*-
 
 """
-통합 저평가 가치주 분석 시스템
-- 백테스팅 기반 최적화 추천 (기본값)
-- 기존 방식 지원 (옵션)
+Integrated Undervalued Stock Analysis System
+- Backtesting-based optimization recommendation (default)
+- Support for conventional methods (optional)
 """
 
 import os
 import json
 import time
-from datetime import datetime, timedelta
-from typing import List, Dict, Any, Optional
+from datetime import datetime
+from typing import List, Dict, Any
+from concurrent.futures import ThreadPoolExecutor, TimeoutError as FutureTimeout
 
 import typer
 from rich.console import Console
 from rich.table import Table
 from rich.progress import Progress
-from rich.panel import Panel
 
-# 프로젝트 모듈 임포트
+# Project module imports
 from enhanced_integrated_analyzer import EnhancedIntegratedAnalyzer
 from kospi_master_download import kospi_master_download, get_kospi_master_dataframe
 
 app = typer.Typer()
 console = Console()
 
-def calculate_valuation_score(stock_info: Dict[str, Any]) -> float:
-    """종목 정보를 바탕으로 가치 점수를 계산합니다."""
-    
-    score = 0
-    
-    # PER 점수 (낮을수록 좋음)
-    per = stock_info.get('per', 0)
-    if per > 0:
-        if per < 10:
-            score += 30
-        elif per < 15:
-            score += 25
-        elif per < 20:
-            score += 20
-        elif per < 30:
-            score += 15
-        else:
-            score += 5
-    
-    # PBR 점수 (낮을수록 좋음)
-    pbr = stock_info.get('pbr', 0)
-    if pbr > 0:
-        if pbr < 1:
-            score += 25
-        elif pbr < 1.5:
-            score += 20
-        elif pbr < 2:
-            score += 15
-        elif pbr < 3:
-            score += 10
-        else:
-            score += 5
-    
-    # ROE 점수 (높을수록 좋음)
-    roe = stock_info.get('roe', 0)
-    if roe > 0:
-        if roe > 20:
-            score += 20
-        elif roe > 15:
-            score += 15
-        elif roe > 10:
-            score += 10
-        elif roe > 5:
-            score += 5
-    
-    # 시가총액 점수 (적당한 크기)
-    market_cap = stock_info.get('market_cap', 0)
-    if market_cap > 0:
-        if 1000 <= market_cap <= 50000:  # 1천억 ~ 5조
-            score += 15
-        elif 500 <= market_cap < 1000 or 50000 < market_cap <= 100000:
-            score += 10
-        else:
-            score += 5
-    
-    # 거래량 점수 (활발한 거래)
-    volume = stock_info.get('volume', 0)
-    if volume > 0:
-        if volume > 1000000:  # 100만주 이상
-            score += 10
-        elif volume > 500000:  # 50만주 이상
-            score += 5
+# --- Constants ---
+PREFERRED_STOCK_SUFFIXES = {"우", "우B", "우(전환)", "우선", "1우", "2우"}
+ANALYSIS_TIMEOUT_SECONDS = 30
 
+# --- Helper Functions ---
+
+def serialize_for_json(obj):
+    """Convert objects to JSON-serializable format"""
+    if hasattr(obj, '__dict__'):
+        # Convert objects with __dict__ to dictionary
+        return {key: serialize_for_json(value) for key, value in obj.__dict__.items()}
+    elif isinstance(obj, dict):
+        return {key: serialize_for_json(value) for key, value in obj.items()}
+    elif isinstance(obj, list):
+        return [serialize_for_json(item) for item in obj]
+    elif isinstance(obj, (str, int, float, bool, type(None))):
+        return obj
+    else:
+        # For other types, try to convert to string
+        return str(obj)
+
+def _update_kospi_master_data() -> bool:
+    """
+    Downloads and updates the KOSPI master data file.
+
+    Returns:
+        bool: True if the update was successful, False otherwise.
+    """
+    console.print("\n🔄 [bold yellow]Step 0: Auto-updating KOSPI Master Data[/bold yellow]")
+    kospi_file = 'kospi_code.xlsx'
+    try:
+        if os.path.exists(kospi_file):
+            console.print("📊 Found existing KOSPI master data. Updating...")
+        else:
+            console.print("📥 Downloading KOSPI master data...")
+
+        kospi_master_download(os.getcwd(), verbose=False)
+        df = get_kospi_master_dataframe(os.getcwd())
+        df.to_excel(kospi_file, index=False)
+        console.print(f"✅ KOSPI master data update complete: {len(df)} stocks")
+        return True
+    except ImportError:
+        console.print("[red]Error: 'openpyxl' package is required. Please run 'pip install openpyxl'[/red]")
+        return False
+    except Exception as e:
+        console.print(f"⚠️ KOSPI master data update failed: {e}")
+        console.print("Proceeding with existing data if available...")
+        return False
+
+def _get_stock_name(analyzer: EnhancedIntegratedAnalyzer, symbol: str) -> str:
+    """
+    A unified function to retrieve the stock name using available methods in the analyzer.
+    
+    Args:
+        analyzer: The instance of the analyzer class.
+        symbol: The stock symbol.
+
+    Returns:
+        The stock name or the symbol itself as a fallback.
+    """
+    # Ensure symbol is string and properly formatted
+    symbol_str = str(symbol).zfill(6)  # Pad with zeros to 6 digits
+    
+    # Try to get from KOSPI index first
+    if hasattr(analyzer, '_kospi_index') and analyzer._kospi_index:
+        try:
+            # Try both original symbol and zero-padded symbol
+            for test_symbol in [symbol_str, str(symbol)]:
+                if test_symbol in analyzer._kospi_index:
+                    row = analyzer._kospi_index[test_symbol]
+                    if hasattr(row, '한글명'):
+                        return str(row.한글명)
+                    elif hasattr(row, 'name'):
+                        return str(row.name)
+        except Exception as e:
+            console.print(f"[yellow]⚠️ Error getting stock name for {symbol}: {e}[/yellow]")
+    
+    # Try analyzer's internal method if available
+    if hasattr(analyzer, '_get_stock_name'):
+        try:
+            return analyzer._get_stock_name(symbol)
+        except Exception:
+            pass  # Fallback to the next method
+    
+    # If all else fails, return the symbol
+    return symbol
+
+def _run_analysis_on_symbols(analyzer: EnhancedIntegratedAnalyzer, symbols: List[str]) -> List[Dict[str, Any]]:
+    """
+    Runs the enhanced analysis for a list of stock symbols with a progress bar and timeout.
+
+    Args:
+        analyzer: The instance of the analyzer class.
+        symbols: A list of stock symbols to analyze.
+
+    Returns:
+        A list of dictionaries, where each dictionary contains the analysis result for a stock.
+    """
+    results = []
+    with Progress(console=console) as progress:
+        task = progress.add_task("[cyan]Analyzing stocks...", total=len(symbols))
+        
+        for symbol in symbols:
+            stock_name = _get_stock_name(analyzer, symbol)
+            console.print(f"🔍 Analyzing {symbol} ({stock_name})...")
+            
+            result_data = None
+            try:
+                with ThreadPoolExecutor(max_workers=1) as executor:
+                    start_time = time.time()
+                    future = executor.submit(analyzer.analyze_single_stock_enhanced, symbol, stock_name)
+                    result_data = future.result(timeout=ANALYSIS_TIMEOUT_SECONDS)
+                    elapsed = time.time() - start_time
+                    console.print(f"✅ Analysis for {symbol} complete ({elapsed:.1f}s)")
+            except FutureTimeout:
+                console.print(f"[red]⏱️ Analysis for {symbol} timed out (>{ANALYSIS_TIMEOUT_SECONDS}s)[/red]")
+            except Exception as e:
+                console.print(f"[red]❌ Error analyzing {symbol}: {e}[/red]")
+
+            if result_data and result_data.get('status') == 'success':
+                results.append(result_data)
+            
+            progress.update(task, advance=1)
+            
+    return results
+
+
+def calculate_valuation_score(stock_info: Dict[str, Any]) -> float:
+    """
+    Calculates a valuation score for a stock based on its financial metrics.
+
+    Args:
+        stock_info: A dictionary containing financial data like per, pbr, roe, etc.
+
+    Returns:
+        The calculated valuation score.
+    """
+    score = 0.0
+    
+    # Scoring tiers: (metric_value, [(threshold, points), ...])
+    scoring_map = {
+        'per': (stock_info.get('per', 0), [(10, 30), (15, 25), (20, 20), (30, 15)]),
+        'pbr': (stock_info.get('pbr', 0), [(1, 25), (1.5, 20), (2, 15), (3, 10)]),
+        'roe': (stock_info.get('roe', 0), [(-float('inf'), 0), (5, 5), (10, 10), (15, 15), (20, 20)]), # Reversed for increasing score
+        'market_cap': (stock_info.get('market_cap', 0), [
+            (500, 10), (1000, 15), (50000, 10), (100000, 5) # Score for ranges
+        ]),
+        'volume': (stock_info.get('volume', 0), [(-float('inf'), 0), (500000, 5), (1000000, 10)]) # Reversed for increasing score
+    }
+
+    # PER and PBR (lower is better)
+    for metric in ['per', 'pbr']:
+        value, tiers = scoring_map[metric]
+        if value > 0:
+            for threshold, points in tiers:
+                if value < threshold:
+                    score += points
+                    break
+            else: # If no break
+                score += 5
+
+    # ROE and Volume (higher is better)
+    for metric in ['roe', 'volume']:
+        value, tiers = scoring_map[metric]
+        points_to_add = 0
+        if value > 0:
+            for threshold, points in reversed(tiers): # Check from highest to lowest
+                 if value > threshold:
+                     points_to_add = points
+                     break
+        score += points_to_add
+
+    # Market Cap (specific ranges are better)
+    market_cap, tiers = scoring_map['market_cap']
+    if 1000 <= market_cap <= 50000:
+        score += 15
+    elif 500 <= market_cap < 1000 or 50000 < market_cap <= 100000:
+        score += 10
+    elif market_cap > 0:
+        score += 5
+    
     return round(score, 2)
+
+# --- Typer Commands ---
 
 @app.command(name="find-undervalued")
 def find_undervalued_stocks(
-    symbols_str: str = typer.Option(None, "--symbols", "-s", help="분석할 종목 코드 (쉼표로 구분). 미입력시 시가총액 상위 종목 사용"),
-    count: int = typer.Option(15, "--count", "-c", help="동적 로드시 가져올 종목 수 (기본값: 15개)"),
-    min_market_cap: float = typer.Option(500, "--min-market-cap", help="최소 시가총액 (억원, 기본값: 500억원)"),
-    history: bool = typer.Option(False, "--history", "-h", help="일봉 데이터도 함께 조회합니다.")
+    symbols_str: str = typer.Option(None, "--symbols", "-s", help="Comma-separated stock symbols. Fetches top market cap stocks if empty."),
+    count: int = typer.Option(15, "--count", "-c", help="Number of stocks to fetch if symbols are not provided."),
+    min_market_cap: float = typer.Option(500, "--min-market-cap", help="Minimum market cap in 100M KRW (e.g., 500 for 50B KRW)."),
 ):
-    """지정된 종목들의 가치를 분석하고 저평가된 순서로 정렬하여 보여줍니다."""
-    
-    # 종목 코드 처리
-    if symbols_str is None:
-        # 동적으로 시가총액 상위 종목 가져오기
+    """Analyzes and ranks specified stocks by a custom valuation score."""
+    analyzer = EnhancedIntegratedAnalyzer()
+    symbols = []
+
+    if symbols_str:
+        symbols = [s.strip() for s in symbols_str.split(',')]
+        console.print(f"📊 [bold blue]Analyzing {len(symbols)} user-specified stocks[/bold blue]")
+    else:
         try:
-            analyzer = EnhancedIntegratedAnalyzer()
+            console.print(f"🎯 [bold blue]Dynamically loading top {count} stocks by market cap[/bold blue]")
             top_stocks = analyzer.get_top_market_cap_stocks(count=count, min_market_cap=min_market_cap)
             symbols = [stock['symbol'] for stock in top_stocks]
-            console.print(f"🎯 [bold blue]시가총액 상위 종목[/bold blue]을 동적으로 로드했습니다 ({len(symbols)}개 종목)")
-            console.print(f"📊 조건: 상위 {count}개, 최소 시가총액 {min_market_cap:,}억원")
-            stock_names = [f"{stock['symbol']}({stock['name']})" for stock in top_stocks[:5]]
-            console.print(f"📈 로드된 종목: {', '.join(stock_names)}...")
+            stock_names = [_get_stock_name(analyzer, s) for s in symbols[:5]]
+            console.print(f"📈 Loaded stocks: {', '.join(stock_names)}...")
         except Exception as e:
-            console.print(f"[yellow]⚠️ 동적 종목 로드 실패: {e}[/yellow]")
-            console.print("[yellow]기본 종목 목록을 사용합니다.[/yellow]")
-            # 폴백용 기본 종목 목록
-            symbols = ["005930", "000660", "035420", "005380", "051910", "035720", "373220", "000270"]
-    else:
-        symbols = [s.strip() for s in symbols_str.split(',')]
-        console.print(f"📊 [bold blue]사용자 지정 {len(symbols)}개 종목[/bold blue]을 분석합니다")
-    
-    # 분석기 초기화
-    analyzer = EnhancedIntegratedAnalyzer()
-    
-    # 종목별 분석 결과 저장
-    results = []
-    
-    with Progress(console=console) as progress:
-        task = progress.add_task("[cyan]종목 분석 중...", total=len(symbols))
-        
-        for symbol in symbols:
-            try:
-                # 종목명 조회
-                if hasattr(analyzer, '_get_stock_name'):
-                    stock_name = analyzer._get_stock_name(symbol)
-                else:
-                    try:
-                        if hasattr(analyzer, '_kospi_index') and symbol in analyzer._kospi_index:
-                            stock_name = analyzer._kospi_index[symbol].한글명
-                        else:
-                            stock_name = symbol
-                    except:
-                        stock_name = symbol
-                
-                # 상세 분석 실행 (타임아웃 적용)
-                console.print(f"🔍 {symbol} ({stock_name}) 분석 시작...")
-                try:
-                    # Windows 호환 타임아웃 적용 (ThreadPoolExecutor 사용)
-                    from concurrent.futures import ThreadPoolExecutor, TimeoutError as FutureTimeout
-                    import time
-                    
-                    start_time = time.time()
-                    with ThreadPoolExecutor(max_workers=1) as executor:
-                        future = executor.submit(analyzer.analyze_single_stock_enhanced, symbol, stock_name)
-                        try:
-                            result = future.result(timeout=30)  # 30초 타임아웃
-                            elapsed = time.time() - start_time
-                            console.print(f"✅ {symbol} 분석 완료 ({elapsed:.1f}초)")
-                        except FutureTimeout:
-                            console.print(f"[red]⏱️ {symbol} 분석 타임아웃 (30초 초과)[/red]")
-                            result = None
-                    
-                except Exception as e:
-                    console.print(f"[red]❌ {symbol} 분석 오류: {e}[/red]")
-                    result = None
-                
-                if result and result.get('status') == 'success':
-                    # 가치 점수 계산
-                    stock_info = {
-                        'per': result.get('financial_data', {}).get('per', 0),
-                        'pbr': result.get('financial_data', {}).get('pbr', 0),
-                        'roe': result.get('financial_data', {}).get('roe', 0),
-                        'market_cap': result.get('market_cap', 0),
-                        'volume': result.get('financial_data', {}).get('volume', 0)
-                    }
-                    
-                    valuation_score = calculate_valuation_score(stock_info)
-                    
-                    results.append({
-                        'symbol': symbol,
-                        'name': stock_name,
-                        'current_price': result.get('current_price', 0),
-                        'market_cap': result.get('market_cap', 0),
-                        'enhanced_score': result.get('enhanced_score', 0),
-                        'enhanced_grade': result.get('enhanced_grade', 'F'),
-                        'valuation_score': valuation_score,
-                        'per': stock_info['per'],
-                        'pbr': stock_info['pbr'],
-                        'roe': stock_info['roe'],
-                        'volume': stock_info['volume']
-                    })
-                
-                progress.update(task, advance=1, description=f"[cyan]분석 중... {symbol} 완료")
-                
-            except Exception as e:
-                progress.update(task, advance=1, description=f"[red]분석 중... {symbol} 실패")
-                continue
-    
-    if not results:
-        console.print("[red]❌ 분석 결과가 없습니다.[/red]")
+            console.print(f"[yellow]⚠️ Failed to load dynamic stocks: {e}[/yellow]")
+            return
+
+    if not symbols:
+        console.print("[red]No stocks to analyze.[/red]")
         return
+        
+    analysis_results = _run_analysis_on_symbols(analyzer, symbols)
     
-    # 가치 점수 기준으로 정렬
-    results.sort(key=lambda x: x['valuation_score'], reverse=True)
+    if not analysis_results:
+        console.print("[red]❌ No analysis results were generated.[/red]")
+        return
+
+    # Calculate valuation scores and prepare for display
+    results_with_scores = []
+    for res in analysis_results:
+        stock_info = {
+            'per': res.get('financial_data', {}).get('per', 0),
+            'pbr': res.get('financial_data', {}).get('pbr', 0),
+            'roe': res.get('financial_data', {}).get('roe', 0),
+            'market_cap': res.get('market_cap', 0),
+            'volume': res.get('financial_data', {}).get('volume', 0)
+        }
+        res['valuation_score'] = calculate_valuation_score(stock_info)
+        results_with_scores.append(res)
+
+    results_with_scores.sort(key=lambda x: x['valuation_score'], reverse=True)
+
+    # Display results
+    console.print(f"\n📈 [bold green]TOP {min(10, len(results_with_scores))} Undervalued Stocks by Valuation Score[/bold green]")
+    table = Table(title="Undervalued Stock Analysis Results")
+    headers = ["Rank", "Symbol", "Name", "Valuation Score", "Overall Score", "Grade", "Price", "PER", "PBR", "ROE", "Market Cap"]
+    styles = ["cyan", "cyan", "white", "bold green", "yellow", "blue", "magenta", "cyan", "cyan", "cyan", "white"]
+    justifies = ["center", "left", "left", "right", "right", "center", "right", "right", "right", "right", "right"]
     
-    # 결과 표시
-    console.print(f"\n📈 [bold green]TOP {min(10, len(results))} 저평가 가치주[/bold green]")
-    
-    table = Table(title="저평가 가치주 분석 결과")
-    table.add_column("순위", style="bold cyan", justify="center")
-    table.add_column("종목코드", style="cyan")
-    table.add_column("종목명", style="white")
-    table.add_column("가치점수", style="green", justify="right")
-    table.add_column("종합점수", style="yellow", justify="right")
-    table.add_column("등급", style="blue", justify="center")
-    table.add_column("현재가", style="magenta", justify="right")
-    table.add_column("PER", style="cyan", justify="right")
-    table.add_column("PBR", style="cyan", justify="right")
-    table.add_column("ROE", style="cyan", justify="right")
-    table.add_column("시가총액", style="white", justify="right")
-    
-    for i, stock in enumerate(results[:10], 1):
+    for header, style, justify in zip(headers, styles, justifies):
+        table.add_column(header, style=style, justify=justify)
+        
+    for i, stock in enumerate(results_with_scores[:10], 1):
+        fin_data = stock.get('financial_data', {})
         table.add_row(
             str(i),
             stock['symbol'],
-            stock['name'][:8] + "..." if len(stock['name']) > 8 else stock['name'],
+            stock.get('name', 'N/A')[:10],
             f"{stock['valuation_score']:.1f}",
-            f"{stock['enhanced_score']:.1f}",
-            stock['enhanced_grade'],
-            f"{stock['current_price']:,}원" if stock['current_price'] > 0 else "N/A",
-            f"{stock['per']:.2f}" if stock['per'] > 0 else "N/A",
-            f"{stock['pbr']:.2f}" if stock['pbr'] > 0 else "N/A",
-            f"{stock['roe']:.2f}%" if stock['roe'] > 0 else "N/A",
-            f"{stock['market_cap']:,}억원" if stock['market_cap'] > 0 else "N/A"
+            f"{stock.get('enhanced_score', 0):.1f}",
+            stock.get('enhanced_grade', 'F'),
+            f"{stock.get('current_price', 0):,} KRW",
+            f"{fin_data.get('per', 0):.2f}",
+            f"{fin_data.get('pbr', 0):.2f}",
+            f"{fin_data.get('roe', 0):.2f}%",
+            f"{stock.get('market_cap', 0):,}억"
         )
-    
     console.print(table)
     
-    # 일봉 데이터 표시 (옵션)
-    if history and results:
-        console.print("\n📊 [bold yellow]일봉 데이터 (최근 5일)[/bold yellow]")
-        
-        history_df = analyzer.provider.get_daily_price_data(results[0]['symbol'], days_back=5)
-        if history_df is not None and not history_df.empty:
-            console.print(history_df)
-        else:
-            console.print("[red]일봉 데이터를 가져오지 못했습니다.[/red]")
+    # Save results
+    try:
+        serialized_results = serialize_for_json(results_with_scores)
+        filename = f"find_undervalued_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+        with open(filename, 'w', encoding='utf-8') as f:
+            json.dump(serialized_results, f, ensure_ascii=False, indent=2)
+        console.print(f"\n💾 [bold green]Analysis results saved to {filename}[/bold green]")
+    except Exception as e:
+        console.print(f"[yellow]⚠️ Failed to save results: {e}[/yellow]")
+
 
 @app.command(name="optimized-valuation")
 def find_optimized_undervalued_stocks(
-    symbols_str: str = typer.Option(None, "--symbols", "-s", help="분석할 종목 코드 (쉼표로 구분). 미입력시 시가총액 상위 종목 자동 선정"),
-    count: int = typer.Option(50, "--count", "-c", help="동적 로드시 가져올 종목 수 (기본값: 50개)"),
-    min_market_cap: float = typer.Option(1000, "--min-market-cap", help="최소 시가총액 (억원, 기본값: 1000억원)"),
-    exclude_preferred: bool = typer.Option(True, "--exclude-preferred", help="우선주 제외 여부 (기본값: True)")
+    symbols_str: str = typer.Option(None, "--symbols", "-s", help="Comma-separated stock symbols. Fetches top stocks if empty."),
+    count: int = typer.Option(50, "--count", "-c", help="Number of top stocks to analyze if symbols are not provided."),
+    min_market_cap: float = typer.Option(1000, "--min-market-cap", help="Minimum market cap in 100M KRW."),
+    exclude_preferred: bool = typer.Option(True, "--exclude-preferred", help="Exclude preferred stocks from analysis.")
 ):
-    """최적화된 저평가 가치주를 추천합니다. (백테스팅 제거 버전)"""
+    """Recommends optimized undervalued stocks based on a comprehensive analysis score."""
+    console.print("🚀 [bold green]Optimized Undervalued Stock Recommendation System[/bold green]")
     
-    console.print("🚀 [bold green]최적화 저평가 가치주 추천 시스템[/bold green]")
-    console.print("=" * 70)
-    console.print("💡 [bold cyan]종합 분석 → 가치 평가 → 추천[/bold cyan]")
-    console.print("=" * 70)
+    _update_kospi_master_data()
     
-    # 0단계: KOSPI 마스터 데이터 자동 업데이트
-    console.print("\n🔄 [bold yellow]0단계: KOSPI 마스터 데이터 자동 업데이트[/bold yellow]")
-    try:
-        # 기존 파일 확인
-        kospi_file = 'kospi_code.xlsx'
-        if os.path.exists(kospi_file):
-            console.print("📊 기존 KOSPI 마스터 데이터를 발견했습니다.")
-            console.print("🔄 최신 데이터로 업데이트 중...")
-        else:
-            console.print("📥 KOSPI 마스터 데이터를 다운로드 중...")
-        
-        # KOSPI 마스터 데이터 다운로드 및 업데이트
-        kospi_master_download(os.getcwd(), verbose=False)
-        df = get_kospi_master_dataframe(os.getcwd())
-        try:
-            df.to_excel(kospi_file, index=False)
-        except ImportError as e:
-            console.print("[red]openpyxl 패키지가 필요합니다: pip install openpyxl[/red]")
-            raise
-        console.print(f"✅ KOSPI 마스터 데이터 업데이트 완료: {len(df)}개 종목")
-        
-    except Exception as e:
-        console.print(f"⚠️ KOSPI 마스터 데이터 업데이트 실패: {e}")
-        console.print("기존 데이터로 계속 진행합니다...")
-    
-    # 1단계: 분석 대상 종목 선정
-    console.print("\n🔍 [bold yellow]1단계: 분석 대상 종목 선정[/bold yellow]")
-    
-    # 분석기 초기화
     analyzer = EnhancedIntegratedAnalyzer()
-    
-    if symbols_str is None or not symbols_str:
-        try:
-            # 시가총액 상위 종목 조회
-            top_stocks = analyzer.get_top_market_cap_stocks(
-                count=count,
-                min_market_cap=min_market_cap
-            )
-            
-            if not top_stocks:
-                console.print("[red]❌ 조건에 맞는 종목을 찾을 수 없습니다.[/red]")
-                return
-            
-            # 우선주 제외 옵션 반영
-            if exclude_preferred:
-                filtered = []
-                for stock in top_stocks:
-                    name = stock.get("name") or stock.get("stock_name") or ""
-                    if not any(suffix in name for suffix in ("우", "우B", "우(전환)", "우선", "1우", "2우")):
-                        filtered.append(stock)
-                top_stocks = filtered or top_stocks  # 전부 빠지면 원본 유지
-            
-            # 분석할 종목들
-            symbols = [stock['symbol'] for stock in top_stocks]
-            console.print(f"✅ 시가총액 상위 {len(symbols)}개 종목 선정 완료")
-            console.print(f"📊 조건: {len(symbols)}개 분석, 최소 시가총액 {min_market_cap:.0f}억원")
-            
-        except Exception as e:
-            console.print(f"[red]❌ 종목 선정 실패: {e}[/red]")
-            return
+    symbols = []
+
+    console.print("\n🔍 [bold yellow]Step 1: Selecting Stocks for Analysis[/bold yellow]")
+    if symbols_str:
+        symbols = [s.strip() for s in symbols_str.split(',')]
+        console.print(f"📋 Analyzing {len(symbols)} specified stocks: {', '.join(symbols[:5])}...")
     else:
         try:
-            symbols = [s.strip() for s in symbols_str.split(',')]
-            console.print(f"📋 지정된 종목 {len(symbols)}개 분석: {', '.join(symbols[:5])}{'...' if len(symbols) > 5 else ''}")
+            top_stocks = analyzer.get_top_market_cap_stocks(count=count, min_market_cap=min_market_cap)
+            if not top_stocks:
+                console.print("[red]❌ Could not find any stocks matching the criteria.[/red]")
+                return
+
+            if exclude_preferred:
+                initial_count = len(top_stocks)
+                top_stocks = [
+                    stock for stock in top_stocks
+                    if not any(suffix in (_get_stock_name(analyzer, stock['symbol'])) for suffix in PREFERRED_STOCK_SUFFIXES)
+                ]
+                console.print(f"🚫 Excluded {initial_count - len(top_stocks)} preferred stocks.")
+            
+            symbols = [stock['symbol'] for stock in top_stocks]
+            console.print(f"✅ Selected top {len(symbols)} stocks for analysis.")
         except Exception as e:
-            console.print(f"[red]❌ 종목 코드 처리 실패: {e}[/red]")
+            console.print(f"[red]❌ Failed to select stocks: {e}[/red]")
             return
-    
-    # 2단계: 종목별 상세 분석 실행
-    console.print("\n📊 [bold yellow]2단계: 종목별 상세 분석 실행[/bold yellow]")
-    
-    analysis_results = []
-    
-    with Progress(console=console) as progress:
-        task = progress.add_task("[cyan]종목 분석 중...", total=len(symbols))
-        
-        for symbol in symbols:
-            try:
-                # 종목명 조회
-                if hasattr(analyzer, '_get_stock_name'):
-                    stock_name = analyzer._get_stock_name(symbol)
-                else:
-                    try:
-                        if hasattr(analyzer, '_kospi_index') and symbol in analyzer._kospi_index:
-                            stock_name = analyzer._kospi_index[symbol].한글명
-                        else:
-                            stock_name = symbol
-                    except:
-                        stock_name = symbol
-                
-                # 상세 분석 실행 (타임아웃 적용)
-                console.print(f"🔍 {symbol} ({stock_name}) 분석 시작...")
-                try:
-                    from concurrent.futures import ThreadPoolExecutor, TimeoutError as FutureTimeout
-                    t0 = time.time()
-                    with ThreadPoolExecutor(max_workers=1) as executor:
-                        future = executor.submit(analyzer.analyze_single_stock_enhanced, symbol, stock_name)
-                        try:
-                            result = future.result(timeout=30)
-                            elapsed = time.time() - t0
-                            console.print(f"✅ {symbol} 분석 완료 ({elapsed:.1f}초)")
-                        except FutureTimeout:
-                            console.print(f"[red]⏱️ {symbol} 분석 타임아웃 (30초 초과)[/red]")
-                            result = None
-                except Exception as e:
-                    console.print(f"[red]❌ {symbol} 분석 오류: {e}[/red]")
-                    result = None
-                
-                if result and result.get('status') == 'success':
-                    analysis_results.append({
-                        'symbol': symbol,
-                        'name': stock_name,
-                        'enhanced_score': result.get('enhanced_score', 0),
-                        'enhanced_grade': result.get('enhanced_grade', 'F'),
-                        'financial_data': result.get('financial_data', {}),
-                        'opinion_analysis': result.get('opinion_analysis', {}),
-                        'estimate_analysis': result.get('estimate_analysis', {}),
-                        'current_price': result.get('current_price', 0),
-                        'market_cap': result.get('market_cap', 0),
-                        'risk_analysis': result.get('risk_analysis', {})
-                    })
-                
-                progress.update(task, advance=1, description=f"[cyan]분석 중... {symbol} 완료")
-                
-            except Exception as e:
-                progress.update(task, advance=1, description=f"[red]분석 중... {symbol} 실패")
-                continue
-    
-    if not analysis_results:
-        console.print("[red]❌ 분석 결과가 없습니다.[/red]")
+
+    if not symbols:
+        console.print("[red]No stocks to analyze.[/red]")
         return
     
-    # 3단계: 종목 랭킹 및 추천
-    console.print("\n🏆 [bold yellow]3단계: 종목 랭킹 및 추천[/bold yellow]")
+    console.print("\n📊 [bold yellow]Step 2: Executing Detailed Analysis[/bold yellow]")
+    analysis_results = _run_analysis_on_symbols(analyzer, symbols)
     
-    # 점수 기준으로 정렬
-    analysis_results.sort(key=lambda x: x['enhanced_score'], reverse=True)
+    if not analysis_results:
+        console.print("[red]❌ No analysis results were generated.[/red]")
+        return
     
-    # 상위 count개 종목 표시
-    top_picks = analysis_results[:count]
-    
-    console.print(f"\n📈 [bold green]TOP {len(top_picks)} 최적화 저평가 가치주 추천[/bold green]")
-    console.print(f"💡 {len(analysis_results)}개 종목 분석 후 상위 {len(top_picks)}개 추천")
-    
-    recommendation_table = Table(title="최적화 저평가 가치주 추천")
-    recommendation_table.add_column("순위", style="bold cyan", justify="center")
-    recommendation_table.add_column("종목코드", style="cyan")
-    recommendation_table.add_column("종목명", style="white")
-    recommendation_table.add_column("종합점수", style="bold green", justify="right")
-    recommendation_table.add_column("등급", style="blue", justify="center")
-    recommendation_table.add_column("현재가", style="magenta", justify="right")
-    recommendation_table.add_column("시가총액", style="cyan", justify="right")
-    recommendation_table.add_column("PER", style="yellow", justify="right")
-    recommendation_table.add_column("PBR", style="yellow", justify="right")
-    recommendation_table.add_column("ROE", style="yellow", justify="right")
-    
+    console.print("\n🏆 [bold yellow]Step 3: Ranking and Recommending Stocks[/bold yellow]")
+    analysis_results.sort(key=lambda x: x.get('enhanced_score', 0), reverse=True)
+    top_picks = analysis_results[:min(len(analysis_results), 20)] # Recommend top 20
+
+    console.print(f"\n📈 [bold green]TOP {len(top_picks)} Optimized Undervalued Stock Recommendations[/bold green]")
+    rec_table = Table(title="Optimized Stock Recommendations")
+    headers = ["Rank", "Symbol", "Name", "Overall Score", "Grade", "Price", "Market Cap", "PER", "PBR", "ROE"]
+    styles = ["cyan", "cyan", "white", "bold green", "blue", "magenta", "cyan", "yellow", "yellow", "yellow"]
+    justifies = ["center", "left", "left", "right", "center", "right", "right", "right", "right", "right"]
+
+    for header, style, justify in zip(headers, styles, justifies):
+        rec_table.add_column(header, style=style, justify=justify)
+
     for i, stock in enumerate(top_picks, 1):
-        financial_data = stock.get('financial_data', {})
-        recommendation_table.add_row(
-            str(i),
-            stock['symbol'],
-            stock['name'][:8] + "..." if len(stock['name']) > 8 else stock['name'],
-            f"{stock['enhanced_score']:.1f}",
-            stock['enhanced_grade'],
-            f"{stock['current_price']:,}원" if stock['current_price'] > 0 else "N/A",
-            f"{stock['market_cap']:,}억원" if stock['market_cap'] > 0 else "N/A",
-            f"{financial_data.get('per', 0):.2f}" if financial_data.get('per', 0) != 0 else "N/A",
-            f"{financial_data.get('pbr', 0):.2f}" if financial_data.get('pbr', 0) != 0 else "N/A",
-            f"{financial_data.get('roe', 0):.2f}%" if financial_data.get('roe', 0) != 0 else "N/A"
+        fin_data = stock.get('financial_data', {})
+        rec_table.add_row(
+            str(i), stock['symbol'], stock.get('name', 'N/A')[:10],
+            f"{stock.get('enhanced_score', 0):.1f}", stock.get('enhanced_grade', 'F'),
+            f"{stock.get('current_price', 0):,} KRW", f"{stock.get('market_cap', 0):,}억",
+            f"{fin_data.get('per', 0):.2f}", f"{fin_data.get('pbr', 0):.2f}", f"{fin_data.get('roe', 0):.2f}%"
         )
-    
-    console.print(recommendation_table)
-    
-    # 4단계: 결과 저장
+    console.print(rec_table)
+
+    # Step 4: Save results
     try:
-        def serialize_recommendations(recommendations):
-            serialized = []
-            for rec in recommendations:
-                serialized_rec = {
-                    'symbol': rec.get('symbol', ''),
-                    'name': rec.get('name', ''),
-                    'enhanced_score': rec.get('enhanced_score', 0),
-                    'enhanced_grade': rec.get('enhanced_grade', 'F'),
-                    'current_price': rec.get('current_price', 0),
-                    'market_cap': rec.get('market_cap', 0),
-                    'financial_data': rec.get('financial_data', {})
-                }
-                serialized.append(serialized_rec)
-            return serialized
+        # Serialize the results for JSON
+        serialized_picks = serialize_for_json(top_picks)
         
-        result_data = {
-            'timestamp': datetime.now().isoformat(),
-            'method': 'optimized_valuation_no_backtest',
-            'settings': {
-                'symbols': symbols,
-                'min_market_cap': min_market_cap,
-                'exclude_preferred': exclude_preferred
-            },
-            'recommendations': serialize_recommendations(top_picks)
-        }
-        
-        filename = f"optimized_valuation_{int(datetime.now().timestamp())}.json"
+        filename = f"optimized_valuation_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
         with open(filename, 'w', encoding='utf-8') as f:
-            json.dump(result_data, f, ensure_ascii=False, indent=2)
-        
-        console.print(f"\n💾 [bold green]분석 결과가 {filename}에 저장되었습니다.[/bold green]")
-        
+            json.dump(serialized_picks, f, ensure_ascii=False, indent=2)
+        console.print(f"\n💾 [bold green]Analysis results saved to {filename}[/bold green]")
     except Exception as e:
-        console.print(f"[yellow]⚠️ 결과 저장 실패: {e}[/yellow]")
-    
-    console.print("\n🎉 [bold green]최적화 저평가 가치주 추천 완료![/bold green]")
-    console.print("💡 [bold cyan]종합 분석을 통해 추천했습니다.[/bold cyan]")
+        console.print(f"[yellow]⚠️ Failed to save results: {e}[/yellow]")
 
 @app.command(name="update-kospi")
 def update_kospi_data():
-    """KOSPI 마스터 데이터를 업데이트합니다."""
-    
-    console.print("🔄 [bold yellow]KOSPI 마스터 데이터 업데이트[/bold yellow]")
-    
-    try:
-        # 기존 파일 확인
-        kospi_file = 'kospi_code.xlsx'
-        if os.path.exists(kospi_file):
-            console.print("📊 기존 KOSPI 마스터 데이터를 발견했습니다.")
-            console.print("🔄 최신 데이터로 업데이트 중...")
-        else:
-            console.print("📥 KOSPI 마스터 데이터를 다운로드 중...")
-        
-        # KOSPI 마스터 데이터 다운로드 및 업데이트
-        kospi_master_download(os.getcwd(), verbose=False)
-        df = get_kospi_master_dataframe(os.getcwd())
-        try:
-            df.to_excel(kospi_file, index=False)
-        except ImportError as e:
-            console.print("[red]openpyxl 패키지가 필요합니다: pip install openpyxl[/red]")
-            raise
-        console.print(f"✅ KOSPI 마스터 데이터 업데이트 완료: {len(df)}개 종목")
-        
-        # 업데이트된 데이터 미리보기
-        console.print(f"\n📊 [bold blue]업데이트된 데이터 미리보기[/bold blue]")
-        preview_table = Table(title="KOSPI 마스터 데이터 미리보기")
-        preview_table.add_column("종목코드", style="cyan")
-        preview_table.add_column("종목명", style="white")
-        preview_table.add_column("시가총액", style="green", justify="right")
-        preview_table.add_column("업종", style="yellow")
-        
-        # 상위 10개 종목 미리보기
-        top_10 = df.head(10)
-        for _, row in top_10.iterrows():
-            preview_table.add_row(
-                str(row.get('단축코드', '')),
-                str(row.get('한글명', '')),
-                f"{row.get('시가총액', 0):,}억원" if row.get('시가총액', 0) > 0 else "N/A",
-                str(row.get('지수업종대분류', ''))
-            )
-        
-        console.print(preview_table)
-        
-        console.print(f"\n💡 [bold cyan]사용 방법[/bold cyan]")
-        console.print("• find-undervalued 명령어로 저평가 종목을 분석하세요.")
-        console.print("• optimized-valuation 명령어를 다시 실행하여 최신 데이터로 분석하세요.")
-        
-    except Exception as e:
-        console.print(f"[red]❌ KOSPI 마스터 데이터 업데이트 실패: {e}[/red]")
-        console.print("인터넷 연결과 파일 권한을 확인해주세요.")
+    """Downloads and updates the KOSPI master data file."""
+    if _update_kospi_master_data():
+        console.print("\n💡 [bold cyan]How to use:[/bold cyan]")
+        console.print("• Run 'find-undervalued' to analyze stocks with the classic valuation score.")
+        console.print("• Run 'optimized-valuation' to get recommendations based on the comprehensive score.")
 
 if __name__ == "__main__":
     app()

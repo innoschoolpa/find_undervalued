@@ -1,0 +1,55 @@
+[
+  {
+    "symbol": "259960",
+    "name": "크래프톤",
+    "market_cap": 151421.0,
+    "current_price": 316500.0,
+    "price_position": 31.69642857142857,
+    "status": "success",
+    "enhanced_score": 58.0,
+    "score_breakdown": {
+      "투자의견": 25.0,
+      "재무비율": 25.0,
+      "성장성": 8.0,
+      "규모": 5.0,
+      "고가페널티": 0,
+      "리스크페널티": -5
+    },
+    "enhanced_grade": "B",
+    "financial_data": {
+      "roe": 11.33,
+      "roa": 10.084557187360927,
+      "debt_ratio": 12.35,
+      "equity_ratio": 87.65,
+      "revenue_growth_rate": 11.89,
+      "operating_income_growth_rate": 9.45,
+      "net_income_growth_rate": -43.92,
+      "net_profit_margin": 25.19,
+      "gross_profit_margin": 100.0,
+      "profitability_grade": "우수",
+      "current_ratio": 859.56,
+      "quick_ratio": 0.0,
+      "borrowing_dependency": 0.09,
+      "stability_grade": "매우 안정",
+      "revenue_growth": 11.89,
+      "operating_income_growth_rate_annual": 9.45,
+      "equity_growth_rate": 12.26,
+      "total_asset_growth_rate": 7.58,
+      "growth_grade": "우수",
+      "__missing_flags__": {
+        "ratios": false,
+        "profit": false,
+        "stability": false,
+        "growth": false
+      },
+      "per": 11.65,
+      "pbr": 2.2,
+      "eps": 27162.0,
+      "bps": 144190.0
+    },
+    "opinion_analysis": {
+      "symbol": "259960",
+      "analysis_period": "30일",
+      "total_opinions": 4,
+      "status": "success",
+      "summary": 

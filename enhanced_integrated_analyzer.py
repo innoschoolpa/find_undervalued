@@ -369,7 +369,7 @@ class EnhancedIntegratedAnalyzer:
         except Exception as e:
             console.print(
                 "❌ KOSPI 데이터 로드 실패: "
-                f"{e}\n   ↳ openpyxl 미설치 여부, 파일 경로/권한, 시트 포맷을 확인하세요."
+                f"{e}\n    ↳ openpyxl 미설치 여부, 파일 경로/권한, 시트 포맷을 확인하세요."
             )
             self.kospi_data = pd.DataFrame()
             self._kospi_index = {}
@@ -531,18 +531,18 @@ class EnhancedIntegratedAnalyzer:
             'profit': not self._has_numeric(financial_data, 'net_profit_margin'),
             'stability': not self._has_numeric(financial_data, 'current_ratio'),
             'growth': not (self._has_numeric(financial_data, 'revenue_growth') or
-                           self._has_numeric(financial_data, 'revenue_growth_rate'))
+                            self._has_numeric(financial_data, 'revenue_growth_rate'))
         }
         
         return financial_data
     
     def calculate_enhanced_integrated_score(self, opinion_analysis: Dict[str, Any], 
-                                          estimate_analysis: Dict[str, Any], 
-                                          financial_data: Dict[str, Any],
-                                          market_cap: float, 
-                                          current_price: float = None,
-                                          price_position: float = None,
-                                          risk_score: int = None) -> Dict[str, Any]:
+                                            estimate_analysis: Dict[str, Any], 
+                                            financial_data: Dict[str, Any],
+                                            market_cap: float, 
+                                            current_price: float = None,
+                                            price_position: float = None,
+                                            risk_score: int = None) -> Dict[str, Any]:
         """저평가 가치주 발굴을 위한 향상된 통합 점수를 계산합니다."""
         score = 0.0
         score_breakdown = {}
@@ -599,7 +599,7 @@ class EnhancedIntegratedAnalyzer:
         growth_weight = float(base_w.get('growth_analysis', 0.0))
         # 성장률 소스 일원화: estimate → financial_data → 0
         revenue_growth = estimate_analysis.get('latest_revenue_growth',
-                         financial_data.get('revenue_growth', 0))
+                                 financial_data.get('revenue_growth', 0))
         if revenue_growth is not None:
             growth_score = self._calculate_growth_score(revenue_growth, growth_weight)
             score += growth_score
@@ -1274,7 +1274,7 @@ class EnhancedIntegratedAnalyzer:
                     base['valuation_bonus'] = vb
                     self.weights = base
                 console.print(f"✅ 투자 철학 프리셋 '{preset_name}' 적용 완료")
-                console.print(f"   📊 새로운 가중치(보너스 포함 100%): {self.weights}")
+                console.print(f"    📊 새로운 가중치(보너스 포함 100%): {self.weights}")
             else:
                 console.print(f"⚠️ 투자 철학 프리셋 '{preset_name}'을 찾을 수 없습니다. 기본값 사용.")
                 
@@ -1392,7 +1392,7 @@ def test_enhanced_parallel_analysis(
                         breakdown = result.get('score_breakdown', {})
                         if breakdown:
                             breakdown_str = ", ".join([f"{k}: {v:.1f}" for k, v in breakdown.items()])
-                            console.print(f"   📊 점수 구성: {breakdown_str}")
+                            console.print(f"    📊 점수 구성: {breakdown_str}")
                     
                     progress.update(task, advance=1)
                     
@@ -2039,8 +2039,8 @@ def compare_strategies(
     # 최고 성과 전략 찾기
     best_strategy = max(results.keys(), key=lambda s: results[s].sharpe_ratio)
     console.print(f"\n🥇 [bold green]최고 성과 전략: {best_strategy}[/bold green]")
-    console.print(f"   샤프 비율: {results[best_strategy].sharpe_ratio:.2f}")
-    console.print(f"   총 수익률: {results[best_strategy].total_return:.2%}")
+    console.print(f"    샤프 비율: {results[best_strategy].sharpe_ratio:.2f}")
+    console.print(f"    총 수익률: {results[best_strategy].total_return:.2%}")
 
 if __name__ == "__main__":
     app()

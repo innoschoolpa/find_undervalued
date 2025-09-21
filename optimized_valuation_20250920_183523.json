@@ -1,0 +1,1590 @@
+[
+  {
+    "symbol": "000660",
+    "name": "SK하이닉스",
+    "market_cap": 2569848.0,
+    "current_price": 353000.0,
+    "price_position": 96.7487227124942,
+    "status": "success",
+    "enhanced_score": 22.61,
+    "score_breakdown": {
+      "투자의견": 20.0,
+      "재무비율": 27.610000000000003,
+      "성장성": 10.0,
+      "규모": 5.0,
+      "저평가보너스": 5.0,
+      "고가페널티": -20,
+      "리스크페널티": -25
+    },
+    "enhanced_grade": "F",
+    "financial_data": {
+      "roe": 37.52,
+      "roa": 25.32910281509485,
+      "debt_ratio": 48.13,
+      "equity_ratio": 51.87,
+      "revenue_growth_rate": 38.19,
+      "operating_income_growth_rate": 99.33,
+      "net_income_growth_rate": 150.2,
+      "net_profit_margin": 37.88,
+      "gross_profit_margin": 55.39,
+      "profitability_grade": "우수",
+      "current_ratio": 178.5,
+      "quick_ratio": 0.0,
+      "borrowing_dependency": 18.88,
+      "stability_grade": "안정",
+      "revenue_growth": 38.19,
+      "operating_income_growth_rate_annual": 99.33,
+      "equity_growth_rate": 45.65,
+      "total_asset_growth_rate": 22.21,
+      "growth_grade": "매우 우수",
+      "__missing_flags__": {
+        "ratios": false,
+        "profit": false,
+        "stability": false,
+        "growth": false
+      },
+      "per": 12.99,
+      "pbr": 3.38,
+      "eps": 27182.0,
+      "bps": 104567.0
+    },
+    "opinion_analysis": {
+      "symbol": "000660",
+      "analysis_period": "30일",
+      "total_opinions": 6,
+      "status": "success",
+      "summary": {
+        "symbol": "000660",
+        "total_opinions": 6,
+        "buy_opinions": 6,
+        "hold_opinions": 0,
+        "sell_opinions": 0,
+        "avg_target_price": 411666.67,
+        "max_target_price": 480000.0,
+        "min_target_price": 380000.0,
+        "avg_upside": 25.27,
+        "most_recent_date": "20250918",
+        "opinion_trend": "상향"
+      },
+      "detailed_analysis": {
+        "opinion_distribution": {
+          "BUY": 4,
+          "매수": 2
+        },
+        "daily_opinion_count": {
+          "20250918": 1,
+          "20250917": 2,
+          "20250916": 1,
+          "20250915": 1,
+          "20250910": 1
+        },
+        "recent_changes": 0,
+        "most_active_date": "20250918",
+        "total_brokerages": 6
+      },
+      "trend_analysis": {
+        "sentiment_trend": "보합",
+        "target_price_trend": "상승",
+        "opinion_change_frequency": 0.0
+      },
+      "consensus_analysis": {
+        "consensus_score": 1.0,
+        "consensus_level": "강한 매수",
+        "sample_size": 6
+      },
+      "target_price_analysis": {
+        "avg_target_price": 411666.67,
+        "max_target_price": 480000.0,
+        "min_target_price": 380000.0,
+        "price_range": 100000.0,
+        "avg_upside_potential": 42.94,
+        "target_count": 6,
+        "coverage_rate": 100.0
+      },
+      "brokerage_analysis": {
+        "total_brokerages": 6,
+        "top_brokerages": [
+          "('대신', 1)",
+          "('SK', 1)",
+          "('현대차', 1)",
+          "('NH투자', 1)",
+          "('IM증권', 1)"
+        ],
+        "brokerage_avg_targets": {
+          "대신": 400000.0,
+          "SK": 480000.0,
+          "현대차": 405000.0,
+          "NH투자": 395000.0,
+          "IM증권": 380000.0,
+          "한국투자": 410000.0
+        },
+        "concentration_ratio": 16.666666666666664
+      }
+    },
+    "estimate_analysis": {
+      "symbol": "000660",
+      "status": "success",
+      "summary": {
+        "symbol": "A000660",
+        "name": "에스케이하이닉스",
+        "current_price": 0.0,
+        "change_rate": 0.0,
+        "latest_revenue": 446216.0,
+        "latest_revenue_growth": 38.0,
+        "latest_operating_profit": 68094.0,
+        "latest_operating_profit_growth": -451.0,
+        "latest_net_profit": 22296.0,
+        "latest_net_profit_growth": -768.0,
+        "latest_eps": 32420.0,
+        "latest_per": 231.0,
+        "latest_roe": 36.0,
+        "latest_ev_ebitda": 34.0,
+        "revenue_trend": "상승",
+        "profit_trend": "상승",
+        "eps_trend": "상승",
+        "data_quality_score": 1.0,
+        "latest_update_date": "2022.12"
+      },
+      "detailed_analysis": {
+        "data_completeness": {
+          "rate": 100.0,
+          "available_indicators": 6,
+          "total_indicators": 6,
+          "grade": "A"
+        },
+        "revenue_analysis": {
+          "latest_value": 446216.0,
+          "growth_rate": 38.0,
+          "data_points": 5
+        },
+        "profit_analysis": {
+          "operating_profit": 68094.0,
+          "net_profit": 22296.0,
+          "operating_growth": -451.0,
+          "net_growth": -768.0
+        },
+        "investment_metrics": {
+          "eps": 32420.0,
+          "per": 231.0,
+          "roe": 36.0,
+          "ev_ebitda": 34.0,
+          "debt_ratio": 641.0,
+          "interest_coverage": 128.0
+        },
+        "settlement_periods": [
+          "2022.12",
+          "2023.12",
+          "2024.12",
+          "2025.12E",
+          "2026.12E"
+        ]
+      },
+      "trend_analysis": {
+        "revenue": {
+          "direction": "상승",
+          "strength": 15.156869036950294,
+          "volatility": 41.6085084543022,
+          "data_points": 5
+        },
+        "operating_profit": {
+          "direction": "상승",
+          "strength": 23.23441192873568,
+          "volatility": 95.49386740240358,
+          "data_points": 5
+        },
+        "net_profit": {
+          "direction": "상승",
+          "strength": 19.532238871256336,
+          "volatility": 108.20659300130065,
+          "data_points": 5
+        },
+        "eps": {
+          "direction": "상승",
+          "strength": 19.591764946356165,
+          "volatility": 108.21088773168226,
+          "data_points": 5
+        },
+        "roe": {
+          "direction": "상승",
+          "strength": 34.47037701974865,
+          "volatility": 113.04619349020601,
+          "data_points": 5
+        }
+      },
+      "financial_health": {
+        "health_score": 50,
+        "health_grade": "C",
+        "factors": [
+          "ROE 우수 (36.0%)",
+          "부채비율 높음 (641.0%)",
+          "이자보상배율 우수 (128.0배)"
+        ],
+        "max_score": 100
+      },
+      "valuation_analysis": {
+        "per": {
+          "value": 231.0,
+          "grade": "F",
+          "interpretation": "매우 고평가"
+        },
+        "ev_ebitda": {
+          "value": 34.0,
+          "grade": "F",
+          "interpretation": "매우 고평가"
+        },
+        "overall_score": 10,
+        "overall_grade": "F"
+      },
+      "growth_analysis": {
+        "revenue_growth": {
+          "value": 38.0,
+          "grade": "A",
+          "interpretation": "매우 높은 성장"
+        },
+        "profit_growth": {
+          "value": -451.0,
+          "grade": "F",
+          "interpretation": "성장 정체"
+        },
+        "eps_growth": {
+          "value": -768.0,
+          "grade": "F",
+          "interpretation": "성장 정체"
+        }
+      },
+      "quality_analysis": {
+        "quality_score": 1.0,
+        "quality_grade": "A",
+        "completeness": {
+          "rate": 100.0,
+          "available_indicators": 6,
+          "total_indicators": 6,
+          "grade": "A"
+        },
+        "consistency": {
+          "score": 1.0,
+          "grade": "A"
+        },
+        "latest_update": "2022.12"
+      }
+    },
+    "integrated_analysis": {
+      "symbol": "000660",
+      "analysis_timestamp": "2025-09-20T18:35:20.568840",
+      "opinion_analysis": {
+        "symbol": "000660",
+        "analysis_period": "30일",
+        "total_opinions": 6,
+        "status": "success",
+        "summary": {
+          "symbol": "000660",
+          "total_opinions": 6,
+          "buy_opinions": 6,
+          "hold_opinions": 0,
+          "sell_opinions": 0,
+          "avg_target_price": 411666.67,
+          "max_target_price": 480000.0,
+          "min_target_price": 380000.0,
+          "avg_upside": 25.27,
+          "most_recent_date": "20250918",
+          "opinion_trend": "상향"
+        },
+        "detailed_analysis": {
+          "opinion_distribution": {
+            "BUY": 4,
+            "매수": 2
+          },
+          "daily_opinion_count": {
+            "20250918": 1,
+            "20250917": 2,
+            "20250916": 1,
+            "20250915": 1,
+            "20250910": 1
+          },
+          "recent_changes": 0,
+          "most_active_date": "20250918",
+          "total_brokerages": 6
+        },
+        "trend_analysis": {
+          "sentiment_trend": "보합",
+          "target_price_trend": "상승",
+          "opinion_change_frequency": 0.0
+        },
+        "consensus_analysis": {
+          "consensus_score": 1.0,
+          "consensus_level": "강한 매수",
+          "sample_size": 6
+        },
+        "target_price_analysis": {
+          "avg_target_price": 411666.67,
+          "max_target_price": 480000.0,
+          "min_target_price": 380000.0,
+          "price_range": 100000.0,
+          "avg_upside_potential": 42.94,
+          "target_count": 6,
+          "coverage_rate": 100.0
+        },
+        "brokerage_analysis": {
+          "total_brokerages": 6,
+          "top_brokerages": [
+            "('대신', 1)",
+            "('SK', 1)",
+            "('현대차', 1)",
+            "('NH투자', 1)",
+            "('IM증권', 1)"
+          ],
+          "brokerage_avg_targets": {
+            "대신": 400000.0,
+            "SK": 480000.0,
+            "현대차": 405000.0,
+            "NH투자": 395000.0,
+            "IM증권": 380000.0,
+            "한국투자": 410000.0
+          },
+          "concentration_ratio": 16.666666666666664
+        }
+      },
+      "estimate_analysis": {
+        "symbol": "000660",
+        "status": "success",
+        "summary": {
+          "symbol": "A000660",
+          "name": "에스케이하이닉스",
+          "current_price": 0.0,
+          "change_rate": 0.0,
+          "latest_revenue": 446216.0,
+          "latest_revenue_growth": 38.0,
+          "latest_operating_profit": 68094.0,
+          "latest_operating_profit_growth": -451.0,
+          "latest_net_profit": 22296.0,
+          "latest_net_profit_growth": -768.0,
+          "latest_eps": 32420.0,
+          "latest_per": 231.0,
+          "latest_roe": 36.0,
+          "latest_ev_ebitda": 34.0,
+          "revenue_trend": "상승",
+          "profit_trend": "상승",
+          "eps_trend": "상승",
+          "data_quality_score": 1.0,
+          "latest_update_date": "2022.12"
+        },
+        "detailed_analysis": {
+          "data_completeness": {
+            "rate": 100.0,
+            "available_indicators": 6,
+            "total_indicators": 6,
+            "grade": "A"
+          },
+          "revenue_analysis": {
+            "latest_value": 446216.0,
+            "growth_rate": 38.0,
+            "data_points": 5
+          },
+          "profit_analysis": {
+            "operating_profit": 68094.0,
+            "net_profit": 22296.0,
+            "operating_growth": -451.0,
+            "net_growth": -768.0
+          },
+          "investment_metrics": {
+            "eps": 32420.0,
+            "per": 231.0,
+            "roe": 36.0,
+            "ev_ebitda": 34.0,
+            "debt_ratio": 641.0,
+            "interest_coverage": 128.0
+          },
+          "settlement_periods": [
+            "2022.12",
+            "2023.12",
+            "2024.12",
+            "2025.12E",
+            "2026.12E"
+          ]
+        },
+        "trend_analysis": {
+          "revenue": {
+            "direction": "상승",
+            "strength": 15.156869036950294,
+            "volatility": 41.6085084543022,
+            "data_points": 5
+          },
+          "operating_profit": {
+            "direction": "상승",
+            "strength": 23.23441192873568,
+            "volatility": 95.49386740240358,
+            "data_points": 5
+          },
+          "net_profit": {
+            "direction": "상승",
+            "strength": 19.532238871256336,
+            "volatility": 108.20659300130065,
+            "data_points": 5
+          },
+          "eps": {
+            "direction": "상승",
+            "strength": 19.591764946356165,
+            "volatility": 108.21088773168226,
+            "data_points": 5
+          },
+          "roe": {
+            "direction": "상승",
+            "strength": 34.47037701974865,
+            "volatility": 113.04619349020601,
+            "data_points": 5
+          }
+        },
+        "financial_health": {
+          "health_score": 50,
+          "health_grade": "C",
+          "factors": [
+            "ROE 우수 (36.0%)",
+            "부채비율 높음 (641.0%)",
+            "이자보상배율 우수 (128.0배)"
+          ],
+          "max_score": 100
+        },
+        "valuation_analysis": {
+          "per": {
+            "value": 231.0,
+            "grade": "F",
+            "interpretation": "매우 고평가"
+          },
+          "ev_ebitda": {
+            "value": 34.0,
+            "grade": "F",
+            "interpretation": "매우 고평가"
+          },
+          "overall_score": 10,
+          "overall_grade": "F"
+        },
+        "growth_analysis": {
+          "revenue_growth": {
+            "value": 38.0,
+            "grade": "A",
+            "interpretation": "매우 높은 성장"
+          },
+          "profit_growth": {
+            "value": -451.0,
+            "grade": "F",
+            "interpretation": "성장 정체"
+          },
+          "eps_growth": {
+            "value": -768.0,
+            "grade": "F",
+            "interpretation": "성장 정체"
+          }
+        },
+        "quality_analysis": {
+          "quality_score": 1.0,
+          "quality_grade": "A",
+          "completeness": {
+            "rate": 100.0,
+            "available_indicators": 6,
+            "total_indicators": 6,
+            "grade": "A"
+          },
+          "consistency": {
+            "score": 1.0,
+            "grade": "A"
+          },
+          "latest_update": "2022.12"
+        }
+      },
+      "integrated_score": 72.0,
+      "integrated_grade": "B",
+      "investment_recommendation": "적극 검토 추천",
+      "risk_assessment": "낮음",
+      "total_opinions": 6,
+      "buy_opinions": 6,
+      "hold_opinions": 0,
+      "sell_opinions": 0,
+      "consensus_score": 1.0,
+      "avg_target_price": 411666.67,
+      "avg_upside": 25.27,
+      "opinion_trend": "상향",
+      "current_price": 0.0,
+      "latest_revenue": 446216.0,
+      "latest_revenue_growth": 38.0,
+      "latest_operating_profit": 68094.0,
+      "latest_operating_profit_growth": -451.0,
+      "latest_eps": 32420.0,
+      "latest_per": 231.0,
+      "latest_roe": 36.0,
+      "revenue_trend": "상승",
+      "profit_trend": "상승",
+      "eps_trend": "상승",
+      "data_quality_score": 1.0,
+      "financial_health_score": 50,
+      "valuation_score": 10
+    },
+    "risk_analysis": {
+      "symbol": "000660",
+      "stock_name": "SK하이닉스",
+      "current_price": 353000.0,
+      "price_position": 96.7487227124942,
+      "risk_score": 10,
+      "risk_grade": "매우 높음",
+      "recommendation": "매도 고려",
+      "adjustment_factor": 0.27999999999999997,
+      "price_info": {
+        "symbol": "000660",
+        "name": "전기·전자",
+        "current_price": 353000.0,
+        "volume": 4385543.0,
+        "market_cap": 256984800000000.0,
+        "per": 12.99,
+        "pbr": 3.38,
+        "eps": 27182.0,
+        "bps": 104567.0,
+        "dividend_yield": 0.0,
+        "open_price": 351500.0,
+        "high_price": 360000.0,
+        "low_price": 348000.0,
+        "prev_close": 353000.0,
+        "change_price": 0.0,
+        "change_rate": 0.0,
+        "trading_value": 1546050743059.0,
+        "listed_shares": 728002365.0,
+        "foreign_holdings": 408260104.0,
+        "foreign_net_buy": -982503.0,
+        "program_net_buy": -357729.0,
+        "w52_high": 360000.0,
+        "w52_low": 144700.0,
+        "d250_high": 360000.0,
+        "d250_low": 144700.0,
+        "vol_turnover": 0.6,
+        "sector": "전기·전자",
+        "market_status": "55",
+        "margin_rate": "20.00",
+        "credit_available": "Y",
+        "short_selling": "Y",
+        "investment_caution": "N",
+        "market_warning": "00",
+        "short_overheating": "N",
+        "management_stock": "N"
+      },
+      "foreign_trend": {
+        "consecutive_selling_days": 0,
+        "consecutive_buying_days": 0,
+        "trend_strength": "neutral",
+        "recent_activity": "heavy_selling",
+        "total_selling_days": 0,
+        "total_buying_days": 0
+      },
+      "analysis_timestamp": "2025-09-20T18:35:20.568765"
+    }
+  },
+  {
+    "symbol": "005930",
+    "name": "삼성전자",
+    "market_cap": 4765308.0,
+    "current_price": 79700.0,
+    "price_position": 95.2076677316294,
+    "status": "success",
+    "enhanced_score": 10.0,
+    "score_breakdown": {
+      "투자의견": 20.0,
+      "재무비율": 18.0,
+      "성장성": 5.0,
+      "규모": 5.0,
+      "저평가보너스": 2.0,
+      "고가페널티": -20,
+      "리스크페널티": -20
+    },
+    "enhanced_grade": "F",
+    "financial_data": {
+      "roe": 6.64,
+      "roa": 5.254827477049699,
+      "debt_ratio": 26.36,
+      "equity_ratio": 73.64,
+      "revenue_growth_rate": 5.29,
+      "operating_income_growth_rate": -33.36,
+      "net_income_growth_rate": -19.62,
+      "net_profit_margin": 8.68,
+      "gross_profit_margin": 34.89,
+      "profitability_grade": "양호",
+      "current_ratio": 251.37,
+      "quick_ratio": 0.0,
+      "borrowing_dependency": 2.78,
+      "stability_grade": "매우 안정",
+      "revenue_growth": 5.29,
+      "operating_income_growth_rate_annual": -33.36,
+      "equity_growth_rate": 4.18,
+      "total_asset_growth_rate": 3.94,
+      "growth_grade": "양호",
+      "__missing_flags__": {
+        "ratios": false,
+        "profit": false,
+        "stability": false,
+        "growth": false
+      },
+      "per": 16.1,
+      "pbr": 1.38,
+      "eps": 4950.0,
+      "bps": 57930.0
+    },
+    "opinion_analysis": {
+      "symbol": "005930",
+      "analysis_period": "30일",
+      "total_opinions": 9,
+      "status": "success",
+      "summary": {
+        "symbol": "005930",
+        "total_opinions": 9,
+        "buy_opinions": 9,
+        "hold_opinions": 0,
+        "sell_opinions": 0,
+        "avg_target_price": 98888.89,
+        "max_target_price": 110000.0,
+        "min_target_price": 90000.0,
+        "avg_upside": 29.01,
+        "most_recent_date": "20250919",
+        "opinion_trend": "상향"
+      },
+      "detailed_analysis": {
+        "opinion_distribution": {
+          "BUY": 5,
+          "매수": 4
+        },
+        "daily_opinion_count": {
+          "20250919": 1,
+          "20250918": 2,
+          "20250917": 2,
+          "20250916": 1,
+          "20250915": 1,
+          "20250910": 1,
+          "20250822": 1
+        },
+        "recent_changes": 0,
+        "most_active_date": "20250919",
+        "total_brokerages": 9
+      },
+      "trend_analysis": {
+        "sentiment_trend": "보합",
+        "target_price_trend": "하락",
+        "opinion_change_frequency": 0.0
+      },
+      "consensus_analysis": {
+        "consensus_score": 1.0,
+        "consensus_level": "강한 매수",
+        "sample_size": 9
+      },
+      "target_price_analysis": {
+        "avg_target_price": 98888.89,
+        "max_target_price": 110000.0,
+        "min_target_price": 90000.0,
+        "price_range": 20000.0,
+        "avg_upside_potential": 40.07,
+        "target_count": 9,
+        "coverage_rate": 100.0
+      },
+      "brokerage_analysis": {
+        "total_brokerages": 9,
+        "top_brokerages": [
+          "('한화투자', 1)",
+          "('IBK투자', 1)",
+          "('대신', 1)",
+          "('하나증권', 1)",
+          "('SK', 1)"
+        ],
+        "brokerage_avg_targets": {
+          "한화투자": 110000.0,
+          "IBK투자": 110000.0,
+          "대신": 90000.0,
+          "하나증권": 95000.0,
+          "SK": 110000.0,
+          "NH투자": 94000.0,
+          "미래에셋": 96000.0,
+          "한국투자": 95000.0,
+          "키움": 90000.0
+        },
+        "concentration_ratio": 11.11111111111111
+      }
+    },
+    "estimate_analysis": {
+      "symbol": "005930",
+      "status": "success",
+      "summary": {
+        "symbol": "A005930",
+        "name": "삼성전자",
+        "current_price": 0.0,
+        "change_rate": 0.0,
+        "latest_revenue": 3022314.0,
+        "latest_revenue_growth": 81.0,
+        "latest_operating_profit": 433766.0,
+        "latest_operating_profit_growth": -160.0,
+        "latest_net_profit": 547300.0,
+        "latest_net_profit_growth": 395.0,
+        "latest_eps": 80570.0,
+        "latest_per": 69.0,
+        "latest_roe": 171.0,
+        "latest_ev_ebitda": 34.0,
+        "revenue_trend": "상승",
+        "profit_trend": "상승",
+        "eps_trend": "상승",
+        "data_quality_score": 1.0,
+        "latest_update_date": "2022.12"
+      },
+      "detailed_analysis": {
+        "data_completeness": {
+          "rate": 100.0,
+          "available_indicators": 6,
+          "total_indicators": 6,
+          "grade": "A"
+        },
+        "revenue_analysis": {
+          "latest_value": 3022314.0,
+          "growth_rate": 81.0,
+          "data_points": 5
+        },
+        "profit_analysis": {
+          "operating_profit": 433766.0,
+          "net_profit": 547300.0,
+          "operating_growth": -160.0,
+          "net_growth": 395.0
+        },
+        "investment_metrics": {
+          "eps": 80570.0,
+          "per": 69.0,
+          "roe": 171.0,
+          "ev_ebitda": 34.0,
+          "debt_ratio": 264.0,
+          "interest_coverage": 568.0
+        },
+        "settlement_periods": [
+          "2022.12",
+          "2023.12",
+          "2024.12",
+          "2025.12E",
+          "2026.12E"
+        ]
+      },
+      "trend_analysis": {
+        "revenue": {
+          "direction": "상승",
+          "strength": 53.47364598823221,
+          "volatility": 8.581554845930212,
+          "data_points": 5
+        },
+        "operating_profit": {
+          "direction": "상승",
+          "strength": 78.0175154510695,
+          "volatility": 47.52156530365414,
+          "data_points": 5
+        },
+        "net_profit": {
+          "direction": "상승",
+          "strength": 100.0,
+          "volatility": 38.07956645699379,
+          "data_points": 5
+        },
+        "eps": {
+          "direction": "상승",
+          "strength": 100.0,
+          "volatility": 38.018125475544174,
+          "data_points": 5
+        },
+        "roe": {
+          "direction": "상승",
+          "strength": 100.0,
+          "volatility": 45.91937167950855,
+          "data_points": 5
+        }
+      },
+      "financial_health": {
+        "health_score": 50,
+        "health_grade": "C",
+        "factors": [
+          "ROE 우수 (171.0%)",
+          "부채비율 높음 (264.0%)",
+          "이자보상배율 우수 (568.0배)"
+        ],
+        "max_score": 100
+      },
+      "valuation_analysis": {
+        "per": {
+          "value": 69.0,
+          "grade": "F",
+          "interpretation": "매우 고평가"
+        },
+        "ev_ebitda": {
+          "value": 34.0,
+          "grade": "F",
+          "interpretation": "매우 고평가"
+        },
+        "overall_score": 10,
+        "overall_grade": "F"
+      },
+      "growth_analysis": {
+        "revenue_growth": {
+          "value": 81.0,
+          "grade": "A",
+          "interpretation": "매우 높은 성장"
+        },
+        "profit_growth": {
+          "value": -160.0,
+          "grade": "F",
+          "interpretation": "성장 정체"
+        },
+        "eps_growth": {
+          "value": 395.0,
+          "grade": "A",
+          "interpretation": "매우 높은 성장"
+        }
+      },
+      "quality_analysis": {
+        "quality_score": 1.0,
+        "quality_grade": "A",
+        "completeness": {
+          "rate": 100.0,
+          "available_indicators": 6,
+          "total_indicators": 6,
+          "grade": "A"
+        },
+        "consistency": {
+          "score": 1.0,
+          "grade": "A"
+        },
+        "latest_update": "2022.12"
+      }
+    },
+    "integrated_analysis": {
+      "symbol": "005930",
+      "analysis_timestamp": "2025-09-20T18:35:18.080206",
+      "opinion_analysis": {
+        "symbol": "005930",
+        "analysis_period": "30일",
+        "total_opinions": 9,
+        "status": "success",
+        "summary": {
+          "symbol": "005930",
+          "total_opinions": 9,
+          "buy_opinions": 9,
+          "hold_opinions": 0,
+          "sell_opinions": 0,
+          "avg_target_price": 98888.89,
+          "max_target_price": 110000.0,
+          "min_target_price": 90000.0,
+          "avg_upside": 29.01,
+          "most_recent_date": "20250919",
+          "opinion_trend": "상향"
+        },
+        "detailed_analysis": {
+          "opinion_distribution": {
+            "BUY": 5,
+            "매수": 4
+          },
+          "daily_opinion_count": {
+            "20250919": 1,
+            "20250918": 2,
+            "20250917": 2,
+            "20250916": 1,
+            "20250915": 1,
+            "20250910": 1,
+            "20250822": 1
+          },
+          "recent_changes": 0,
+          "most_active_date": "20250919",
+          "total_brokerages": 9
+        },
+        "trend_analysis": {
+          "sentiment_trend": "보합",
+          "target_price_trend": "하락",
+          "opinion_change_frequency": 0.0
+        },
+        "consensus_analysis": {
+          "consensus_score": 1.0,
+          "consensus_level": "강한 매수",
+          "sample_size": 9
+        },
+        "target_price_analysis": {
+          "avg_target_price": 98888.89,
+          "max_target_price": 110000.0,
+          "min_target_price": 90000.0,
+          "price_range": 20000.0,
+          "avg_upside_potential": 40.07,
+          "target_count": 9,
+          "coverage_rate": 100.0
+        },
+        "brokerage_analysis": {
+          "total_brokerages": 9,
+          "top_brokerages": [
+            "('한화투자', 1)",
+            "('IBK투자', 1)",
+            "('대신', 1)",
+            "('하나증권', 1)",
+            "('SK', 1)"
+          ],
+          "brokerage_avg_targets": {
+            "한화투자": 110000.0,
+            "IBK투자": 110000.0,
+            "대신": 90000.0,
+            "하나증권": 95000.0,
+            "SK": 110000.0,
+            "NH투자": 94000.0,
+            "미래에셋": 96000.0,
+            "한국투자": 95000.0,
+            "키움": 90000.0
+          },
+          "concentration_ratio": 11.11111111111111
+        }
+      },
+      "estimate_analysis": {
+        "symbol": "005930",
+        "status": "success",
+        "summary": {
+          "symbol": "A005930",
+          "name": "삼성전자",
+          "current_price": 0.0,
+          "change_rate": 0.0,
+          "latest_revenue": 3022314.0,
+          "latest_revenue_growth": 81.0,
+          "latest_operating_profit": 433766.0,
+          "latest_operating_profit_growth": -160.0,
+          "latest_net_profit": 547300.0,
+          "latest_net_profit_growth": 395.0,
+          "latest_eps": 80570.0,
+          "latest_per": 69.0,
+          "latest_roe": 171.0,
+          "latest_ev_ebitda": 34.0,
+          "revenue_trend": "상승",
+          "profit_trend": "상승",
+          "eps_trend": "상승",
+          "data_quality_score": 1.0,
+          "latest_update_date": "2022.12"
+        },
+        "detailed_analysis": {
+          "data_completeness": {
+            "rate": 100.0,
+            "available_indicators": 6,
+            "total_indicators": 6,
+            "grade": "A"
+          },
+          "revenue_analysis": {
+            "latest_value": 3022314.0,
+            "growth_rate": 81.0,
+            "data_points": 5
+          },
+          "profit_analysis": {
+            "operating_profit": 433766.0,
+            "net_profit": 547300.0,
+            "operating_growth": -160.0,
+            "net_growth": 395.0
+          },
+          "investment_metrics": {
+            "eps": 80570.0,
+            "per": 69.0,
+            "roe": 171.0,
+            "ev_ebitda": 34.0,
+            "debt_ratio": 264.0,
+            "interest_coverage": 568.0
+          },
+          "settlement_periods": [
+            "2022.12",
+            "2023.12",
+            "2024.12",
+            "2025.12E",
+            "2026.12E"
+          ]
+        },
+        "trend_analysis": {
+          "revenue": {
+            "direction": "상승",
+            "strength": 53.47364598823221,
+            "volatility": 8.581554845930212,
+            "data_points": 5
+          },
+          "operating_profit": {
+            "direction": "상승",
+            "strength": 78.0175154510695,
+            "volatility": 47.52156530365414,
+            "data_points": 5
+          },
+          "net_profit": {
+            "direction": "상승",
+            "strength": 100.0,
+            "volatility": 38.07956645699379,
+            "data_points": 5
+          },
+          "eps": {
+            "direction": "상승",
+            "strength": 100.0,
+            "volatility": 38.018125475544174,
+            "data_points": 5
+          },
+          "roe": {
+            "direction": "상승",
+            "strength": 100.0,
+            "volatility": 45.91937167950855,
+            "data_points": 5
+          }
+        },
+        "financial_health": {
+          "health_score": 50,
+          "health_grade": "C",
+          "factors": [
+            "ROE 우수 (171.0%)",
+            "부채비율 높음 (264.0%)",
+            "이자보상배율 우수 (568.0배)"
+          ],
+          "max_score": 100
+        },
+        "valuation_analysis": {
+          "per": {
+            "value": 69.0,
+            "grade": "F",
+            "interpretation": "매우 고평가"
+          },
+          "ev_ebitda": {
+            "value": 34.0,
+            "grade": "F",
+            "interpretation": "매우 고평가"
+          },
+          "overall_score": 10,
+          "overall_grade": "F"
+        },
+        "growth_analysis": {
+          "revenue_growth": {
+            "value": 81.0,
+            "grade": "A",
+            "interpretation": "매우 높은 성장"
+          },
+          "profit_growth": {
+            "value": -160.0,
+            "grade": "F",
+            "interpretation": "성장 정체"
+          },
+          "eps_growth": {
+            "value": 395.0,
+            "grade": "A",
+            "interpretation": "매우 높은 성장"
+          }
+        },
+        "quality_analysis": {
+          "quality_score": 1.0,
+          "quality_grade": "A",
+          "completeness": {
+            "rate": 100.0,
+            "available_indicators": 6,
+            "total_indicators": 6,
+            "grade": "A"
+          },
+          "consistency": {
+            "score": 1.0,
+            "grade": "A"
+          },
+          "latest_update": "2022.12"
+        }
+      },
+      "integrated_score": 72.0,
+      "integrated_grade": "B",
+      "investment_recommendation": "적극 검토 추천",
+      "risk_assessment": "낮음",
+      "total_opinions": 9,
+      "buy_opinions": 9,
+      "hold_opinions": 0,
+      "sell_opinions": 0,
+      "consensus_score": 1.0,
+      "avg_target_price": 98888.89,
+      "avg_upside": 29.01,
+      "opinion_trend": "상향",
+      "current_price": 0.0,
+      "latest_revenue": 3022314.0,
+      "latest_revenue_growth": 81.0,
+      "latest_operating_profit": 433766.0,
+      "latest_operating_profit_growth": -160.0,
+      "latest_eps": 80570.0,
+      "latest_per": 69.0,
+      "latest_roe": 171.0,
+      "revenue_trend": "상승",
+      "profit_trend": "상승",
+      "eps_trend": "상승",
+      "data_quality_score": 1.0,
+      "financial_health_score": 50,
+      "valuation_score": 10
+    },
+    "risk_analysis": {
+      "symbol": "005930",
+      "stock_name": "삼성전자",
+      "current_price": 79700.0,
+      "price_position": 95.2076677316294,
+      "risk_score": 6,
+      "risk_grade": "높음",
+      "recommendation": "신중한 접근",
+      "adjustment_factor": 0.42,
+      "price_info": {
+        "symbol": "005930",
+        "name": "전기·전자",
+        "current_price": 79700.0,
+        "volume": 20898386.0,
+        "market_cap": 471795100000000.0,
+        "per": 16.1,
+        "pbr": 1.38,
+        "eps": 4950.0,
+        "bps": 57930.0,
+        "dividend_yield": 0.0,
+        "open_price": 81100.0,
+        "high_price": 81200.0,
+        "low_price": 79600.0,
+        "prev_close": 80500.0,
+        "change_price": -800.0,
+        "change_rate": -0.99,
+        "trading_value": 1672547819584.0,
+        "listed_shares": 5919637922.0,
+        "foreign_holdings": 3025406868.0,
+        "foreign_net_buy": -537726.0,
+        "program_net_buy": 938828.0,
+        "w52_high": 81200.0,
+        "w52_low": 49900.0,
+        "d250_high": 81200.0,
+        "d250_low": 49900.0,
+        "vol_turnover": 0.35,
+        "sector": "전기·전자",
+        "market_status": "55",
+        "margin_rate": "20.00",
+        "credit_available": "Y",
+        "short_selling": "Y",
+        "investment_caution": "N",
+        "market_warning": "00",
+        "short_overheating": "N",
+        "management_stock": "N"
+      },
+      "foreign_trend": {
+        "consecutive_selling_days": 0,
+        "consecutive_buying_days": 0,
+        "trend_strength": "neutral",
+        "recent_activity": "heavy_selling",
+        "total_selling_days": 0,
+        "total_buying_days": 0
+      },
+      "analysis_timestamp": "2025-09-20T18:35:18.080122"
+    }
+  },
+  {
+    "symbol": "373220",
+    "name": "LG에너지솔루션",
+    "market_cap": 829530.0,
+    "current_price": 349500.0,
+    "price_position": 46.91011235955056,
+    "status": "success",
+    "enhanced_score": 9.89,
+    "score_breakdown": {
+      "투자의견": 12.5,
+      "재무비율": 4.390000000000001,
+      "성장성": 3.0,
+      "규모": 5.0,
+      "저평가보너스": 0.0,
+      "고가페널티": 0,
+      "리스크페널티": -15
+    },
+    "enhanced_grade": "F",
+    "financial_data": {
+      "roe": -4.35,
+      "roa": 0,
+      "debt_ratio": 122.55,
+      "equity_ratio": -22.549999999999997,
+      "revenue_growth_rate": -3.74,
+      "operating_income_growth_rate": 0.0,
+      "net_income_growth_rate": 68.43,
+      "net_profit_margin": 2.68,
+      "gross_profit_margin": 17.03,
+      "profitability_grade": "우려",
+      "current_ratio": 121.04,
+      "quick_ratio": 0.0,
+      "borrowing_dependency": 33.11,
+      "stability_grade": "불안정",
+      "revenue_growth": -3.74,
+      "operating_income_growth_rate_annual": 0.0,
+      "equity_growth_rate": 2.42,
+      "total_asset_growth_rate": 22.29,
+      "growth_grade": "양호",
+      "__missing_flags__": {
+        "ratios": false,
+        "profit": false,
+        "stability": false,
+        "growth": false
+      },
+      "per": -80.27,
+      "pbr": 3.87,
+      "eps": -4354.0,
+      "bps": 90240.0
+    },
+    "opinion_analysis": {
+      "symbol": "373220",
+      "analysis_period": "30일",
+      "total_opinions": 4,
+      "status": "success",
+      "summary": {
+        "symbol": "373220",
+        "total_opinions": 4,
+        "buy_opinions": 1,
+        "hold_opinions": 3,
+        "sell_opinions": 0,
+        "avg_target_price": 339500.0,
+        "max_target_price": 430000.0,
+        "min_target_price": 300000.0,
+        "avg_upside": -3.62,
+        "most_recent_date": "20250909",
+        "opinion_trend": "상향"
+      },
+      "detailed_analysis": {
+        "opinion_distribution": {
+          "BUY": 1,
+          "Hold": 3
+        },
+        "daily_opinion_count": {
+          "20250909": 1,
+          "20250908": 1,
+          "20250902": 1,
+          "20250821": 1
+        },
+        "recent_changes": 0,
+        "most_active_date": "20250909",
+        "total_brokerages": 2
+      },
+      "trend_analysis": {
+        "sentiment_trend": "데이터 부족",
+        "target_price_trend": "하락",
+        "opinion_change_frequency": 0.0
+      },
+      "consensus_analysis": {
+        "consensus_score": 0.25,
+        "consensus_level": "매수",
+        "sample_size": 4
+      },
+      "target_price_analysis": {
+        "avg_target_price": 339500.0,
+        "max_target_price": 430000.0,
+        "min_target_price": 300000.0,
+        "price_range": 130000.0,
+        "avg_upside_potential": -10.07,
+        "target_count": 4,
+        "coverage_rate": 100.0
+      },
+      "brokerage_analysis": {
+        "total_brokerages": 2,
+        "top_brokerages": [
+          "('LS증권', 3)",
+          "('NH투자', 1)"
+        ],
+        "brokerage_avg_targets": {
+          "NH투자": 430000.0,
+          "LS증권": 309333.3333333333
+        },
+        "concentration_ratio": 75.0
+      }
+    },
+    "estimate_analysis": {
+      "symbol": "373220",
+      "status": "success",
+      "summary": {
+        "symbol": "A373220",
+        "name": "LG에너지솔루션",
+        "current_price": 0.0,
+        "change_rate": 0.0,
+        "latest_revenue": 0,
+        "latest_revenue_growth": 0,
+        "latest_operating_profit": 0,
+        "latest_operating_profit_growth": 0,
+        "latest_net_profit": 0,
+        "latest_net_profit_growth": 0,
+        "latest_eps": 0,
+        "latest_per": 0,
+        "latest_roe": 0,
+        "latest_ev_ebitda": 0,
+        "revenue_trend": "데이터부족",
+        "profit_trend": "데이터부족",
+        "eps_trend": "데이터부족",
+        "data_quality_score": 0.3,
+        "latest_update_date": ""
+      },
+      "detailed_analysis": {
+        "data_completeness": {
+          "rate": 0.0,
+          "available_indicators": 0,
+          "total_indicators": 6,
+          "grade": "F"
+        },
+        "revenue_analysis": {
+          "latest_value": 0,
+          "growth_rate": 0,
+          "data_points": 0
+        },
+        "profit_analysis": {
+          "operating_profit": 0,
+          "net_profit": 0,
+          "operating_growth": 0,
+          "net_growth": 0
+        },
+        "investment_metrics": {
+          "eps": 0,
+          "per": 0,
+          "roe": 0,
+          "ev_ebitda": 0,
+          "debt_ratio": 0,
+          "interest_coverage": 0
+        },
+        "settlement_periods": []
+      },
+      "trend_analysis": {},
+      "financial_health": {
+        "health_score": 0,
+        "health_grade": "F",
+        "factors": [],
+        "max_score": 100
+      },
+      "valuation_analysis": {
+        "overall_score": 0,
+        "overall_grade": "F"
+      },
+      "growth_analysis": {},
+      "quality_analysis": {
+        "quality_score": 0.3,
+        "quality_grade": "D",
+        "completeness": {
+          "rate": 0.0,
+          "available_indicators": 0,
+          "total_indicators": 6,
+          "grade": "F"
+        },
+        "consistency": {
+          "score": 1.0,
+          "grade": "A"
+        },
+        "latest_update": ""
+      }
+    },
+    "integrated_analysis": {
+      "symbol": "373220",
+      "analysis_timestamp": "2025-09-20T18:35:23.073295",
+      "opinion_analysis": {
+        "symbol": "373220",
+        "analysis_period": "30일",
+        "total_opinions": 4,
+        "status": "success",
+        "summary": {
+          "symbol": "373220",
+          "total_opinions": 4,
+          "buy_opinions": 1,
+          "hold_opinions": 3,
+          "sell_opinions": 0,
+          "avg_target_price": 339500.0,
+          "max_target_price": 430000.0,
+          "min_target_price": 300000.0,
+          "avg_upside": -3.62,
+          "most_recent_date": "20250909",
+          "opinion_trend": "상향"
+        },
+        "detailed_analysis": {
+          "opinion_distribution": {
+            "BUY": 1,
+            "Hold": 3
+          },
+          "daily_opinion_count": {
+            "20250909": 1,
+            "20250908": 1,
+            "20250902": 1,
+            "20250821": 1
+          },
+          "recent_changes": 0,
+          "most_active_date": "20250909",
+          "total_brokerages": 2
+        },
+        "trend_analysis": {
+          "sentiment_trend": "데이터 부족",
+          "target_price_trend": "하락",
+          "opinion_change_frequency": 0.0
+        },
+        "consensus_analysis": {
+          "consensus_score": 0.25,
+          "consensus_level": "매수",
+          "sample_size": 4
+        },
+        "target_price_analysis": {
+          "avg_target_price": 339500.0,
+          "max_target_price": 430000.0,
+          "min_target_price": 300000.0,
+          "price_range": 130000.0,
+          "avg_upside_potential": -10.07,
+          "target_count": 4,
+          "coverage_rate": 100.0
+        },
+        "brokerage_analysis": {
+          "total_brokerages": 2,
+          "top_brokerages": [
+            "('LS증권', 3)",
+            "('NH투자', 1)"
+          ],
+          "brokerage_avg_targets": {
+            "NH투자": 430000.0,
+            "LS증권": 309333.3333333333
+          },
+          "concentration_ratio": 75.0
+        }
+      },
+      "estimate_analysis": {
+        "symbol": "373220",
+        "status": "success",
+        "summary": {
+          "symbol": "A373220",
+          "name": "LG에너지솔루션",
+          "current_price": 0.0,
+          "change_rate": 0.0,
+          "latest_revenue": 0,
+          "latest_revenue_growth": 0,
+          "latest_operating_profit": 0,
+          "latest_operating_profit_growth": 0,
+          "latest_net_profit": 0,
+          "latest_net_profit_growth": 0,
+          "latest_eps": 0,
+          "latest_per": 0,
+          "latest_roe": 0,
+          "latest_ev_ebitda": 0,
+          "revenue_trend": "데이터부족",
+          "profit_trend": "데이터부족",
+          "eps_trend": "데이터부족",
+          "data_quality_score": 0.3,
+          "latest_update_date": ""
+        },
+        "detailed_analysis": {
+          "data_completeness": {
+            "rate": 0.0,
+            "available_indicators": 0,
+            "total_indicators": 6,
+            "grade": "F"
+          },
+          "revenue_analysis": {
+            "latest_value": 0,
+            "growth_rate": 0,
+            "data_points": 0
+          },
+          "profit_analysis": {
+            "operating_profit": 0,
+            "net_profit": 0,
+            "operating_growth": 0,
+            "net_growth": 0
+          },
+          "investment_metrics": {
+            "eps": 0,
+            "per": 0,
+            "roe": 0,
+            "ev_ebitda": 0,
+            "debt_ratio": 0,
+            "interest_coverage": 0
+          },
+          "settlement_periods": []
+        },
+        "trend_analysis": {},
+        "financial_health": {
+          "health_score": 0,
+          "health_grade": "F",
+          "factors": [],
+          "max_score": 100
+        },
+        "valuation_analysis": {
+          "overall_score": 0,
+          "overall_grade": "F"
+        },
+        "growth_analysis": {},
+        "quality_analysis": {
+          "quality_score": 0.3,
+          "quality_grade": "D",
+          "completeness": {
+            "rate": 0.0,
+            "available_indicators": 0,
+            "total_indicators": 6,
+            "grade": "F"
+          },
+          "consistency": {
+            "score": 1.0,
+            "grade": "A"
+          },
+          "latest_update": ""
+        }
+      },
+      "integrated_score": 26.75,
+      "integrated_grade": "D",
+      "investment_recommendation": "관망 추천",
+      "risk_assessment": "높음",
+      "total_opinions": 4,
+      "buy_opinions": 1,
+      "hold_opinions": 3,
+      "sell_opinions": 0,
+      "consensus_score": 0.25,
+      "avg_target_price": 339500.0,
+      "avg_upside": -3.62,
+      "opinion_trend": "상향",
+      "current_price": 0.0,
+      "latest_revenue": 0,
+      "latest_revenue_growth": 0,
+      "latest_operating_profit": 0,
+      "latest_operating_profit_growth": 0,
+      "latest_eps": 0,
+      "latest_per": 0,
+      "latest_roe": 0,
+      "revenue_trend": "데이터부족",
+      "profit_trend": "데이터부족",
+      "eps_trend": "데이터부족",
+      "data_quality_score": 0.3,
+      "financial_health_score": 0,
+      "valuation_score": 0
+    },
+    "risk_analysis": {
+      "symbol": "373220",
+      "stock_name": "LG에너지솔루션",
+      "current_price": 349500.0,
+      "price_position": 46.91011235955056,
+      "risk_score": 5,
+      "risk_grade": "중간",
+      "recommendation": "신중한 접근",
+      "adjustment_factor": 0.48,
+      "price_info": {
+        "symbol": "373220",
+        "name": "전기·전자",
+        "current_price": 349500.0,
+        "volume": 185906.0,
+        "market_cap": 81783000000000.0,
+        "per": -80.27,
+        "pbr": 3.87,
+        "eps": -4354.0,
+        "bps": 90240.0,
+        "dividend_yield": 0.0,
+        "open_price": 351500.0,
+        "high_price": 354500.0,
+        "low_price": 347500.0,
+        "prev_close": 354500.0,
+        "change_price": -5000.0,
+        "change_rate": -1.41,
+        "trading_value": 64980756750.0,
+        "listed_shares": 234000000.0,
+        "foreign_holdings": 9580313.0,
+        "foreign_net_buy": -23961.0,
+        "program_net_buy": -36176.0,
+        "w52_high": 444000.0,
+        "w52_low": 266000.0,
+        "d250_high": 444000.0,
+        "d250_low": 266000.0,
+        "vol_turnover": 0.08,
+        "sector": "전기·전자",
+        "market_status": "55",
+        "margin_rate": "20.00",
+        "credit_available": "Y",
+        "short_selling": "Y",
+        "investment_caution": "N",
+        "market_warning": "00",
+        "short_overheating": "N",
+        "management_stock": "N"
+      },
+      "foreign_trend": {
+        "consecutive_selling_days": 0,
+        "consecutive_buying_days": 0,
+        "trend_strength": "neutral",
+        "recent_activity": "neutral",
+        "total_selling_days": 0,
+        "total_buying_days": 0
+      },
+      "analysis_timestamp": "2025-09-20T18:35:23.073228"
+    }
+  }
+]

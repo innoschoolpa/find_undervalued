@@ -5,6 +5,7 @@ import logging
 import time
 import os
 import yaml
+import math
 from datetime import datetime
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from threading import Lock
@@ -89,6 +90,9 @@ def setup_logging(log_file: str = None, log_level: str = "INFO"):
             name, ext = os.path.splitext(log_file_str)
             final_log_file = f"{name}_{timestamp}{ext}"
         
+        # 윈도 경로 구분 문제 방지
+        final_log_file = os.path.normpath(final_log_file)
+        
         file_handler = logging.FileHandler(final_log_file, encoding='utf-8')
         file_handler.setLevel(level)
         file_handler.setFormatter(formatter)
@@ -136,7 +140,7 @@ class TPSRateLimiter:
                     self.ts.popleft()
             
             self.ts.append(time.time())
-            time.sleep(0.002)  # 아주 짧은 간격으로 버스트 완화
+            time.sleep(random.uniform(0.0, 0.004))  # 지터를 더 줘서 충돌 방지
 
 # 전역 레이트리미터 인스턴스
 rate_limiter = TPSRateLimiter(max_tps=8)
@@ -198,6 +202,23 @@ class EnhancedIntegratedAnalyzer:
         base = {k: v * scale for k, v in base.items()}
         vb = vb * scale
         return base, vb
+    
+    def _require_weight_keys(self, w: Dict[str, float]) -> Dict[str, float]:
+        """필수 가중치 키가 없으면 0.0으로 보강 (NPE 방지용)."""
+        required = ('opinion_analysis','estimate_analysis','financial_ratios','growth_analysis','scale_analysis')
+        if not isinstance(w, dict):
+            return {k: 0.0 for k in required}
+        for k in required:
+            w.setdefault(k, 0.0)
+        return w
+    
+    def _finite(self, x, default=0.0):
+        """NaN/inf 방지 유한수 변환 헬퍼 함수."""
+        try:
+            v = float(x)
+            return v if math.isfinite(v) else default
+        except Exception:
+            return default
     
     def _load_config(self, config_file: str) -> Dict[str, Any]:
         """설정 파일을 로드합니다."""
@@ -380,8 +401,8 @@ class EnhancedIntegratedAnalyzer:
             return []
         
         # 우선주/전환/신형 등 변형 제외: 이름 기반 + (가능 시) '주식종류' 우선 사용
-        pref_name_pat = r'\s*우(?:[ABC])?(?:\(.+?\))?\s*$'  # 끝 공백/괄호/서픽스 모두 커버
-        exclude_name_pat = r'(스팩|리츠|ETF|ETN|인수권|BW|CB)'  # 스팩/리츠/ETF 등 제외
+        pref_name_pat = r'(우선주$)|(\s*우(?:[ABC])?(?:\(.+?\))?\s*$)'  # 우선주, 우, 우A, 우B, 우(전환) 등 커버
+        exclude_name_pat = r'(SPAC|스팩|리츠|ETF|ETN|인수권|BW|CB)'  # 스팩/리츠/ETF 등 제외 (영문 포함)
         has_kind_col = '주식종류' in self.kospi_data.columns
         if has_kind_col:
             is_common = self.kospi_data['주식종류'].astype(str).str.contains('보통주', na=False)
@@ -605,6 +626,9 @@ class EnhancedIntegratedAnalyzer:
             score += growth_score
             score_breakdown['성장성'] = growth_score
         
+        # 필수 키 보강 (안전) - 가중치 사용 전에 미리 보강
+        base_w = self._require_weight_keys(base_w)
+        
         # 5. 규모 점수
         scale_weight = float(base_w.get('scale_analysis', 0.0))
         scale_score = self._calculate_scale_score(market_cap, scale_weight)
@@ -657,8 +681,30 @@ class EnhancedIntegratedAnalyzer:
             except Exception:
                 return 0.0
 
-        per = _safe_pos_float(estimate_analysis.get('per', 0))
-        pbr = _safe_pos_float(estimate_analysis.get('pbr', 0))
+        # ---- 값 소스 우선순위 ----
+        # 1) financial_data.{per,pbr}
+        # 2) estimate_analysis.valuation_analysis.{per,pbr}.value
+        # 3) estimate_analysis.{per,pbr}
+        def _get_metric(name: str) -> float:
+            # financial_data 1순위
+            v = financial_data.get(name, None)
+            x = _safe_pos_float(v)
+            if x > 0:
+                return x
+            # valuation_analysis 경로 2순위
+            try:
+                va = estimate_analysis.get('valuation_analysis', {}) or {}
+                node = va.get(name, {}) or {}
+                x = _safe_pos_float(node.get('value', 0))
+                if x > 0:
+                    return x
+            except Exception:
+                pass
+            # 최후 3순위
+            return _safe_pos_float(estimate_analysis.get(name, 0))
+
+        per = _get_metric('per')
+        pbr = _get_metric('pbr')
         roe = _safe_pos_float(financial_data.get('roe', 0))
 
         # PER 기반 저평가 보너스
@@ -971,7 +1017,7 @@ class EnhancedIntegratedAnalyzer:
             market_cap = 0
             current_price = 0
             row = self._kospi_index.get(str(symbol))
-            if row:
+            if row and hasattr(row, '시가총액') and hasattr(row, '현재가'):
                 market_cap = float(getattr(row, '시가총액', 0) or 0)
                 current_price = float(getattr(row, '현재가', 0) or 0)
             
@@ -1397,7 +1443,10 @@ def test_enhanced_parallel_analysis(
                     progress.update(task, advance=1)
                     
                 except Exception as e:
-                    console.print(f"❌ {name} ({symbol}) Future 처리 실패: {e}")
+                    if logging.getLogger().isEnabledFor(logging.DEBUG):
+                        logger.exception(f"Future 처리 실패: {symbol}/{name}")
+                    else:
+                        console.print(f"❌ {name} ({symbol}) Future 처리 실패: {e}")
                     progress.update(task, advance=1)
     
     end_time = time.perf_counter()
@@ -1493,7 +1542,7 @@ def test_enhanced_parallel_analysis(
         # 52주 위치 및 리스크
         pp = result.get('price_position', None)
         rs = (result.get('risk_analysis', {}) or {}).get('risk_score', None)
-        if pp is not None:
+        if pp is not None and isinstance(pp, (int, float)) and not math.isnan(pp):
             console.print(f"  • 52주 위치: {pp:.1f}%")
         if rs is not None:
             console.print(f"  • 리스크 점수: {rs}")
@@ -1686,8 +1735,10 @@ def enhanced_top_picks(
             df = pd.DataFrame(export_data)
             # CSV 포맷 일관화 (정수%로 저장)
             df['roe'] = df['roe'].apply(analyzer._as_pct_number).round(2)
+            df['roa'] = df['roa'].apply(analyzer._as_pct_number).round(2)
             df['debt_ratio'] = df['debt_ratio'].apply(analyzer._as_pct_number).round(2)
             df['net_profit_margin'] = df['net_profit_margin'].apply(analyzer._as_pct_number).round(2)
+            df['current_ratio'] = df['current_ratio'].apply(analyzer._as_pct_number).round(2)
             df['revenue_growth_rate'] = df['revenue_growth_rate'].apply(analyzer._as_pct_number).round(2)
             filename = f"enhanced_top_picks_{int(time.time())}.csv"
             df.to_csv(filename, index=False, encoding='utf-8-sig')
@@ -1722,6 +1773,16 @@ def show_config():
         table.add_row("저평가 보너스", f"{vb:.2f}%", "PER/PBR/ROE-대비-PER 보너스")
     
     console.print(table)
+    
+    # 보너스 조건 요약 추가
+    if vb > 0:
+        console.print("\n💡 [bold]저평가 보너스 적용 조건[/bold]")
+        console.print("  • PER ≤ 8: 매우 저평가 (40% 보너스)")
+        console.print("  • PER ≤ 12: 저평가 (30% 보너스)")
+        console.print("  • PBR ≤ 0.8: 매우 저평가 (30% 보너스)")
+        console.print("  • PBR ≤ 1.2: 저평가 (20% 보너스)")
+        console.print("  • PBR ≤ 1.5: 적정가 (10% 보너스)")
+        console.print("  • PE/ROE ≤ 0.8: 우수 밸류 (20% 보너스)")
     
     # 합계 표시 (가독성 향상)
     sum_base = sum(base_w.values())

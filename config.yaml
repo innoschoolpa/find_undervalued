@@ -387,12 +387,12 @@ enhanced_integrated_analysis:
   # 예: weights: { opinion_analysis: 20, ..., valuation_bonus: 5 }
   # weights 밖 최상위에 valuation_bonus를 적으면 읽지 않습니다.
   weights:
-    opinion_analysis: 25      # 투자의견 분석 (25%)
-    estimate_analysis: 30     # 추정실적 분석 (30%)
+    opinion_analysis: 20      # 투자의견 분석 (20%)
+    estimate_analysis: 25     # 추정실적 분석 (25%)
     financial_ratios: 30      # 재무비율 분석 (30%)
     growth_analysis: 10       # 성장성 분석 (10%)
     scale_analysis: 5         # 규모 분석 (5%)
-    # valuation_bonus: 5      # 저평가 보너스 (5%) - 주석 해제하여 사용 가능
+    valuation_bonus: 10       # 저평가 보너스 (10%) - 활성화
   
   # 재무비율 세부 가중치 (30점 만점 내에서)
   financial_ratio_weights:

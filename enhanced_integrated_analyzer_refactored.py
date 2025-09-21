@@ -212,6 +212,7 @@ class AnalysisResult:
     score_breakdown: Dict[str, float] = None
     error: Optional[str] = None
     price_data: Dict[str, Any] = None  # 가격 데이터 캐싱용
+    sector_analysis: Dict[str, Any] = None  # 섹터 분석 결과
     
     def __post_init__(self):
         if self.financial_data is None:
@@ -228,6 +229,8 @@ class AnalysisResult:
             self.score_breakdown = {}
         if self.price_data is None:
             self.price_data = {}
+        if self.sector_analysis is None:
+            self.sector_analysis = {}
 
 @dataclass
 class AnalysisConfig:
@@ -1095,6 +1098,9 @@ class EnhancedIntegratedAnalyzer:
             # 시가총액 조회
             market_cap = self._get_market_cap(symbol)
             
+            # 섹터 분석 수행
+            sector_analysis = self._analyze_sector(symbol, name)
+            
             # 통합 점수 계산
             analysis_data = {
                 'opinion_analysis': opinion_analysis,
@@ -1104,6 +1110,7 @@ class EnhancedIntegratedAnalyzer:
                 'current_price': price_data.get('current_price', 0),
                 'price_position': self._calculate_price_position(price_data),
                 'sector_info': self._get_sector_characteristics(symbol),
+                'sector_analysis': sector_analysis,
                 'price_data': price_data,
             }
             
@@ -1131,7 +1138,8 @@ class EnhancedIntegratedAnalyzer:
                 estimate_analysis=estimate_analysis,
                 integrated_analysis=integrated_analysis,
                 score_breakdown=score_breakdown,
-                price_data=price_data  # 가격 데이터 캐싱
+                price_data=price_data,  # 가격 데이터 캐싱
+                sector_analysis=sector_analysis  # 섹터 분석 결과 추가
             )
             
         except Exception as e:
@@ -1172,6 +1180,109 @@ class EnhancedIntegratedAnalyzer:
         except Exception as e:
             log_error("추정실적 분석", f"{symbol}({name})", e)
             return {}
+    
+    def _analyze_sector(self, symbol: str, name: str = "") -> Dict[str, Any]:
+        """섹터 분석 수행"""
+        try:
+            # 기본 섹터 정보 가져오기
+            sector_info = self._get_sector_characteristics(symbol)
+            sector_name = sector_info.get('sector_name', '기타')
+            
+            # 간단한 섹터 점수 계산 (PER, PBR, ROE 기반)
+            price_data = self.data_provider.get_price_data(symbol)
+            financial_data = self.data_provider.get_financial_data(symbol)
+            
+            if not price_data or not financial_data:
+                return {
+                    'sector_analysis': {
+                        'sector_grade': 'C',
+                        'total_score': 50.0,
+                        'breakdown': {
+                            '재무_건전성': 50.0,
+                            '성장성': 50.0,
+                            '안정성': 50.0
+                        }
+                    }
+                }
+            
+            # PER, PBR, ROE 기반 점수 계산
+            per = price_data.get('per', 0)
+            pbr = price_data.get('pbr', 0)
+            roe = financial_data.get('roe', 0)
+            
+            # 점수 계산 (간단한 로직)
+            financial_score = 50.0
+            growth_score = 50.0
+            stability_score = 50.0
+            
+            if per > 0 and per < 20:
+                financial_score += 20
+            elif per > 0 and per < 30:
+                financial_score += 10
+            
+            if pbr > 0 and pbr < 2:
+                financial_score += 15
+            elif pbr > 0 and pbr < 3:
+                financial_score += 10
+            
+            if roe > 15:
+                growth_score += 25
+            elif roe > 10:
+                growth_score += 15
+            elif roe > 5:
+                growth_score += 10
+            
+            # 안정성 점수 (시가총액 기반)
+            market_cap = self._get_market_cap(symbol)
+            if market_cap > 100000:  # 1조 이상
+                stability_score += 20
+            elif market_cap > 50000:  # 5000억 이상
+                stability_score += 10
+            
+            # 최종 점수 계산
+            total_score = (financial_score + growth_score + stability_score) / 3
+            
+            # 등급 결정
+            if total_score >= 80:
+                grade = 'A+'
+            elif total_score >= 75:
+                grade = 'A'
+            elif total_score >= 70:
+                grade = 'B+'
+            elif total_score >= 65:
+                grade = 'B'
+            elif total_score >= 60:
+                grade = 'C+'
+            elif total_score >= 55:
+                grade = 'C'
+            else:
+                grade = 'D'
+            
+            return {
+                'sector_analysis': {
+                    'sector_grade': grade,
+                    'total_score': total_score,
+                    'breakdown': {
+                        '재무_건전성': financial_score,
+                        '성장성': growth_score,
+                        '안정성': stability_score
+                    }
+                }
+            }
+            
+        except Exception as e:
+            logging.debug(f"섹터 분석 실패 {symbol}: {e}")
+            return {
+                'sector_analysis': {
+                    'sector_grade': 'C',
+                    'total_score': 50.0,
+                    'breakdown': {
+                        '재무_건전성': 50.0,
+                        '성장성': 50.0,
+                        '안정성': 50.0
+                    }
+                }
+            }
     
     def _get_market_cap(self, symbol: str) -> float:
         """시가총액 조회"""
@@ -1555,6 +1666,109 @@ class EnhancedIntegratedAnalyzer:
         
         return current, position
     
+    def _position_label(self, pos: Optional[float]) -> str:
+        """52주 위치에 따른 라벨을 반환합니다."""
+        if pos is None:
+            return "N/A"
+        if pos >= 95:
+            return f"{pos:.1f}% 🔴 과열/추세"
+        if pos >= 85:
+            return f"{pos:.1f}% 🟡 상단"
+        if pos <= 30:
+            return f"{pos:.1f}% 🟢 저가구간(할인)"
+        return f"{pos:.1f}% 중립"
+    
+    def _classify_bucket(self, pos: Optional[float]) -> str:
+        """52주 위치를 기반으로 바스켓을 분류합니다."""
+        if pos is None:
+            return "밸류/리스크관리"
+        return "모멘텀/브레이크아웃" if pos >= 85 else "밸류/리스크관리"
+    
+    def _get_position_sizing(self, pos: Optional[float], bucket_type: str) -> float:
+        """포지션 사이징을 계산합니다."""
+        if pos is None:
+            return 1.0
+        
+        if bucket_type == "밸류/리스크관리":
+            if pos <= 30:  # 딥밸류
+                return 1.2
+            elif pos <= 70:  # 중립
+                return 1.0
+            else:
+                return 0.8
+        else:  # 모멘텀/브레이크아웃
+            if pos >= 95:
+                return 0.5
+            else:
+                return 0.7
+    
+    def _get_risk_reward_ratio(self, pos: Optional[float], bucket_type: str) -> str:
+        """손익비 기준을 반환합니다."""
+        if bucket_type == "모멘텀/브레이크아웃" and pos is not None:
+            if pos >= 95:
+                return "손절7% 목표1.8R"
+            elif pos >= 85:
+                return "손절8% 목표1.8R"
+            else:
+                return "손절8% 목표1.8R"
+        else:
+            return "N/A"
+    
+    def _extract_sector_valuation_text(self, stock: dict) -> str:
+        """dict → AnalysisResult(enhanced_result) → sector_analysis에서 섹터 밸류 점수를 안전하게 추출합니다."""
+        try:
+            # dict → AnalysisResult(enhanced_result) → sector_analysis
+            ar = stock.get("enhanced_result")
+            sector = None
+            if isinstance(ar, AnalysisResult):
+                sector = ar.sector_analysis or {}
+            if not sector:
+                # 혹시 상위 dict에 직접 실려오는 경우 대비
+                sector = stock.get("sector_analysis", {})
+
+            # 중첩 구조와 평면 구조 모두 대응
+            node = sector.get("sector_analysis", sector)
+            grade = node.get("sector_grade") or node.get("grade")
+            total = node.get("total_score")
+
+            if grade is None or total is None:
+                return "N/A"
+            return f"{grade}({float(total):.1f})"
+        except Exception:
+            return "N/A"
+
+    def _get_sector_valuation_score(self, stock: Dict[str, Any]) -> str:
+        """섹터 상대 밸류 점수를 반환합니다."""
+        try:
+            # 섹터 평가 점수 추출 (중첩된 구조 확인)
+            sector_analysis = stock.get('sector_analysis', {})
+            if sector_analysis:
+                # 중첩된 sector_analysis 구조 확인
+                nested_sector = sector_analysis.get('sector_analysis', {})
+                if nested_sector:
+                    grade = nested_sector.get('sector_grade', 'F')
+                    total_score = nested_sector.get('total_score', 0)
+                    return f"{grade}({total_score:.1f})"
+                else:
+                    # 직접적인 구조
+                    grade = sector_analysis.get('grade', 'F')
+                    total_score = sector_analysis.get('total_score', 0)
+                    return f"{grade}({total_score:.1f})"
+            else:
+                return "N/A"
+        except Exception as e:
+            logging.debug(f"섹터 밸류 점수 계산 실패 {stock.get('symbol')}: {e}")
+            return "N/A"
+    
+    def _get_basket_type(self, stock: Dict[str, Any]) -> str:
+        """종목의 52주 위치를 기반으로 바스켓 타입을 반환합니다."""
+        try:
+            current_price, price_position = self._resolve_price_and_position(stock)
+            return self._classify_bucket(price_position)
+        except Exception as e:
+            logging.debug(f"바스켓 분류 실패 {stock.get('symbol')}: {e}")
+            return "분류불가"
+    
     def _get_sector_peers_snapshot(self, sector_name: str):
         """섹터 동종군 샘플링 + 캐시 (TTL 10분)"""
         with self._sector_cache_lock:
@@ -1896,7 +2110,7 @@ class EnhancedIntegratedAnalyzer:
             console.print(f"⏱️ 분석 시간: {metadata.get('analysis_time_seconds', 0):.1f}초")
             total = metadata.get('total_analyzed', metadata.get('total_stocks_analyzed', 0))
             console.print(f"📊 총 분석 종목: {total}개")
-            console.print(f"🎯 저평가 종목: {metadata.get('undervalued_count', 0)}개")
+            console.print(f"🎯 추천 종목: {metadata.get('undervalued_count', 0)}개")
             
             # 활성화된 기능 표시
             features = metadata.get('features_enabled', {})
@@ -1917,62 +2131,123 @@ class EnhancedIntegratedAnalyzer:
                 table.add_column("종합점수", style="yellow", width=8)
                 table.add_column("등급", style="red", width=6)
                 table.add_column("시가총액", style="blue", width=12)
-                table.add_column("52주위치", style="magenta", width=8)
+                table.add_column("52주위치", style="magenta", width=20, no_wrap=True)
+                table.add_column("바스켓", style="bright_blue", width=12)
+                table.add_column("포지션", style="bright_yellow", width=8)
+                table.add_column("손익비", style="bright_red", width=12)
+                table.add_column("섹터밸류", style="bright_cyan", width=10)
                 table.add_column("투자의견", style="cyan", width=8)
                 table.add_column("재무비율", style="green", width=8)
                 table.add_column("가격위치", style="yellow", width=8)
                 
-                for i, stock in enumerate(top_recommendations[:10], 1):
+                # 필터링된 추천 종목 (리스크관리 바스켓용)
+                filtered_recommendations = []
+                for stock in top_recommendations[:10]:
+                    current_price, price_position = self._resolve_price_and_position(stock)
+                    basket_type = self._classify_bucket(price_position)
+                    
+                    # 리스크관리 바스켓에서는 ≥85% 종목 제외
+                    if basket_type == "밸류/리스크관리" and price_position is not None and price_position >= 85:
+                        continue
+                    
+                    filtered_recommendations.append(stock)
+                
+                for i, stock in enumerate(filtered_recommendations, 1):
                     # 가격/위치 정보 해결
                     current_price, price_position = self._resolve_price_and_position(stock)
                     
                     # 현재가 표시
                     current_price_display = f"{current_price:,.0f}원" if current_price else "N/A"
                     
-                    # 52주 위치 표시 (디버깅 정보 추가)
-                    if price_position is not None:
-                        if price_position >= 95:
-                            position_text = f"{price_position:.1f}% 🔴"
-                        elif price_position >= 90:
-                            position_text = f"{price_position:.1f}% 🟠"
-                        elif price_position >= 80:
-                            position_text = f"{price_position:.1f}% 🟡"
-                        elif price_position <= 20:
-                            position_text = f"{price_position:.1f}% 🟢"
-                        elif price_position <= 30:
-                            position_text = f"{price_position:.1f}% 🔵"
-                        else:
-                            position_text = f"{price_position:.1f}%"
-                    else:
-                        symbol = stock.get('symbol', 'Unknown')
-                        logging.debug(f"52주 위치 계산 실패 {symbol}: current={current_price}")
-                        position_text = "N/A"
+                    # 52주 위치 표시 (새로운 함수 사용)
+                    position_text = self._position_label(price_position)
+                    
+                    # 바스켓 분류 로직 (새로운 함수 사용)
+                    basket_type = self._classify_bucket(price_position)
+                    basket_style = "green" if basket_type == "밸류/리스크관리" else "red" if basket_type == "모멘텀/브레이크아웃" else "yellow"
+                    
+                    # 포지션 사이징 계산
+                    position_sizing = self._get_position_sizing(price_position, basket_type)
+                    
+                    # 손익비 기준 계산
+                    risk_reward = self._get_risk_reward_ratio(price_position, basket_type)
+                    
+                    # 섹터 밸류 점수 계산
+                    sector_valuation = self._extract_sector_valuation_text(stock)
                     
                     # breakdown 정보 추출
-                    breakdown = stock.get('breakdown', {})
+                    breakdown = {}
+                    if isinstance(stock, dict):
+                        # enhanced_result에서 breakdown 추출
+                        enhanced_result = stock.get('enhanced_result')
+                        if enhanced_result and hasattr(enhanced_result, 'score_breakdown'):
+                            breakdown = enhanced_result.score_breakdown or {}
+                        else:
+                            breakdown = stock.get('score_breakdown', {})
+                    else:
+                        breakdown = getattr(stock, 'score_breakdown', {})
+                    
                     opinion_score = breakdown.get('투자의견', 0)
                     financial_score = breakdown.get('재무비율', 0)
                     price_position_score = breakdown.get('가격위치', 0)
 
                     # 색상/라벨
-                    grade = stock.get('enhanced_grade', 'F')
+                    if isinstance(stock, dict):
+                        grade = stock.get('enhanced_grade', 'F')
+                    else:
+                        grade = getattr(stock, 'enhanced_grade', 'F')
                     grade_style = "green" if grade in ['A+','A','B+','B'] else "yellow" if grade in ['C+','C','D+','D'] else "red"
+                    
+                    # stock이 딕셔너리인지 객체인지 확인
+                    if isinstance(stock, dict):
+                        symbol = stock.get('symbol', 'N/A')
+                        name = stock.get('name', 'N/A')
+                        enhanced_score = stock.get('enhanced_score', 0)
+                        market_cap = stock.get('market_cap', 0)
+                    else:
+                        symbol = getattr(stock, 'symbol', 'N/A')
+                        name = getattr(stock, 'name', 'N/A')
+                        enhanced_score = getattr(stock, 'enhanced_score', 0)
+                        market_cap = getattr(stock, 'market_cap', 0)
                     
                     table.add_row(
                         str(i),
-                        stock.get('symbol', 'N/A'),
-                        stock.get('name', 'N/A')[:12] + ('...' if len(stock.get('name',''))>12 else ''),
+                        symbol,
+                        name[:12] + ('...' if len(name)>12 else ''),
                         current_price_display,
-                        f"{stock.get('enhanced_score', 0):.1f}",
+                        f"{enhanced_score:.1f}",
                         f"[{grade_style}]{grade}[/{grade_style}]",
-                        f"{stock.get('market_cap', 0):,.0f}억",
+                        f"{market_cap:,.0f}억",
                         position_text,
+                        f"[{basket_style}]{basket_type}[/{basket_style}]",
+                        f"{position_sizing:.1f}x",
+                        risk_reward,
+                        sector_valuation,
                         f"{opinion_score:.1f}",
                         f"{financial_score:.1f}",
                         f"{price_position_score:.1f}"
                     )
                 
                 console.print(table)
+                
+                # 바스켓별 요약 정보 (필터링된 결과 기준)
+                console.print(f"\n📊 [bold blue]바스켓별 분류 요약[/bold blue]")
+                value_basket = [stock for stock in filtered_recommendations if self._get_basket_type(stock) == "밸류/리스크관리"]
+                momentum_basket = [stock for stock in top_recommendations[:10] if self._get_basket_type(stock) == "모멘텀/브레이크아웃"]
+                
+                if value_basket:
+                    console.print(f"🟢 [green]밸류/리스크관리 바스켓 ({len(value_basket)}개)[/green]")
+                    for stock in value_basket:
+                        current_price, price_position = self._resolve_price_and_position(stock)
+                        position_display = f"{price_position:.1f}%" if price_position else "N/A"
+                        console.print(f"  • {stock.get('name', 'N/A')}({stock.get('symbol', 'N/A')}) - {position_display}")
+                
+                if momentum_basket:
+                    console.print(f"🔴 [red]모멘텀/브레이크아웃 바스켓 ({len(momentum_basket)}개) - 🔴 과열/추세 라벨[/red]")
+                    for stock in momentum_basket:
+                        current_price, price_position = self._resolve_price_and_position(stock)
+                        position_display = f"{price_position:.1f}%" if price_position else "N/A"
+                        console.print(f"  • {stock.get('name', 'N/A')}({stock.get('symbol', 'N/A')}) - {position_display} 🔴")
             
             # 업종별 분석 결과
             sector_analysis = results.get('sector_analysis', {})

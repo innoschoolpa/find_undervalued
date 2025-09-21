@@ -231,6 +231,15 @@ api:
     api_key: "881d7d29ca6d553ce02e78d22a1129c15a62ac47"  # 실제 DART API 키로 교체 필요
     base_url: "https://opendart.fss.or.kr/api"
     timeout: 12
+
+  # 네이버 뉴스 API 설정
+  naver:
+    client_id: "ZFrT7e9RJ9JcosG30dUV"
+    client_secret: "YsUytWqqLQ"
+    base_url: "https://openapi.naver.com/v1/search/news.json"
+    timeout: 10
+    rate_limit: 10  # 초당 요청 수 제한
+    max_results: 100  # 최대 결과 수
     # DART 최적화 옵션 (폴백 강제 활성화)
     prefer_multi_company: true           # 다중지표 기본 사용 (강제)
     use_multi_as_fallback: true          # 문서 파싱 실패시에만 다중지표 사용
@@ -387,14 +396,15 @@ enhanced_integrated_analysis:
   # 예: weights: { opinion_analysis: 20, ..., valuation_bonus: 5 }
   # weights 밖 최상위에 valuation_bonus를 적으면 읽지 않습니다.
   weights:
-    opinion_analysis: 20      # 투자의견 분석 (20%)
-    estimate_analysis: 25     # 추정실적 분석 (25%)
-    financial_ratios: 30      # 재무비율 분석 (30%)
+    opinion_analysis: 20      # 투자의견 분석 (20%) - 가격위치 반영으로 조정
+    estimate_analysis: 25     # 추정실적 분석 (25%) - 가격위치 반영으로 조정
+    financial_ratios: 30      # 재무비율 분석 (30%) - 핵심 신규 요소
     growth_analysis: 10       # 성장성 분석 (10%)
     scale_analysis: 5         # 규모 분석 (5%)
-    valuation_bonus: 10       # 저평가 보너스 (10%) - 활성화
+    price_position: 5         # 가격위치 분석 (5%) - 신규 추가
+    valuation_bonus: 5        # 저평가 보너스 (5%) - 가격위치 반영으로 조정
   
-  # 재무비율 세부 가중치 (30점 만점 내에서)
+  # 재무비율 세부 가중치 (28점 만점 - enhanced_integrated_analyzer_refactored.py 기준)
   financial_ratio_weights:
     roe_score: 8              # ROE 점수 (8점)
     roa_score: 5              # ROA 점수 (5점)
@@ -402,6 +412,26 @@ enhanced_integrated_analysis:
     net_profit_margin_score: 5 # 순이익률 점수 (5점)
     current_ratio_score: 3    # 유동비율 점수 (3점)
     quick_ratio_score: 0      # 당좌비율 점수 (0점 - 옵션)
+    # 총 28점 (100점 만점으로 변환)
+  
+  # 향상된 기능 설정 (enhanced_integrated_analyzer_refactored.py 기반)
+  enhanced_features:
+    enable_market_cycle_adjustment: true    # 시장 사이클 조정
+    enable_price_position_penalty: true     # 52주 가격 위치 페널티
+    enable_financial_ratio_analysis: true   # 재무비율 분석 활성화
+  
+  # API 속도 제한 설정
+  rate_limiting:
+    tps_limit: 8              # 초당 트랜잭션 수 (enhanced_integrated_analyzer_refactored.py 기준)
+    burst_limit: 10           # 버스트 허용량
+    retry_tries: 3            # 재시도 횟수
+    retry_base_delay: 0.2     # 기본 지연시간
+    retry_jitter: 0.15        # 지터 범위
+  
+  # 병렬 처리 설정
+  parallel_processing:
+    max_workers: 2            # 최대 워커 수 (TPS 제한 고려)
+    safe_mode: true           # 안전 모드 (속도 제한 준수)
     growth_score: 2           # 성장성 점수 (2점)
   
   # 추정실적 분석 세부 가중치 (30점 만점 내에서)

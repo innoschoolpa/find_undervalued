@@ -22,6 +22,7 @@ from rich.progress import Progress
 from rich.table import Table
 from rich.panel import Panel
 from kis_data_provider import KISDataProvider
+from enhanced_price_provider import EnhancedPriceProvider
 from dart_financial_analyzer import DARTFinancialAnalyzer
 from dart_comprehensive_analyzer import DARTComprehensiveAnalyzer
 from sector_analyzer import SectorAnalyzer
@@ -117,6 +118,7 @@ class AdvancedStockAnalyzer:
     
     def __init__(self, dart_api_key: str = None):
         self.provider = KISDataProvider()
+        self.price_provider = EnhancedPriceProvider()
         self.kospi_data = None
         self.dart_analyzer = None
         self.dart_comprehensive_analyzer = None
@@ -2573,34 +2575,24 @@ def find_undervalued_stocks(
                     'analysis_details': {}
                 }
                 
-                # 1. 현재가 및 기본 정보 조회
+                # 1. 현재가 및 기본 정보 조회 (향상된 프로바이더 사용)
                 try:
-                    current_data = analyzer.provider.get_stock_price_info(symbol)
-                    if current_data and current_data.get('current_price', 0) > 0:
+                    # 향상된 가격 프로바이더로 종합 데이터 조회
+                    price_data = analyzer.price_provider.get_comprehensive_price_data(symbol)
+                    
+                    if price_data and price_data.get('current_price'):
                         stock_info.update({
-                            'current_price': current_data.get('current_price', 0),
-                            'price_change': current_data.get('change_price', 0),
-                            'price_change_rate': current_data.get('change_rate', 0),
-                            'per': current_data.get('per', 0),
-                            'pbr': current_data.get('pbr', 0),
-                            'volume': current_data.get('volume', 0)
+                            'current_price': price_data.get('current_price', 0),
+                            'price_change': price_data.get('price_change', 0),
+                            'price_change_rate': price_data.get('price_change_rate', 0),
+                            'per': price_data.get('per', 0),
+                            'pbr': price_data.get('pbr', 0),
+                            'volume': price_data.get('volume', 0)
                         })
+                        console.print(f"✅ {name} ({symbol}) 현재가: {price_data.get('current_price', 0):,}원")
                     else:
-                        # 현재가가 0이거나 데이터가 없는 경우 재시도
-                        console.print(f"⚠️ {name} ({symbol}) 현재가 조회 재시도 중...")
-                        time.sleep(8.0)  # API 제한을 위한 대기 (8초)
-                        current_data = analyzer.provider.get_stock_price_info(symbol)
-                        if current_data:
-                            stock_info.update({
-                                'current_price': current_data.get('current_price', 0),
-                                'price_change': current_data.get('change_price', 0),
-                                'price_change_rate': current_data.get('change_rate', 0),
-                                'per': current_data.get('per', 0),
-                                'pbr': current_data.get('pbr', 0),
-                                'volume': current_data.get('volume', 0)
-                            })
-                        else:
-                            console.print(f"❌ {name} ({symbol}) 현재가 조회 실패 - 데이터 없음")
+                        console.print(f"⚠️ {name} ({symbol}) 현재가 조회 실패 - 데이터 없음")
+                        
                 except Exception as e:
                     console.print(f"❌ {name} ({symbol}) 현재가 조회 실패: {e}")
                     pass

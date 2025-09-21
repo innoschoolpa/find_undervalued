@@ -1,0 +1,1998 @@
+{
+  "metadata": {
+    "analysis_version": "2.0_enhanced",
+    "analysis_date": "2025-09-21T14:06:18.550494",
+    "analysis_time_seconds": 4.688011,
+    "total_analyzed": 5,
+    "undervalued_count": 3,
+    "features_enabled": {
+      "realtime_data": true,
+      "external_data": true,
+      "enhanced_sector_classification": true,
+      "company_specific_analysis": true
+    }
+  },
+  "market_cap_analysis": {
+    "total_market_cap": 0,
+    "average_weighted_score": 0,
+    "market_cap_distribution": {},
+    "total_stocks": 5
+  },
+  "sector_analysis": {
+    "전자": {
+      "count": 2,
+      "total_score": 105.89974278247811,
+      "avg_score": 52.94987139123906,
+      "recommendations": {
+        "BUY": 0,
+        "HOLD": 2,
+        "SELL": 0
+      }
+    },
+    "반도체": {
+      "count": 1,
+      "total_score": 57.652970656622855,
+      "avg_score": 57.652970656622855,
+      "recommendations": {
+        "BUY": 0,
+        "HOLD": 1,
+        "SELL": 0
+      }
+    },
+    "바이오": {
+      "count": 1,
+      "total_score": 44.7745972417778,
+      "avg_score": 44.7745972417778,
+      "recommendations": {
+        "BUY": 0,
+        "HOLD": 0,
+        "SELL": 1
+      }
+    }
+  },
+  "top_recommendations": [
+    {
+      "symbol": "000660",
+      "name": "SK하이닉스",
+      "enhanced_score": 57.652970656622855,
+      "basic_score": 52.78594131324571,
+      "investment_recommendation": "HOLD",
+      "confidence_level": "LOW",
+      "sector_classification": [
+        {
+          "code": "SEMICONDUCTOR",
+          "name": "반도체",
+          "level": {},
+          "parent_code": "TECH",
+          "keywords": [
+            "반도체",
+            "칩",
+            "웨이퍼",
+            "메모리",
+            "시스템반도체"
+          ],
+          "characteristics": {
+            "growth_potential": "high",
+            "volatility": "very_high",
+            "innovation_cycle": "very_fast",
+            "capital_intensity": "very_high"
+          },
+          "risk_factors": [
+            "사이클 변동",
+            "기술 격차",
+            "수급 불균형"
+          ],
+          "growth_drivers": [
+            "AI/5G",
+            "자동차용 반도체",
+            "메모리 고도화"
+          ]
+        },
+        {
+          "code": "CHEMICAL",
+          "name": "화학",
+          "level": {},
+          "parent_code": "MANUFACTURING",
+          "keywords": [
+            "화학",
+            "석유화학",
+            "정밀화학",
+            "플라스틱",
+            "페인트"
+          ],
+          "characteristics": {
+            "growth_potential": "medium",
+            "volatility": "high",
+            "innovation_cycle": "slow",
+            "environmental_risk": "high"
+          },
+          "risk_factors": [
+            "원유 가격",
+            "환경 규제",
+            "수요 변동"
+          ],
+          "growth_drivers": [
+            "친환경 전환",
+            "신소재 개발",
+            "바이오 화학"
+          ]
+        }
+      ],
+      "realtime_sentiment": "neutral",
+      "external_score": 70.0,
+      "analysis_timestamp": "2025-09-21T14:06:17.827221"
+    },
+    {
+      "symbol": "005930",
+      "name": "삼성전자",
+      "enhanced_score": 56.226995444305196,
+      "basic_score": 49.633990888610384,
+      "investment_recommendation": "HOLD",
+      "confidence_level": "LOW",
+      "sector_classification": [
+        {
+          "code": "ELECTRONICS",
+          "name": "전자",
+          "level": {},
+          "parent_code": "TECH",
+          "keywords": [
+            "전자",
+            "디스플레이",
+            "부품",
+            "스마트폰",
+            "TV"
+          ],
+          "characteristics": {
+            "growth_potential": "medium",
+            "volatility": "medium",
+            "innovation_cycle": "medium",
+            "capital_intensity": "high"
+          },
+          "risk_factors": [
+            "가격 경쟁",
+            "기술 변화",
+            "수요 변동"
+          ],
+          "growth_drivers": [
+            "OLED 확산",
+            "자동차 전자화",
+            "IoT 확산"
+          ]
+        },
+        {
+          "code": "SEMICONDUCTOR",
+          "name": "반도체",
+          "level": {},
+          "parent_code": "TECH",
+          "keywords": [
+            "반도체",
+            "칩",
+            "웨이퍼",
+            "메모리",
+            "시스템반도체"
+          ],
+          "characteristics": {
+            "growth_potential": "high",
+            "volatility": "very_high",
+            "innovation_cycle": "very_fast",
+            "capital_intensity": "very_high"
+          },
+          "risk_factors": [
+            "사이클 변동",
+            "기술 격차",
+            "수급 불균형"
+          ],
+          "growth_drivers": [
+            "AI/5G",
+            "자동차용 반도체",
+            "메모리 고도화"
+          ]
+        },
+        {
+          "code": "SOFTWARE",
+          "name": "소프트웨어",
+          "level": {},
+          "parent_code": "TECH",
+          "keywords": [
+            "소프트웨어",
+            "SaaS",
+            "클라우드",
+            "플랫폼",
+            "앱"
+          ],
+          "characteristics": {
+            "growth_potential": "very_high",
+            "volatility": "high",
+            "innovation_cycle": "fast",
+            "capital_intensity": "low"
+          },
+          "risk_factors": [
+            "경쟁 심화",
+            "기술 변화",
+            "데이터 보안"
+          ],
+          "growth_drivers": [
+            "클라우드 전환",
+            "AI 통합",
+            "디지털 전환"
+          ]
+        }
+      ],
+      "realtime_sentiment": "neutral",
+      "external_score": 70.0,
+      "analysis_timestamp": "2025-09-21T14:06:17.584811"
+    },
+    {
+      "symbol": "373220",
+      "name": "LG에너지솔루션",
+      "enhanced_score": 49.672747338172925,
+      "basic_score": 46.24549467634585,
+      "investment_recommendation": "HOLD",
+      "confidence_level": "LOW",
+      "sector_classification": [
+        {
+          "code": "ELECTRONICS",
+          "name": "전자",
+          "level": {},
+          "parent_code": "TECH",
+          "keywords": [
+            "전자",
+            "디스플레이",
+            "부품",
+            "스마트폰",
+            "TV"
+          ],
+          "characteristics": {
+            "growth_potential": "medium",
+            "volatility": "medium",
+            "innovation_cycle": "medium",
+            "capital_intensity": "high"
+          },
+          "risk_factors": [
+            "가격 경쟁",
+            "기술 변화",
+            "수요 변동"
+          ],
+          "growth_drivers": [
+            "OLED 확산",
+            "자동차 전자화",
+            "IoT 확산"
+          ]
+        },
+        {
+          "code": "CHEMICAL",
+          "name": "화학",
+          "level": {},
+          "parent_code": "MANUFACTURING",
+          "keywords": [
+            "화학",
+            "석유화학",
+            "정밀화학",
+            "플라스틱",
+            "페인트"
+          ],
+          "characteristics": {
+            "growth_potential": "medium",
+            "volatility": "high",
+            "innovation_cycle": "slow",
+            "environmental_risk": "high"
+          },
+          "risk_factors": [
+            "원유 가격",
+            "환경 규제",
+            "수요 변동"
+          ],
+          "growth_drivers": [
+            "친환경 전환",
+            "신소재 개발",
+            "바이오 화학"
+          ]
+        }
+      ],
+      "realtime_sentiment": "neutral",
+      "external_score": 70.0,
+      "analysis_timestamp": "2025-09-21T14:06:18.068977"
+    }
+  ],
+  "realtime_insights": {
+    "005930": {
+      "market_sentiment": 0.02001787101787102,
+      "sentiment_level": "neutral",
+      "confidence": 0.8571428571428571
+    },
+    "000660": {
+      "market_sentiment": 0.02001787101787102,
+      "sentiment_level": "neutral",
+      "confidence": 0.8571428571428571
+    },
+    "373220": {
+      "market_sentiment": 0.02001787101787102,
+      "sentiment_level": "neutral",
+      "confidence": 0.8571428571428571
+    },
+    "207940": {
+      "market_sentiment": 0.02001787101787102,
+      "sentiment_level": "neutral",
+      "confidence": 0.8571428571428571
+    },
+    "012450": {
+      "market_sentiment": 0.02001787101787102,
+      "sentiment_level": "neutral",
+      "confidence": 0.8571428571428571
+    }
+  },
+  "external_insights": {
+    "005930": {
+      "esg_score": 83.66666666666667,
+      "credit_rating": "AA-",
+      "overall_external_score": 70.0
+    },
+    "000660": {
+      "esg_score": 80.0,
+      "credit_rating": "AA+",
+      "overall_external_score": 70.0
+    },
+    "373220": {
+      "esg_score": 81.0,
+      "credit_rating": "A",
+      "overall_external_score": 70.0
+    },
+    "207940": {
+      "esg_score": 80.66666666666667,
+      "credit_rating": "BBB",
+      "overall_external_score": 70.0
+    },
+    "012450": {
+      "esg_score": 80.0,
+      "credit_rating": "BBB-",
+      "overall_external_score": 70.0
+    }
+  },
+  "analysis_results": [
+    {
+      "symbol": "005930",
+      "name": "삼성전자",
+      "basic_result": {
+        "symbol": "005930",
+        "name": "삼성전자",
+        "sector": 27,
+        "analysis_date": "2025-09-21T14:06:17.584289",
+        "ultimate_score": 49.633990888610384,
+        "ultimate_grade": "C",
+        "investment_recommendation": "HOLD",
+        "confidence_level": "LOW",
+        "enhanced_score": 49.633990888610384,
+        "enhanced_grade": "C",
+        "score_breakdown": {
+          "투자의견": 15.769630068520764,
+          "추정실적": 18.50721796294677,
+          "재무비율": 12.857142857142856,
+          "성장성": 0.0,
+          "규모": 2.5,
+          "가격위치_페널티": 0.0
+        },
+        "financial_score": 12.857142857142856,
+        "price_position_penalty": 0.0,
+        "news_analysis": {
+          "sentiment_trend": "neutral",
+          "avg_sentiment": 0.5,
+          "news_count": 0,
+          "positive_count": 0,
+          "negative_count": 0,
+          "neutral_count": 0
+        },
+        "qualitative_risk_analysis": {
+          "comprehensive_risk_score": 40.9375,
+          "comprehensive_risk_level": "보통",
+          "risk_adjustment_factor": 1.0,
+          "individual_risks": {
+            "정책_리스크": {
+              "risk_type": {},
+              "risk_level": {},
+              "score": 30.0,
+              "description": "정책 변화로 인한 낮은 리스크 최근 관련 뉴스 2건 발견",
+              "confidence": 0.8,
+              "sources": [
+                "정책_뉴스_2건"
+              ],
+              "last_updated": "2025-09-21T14:06:17.583529"
+            },
+            "ESG_리스크": {
+              "risk_type": {},
+              "risk_level": {},
+              "score": 40.0,
+              "description": "ESG 관련 보통 수준의 리스크",
+              "confidence": 0.7,
+              "sources": [
+                "ESG_뉴스_1건"
+              ],
+              "last_updated": "2025-09-21T14:06:17.583546"
+            },
+            "시장_감정_리스크": {
+              "risk_type": {},
+              "risk_level": {},
+              "score": 55.0,
+              "description": "시장 감정이 중립적이며 보통 수준의 리스크",
+              "confidence": 0.6,
+              "sources": [
+                "감정_분석_5건"
+              ],
+              "last_updated": "2025-09-21T14:06:17.583555"
+            }
+          },
+          "analysis_timestamp": "20250921_140617",
+          "status": "success"
+        },
+        "sector_analysis": {
+          "total_score": 75.0,
+          "sector_grade": "B+",
+          "breakdown": {
+            "재무_건전성": 80.0,
+            "성장성": 70.0,
+            "안정성": 75.0
+          }
+        },
+        "ml_prediction": null,
+        "financial_data": {
+          "symbol": "005930",
+          "name": "전기·전자",
+          "current_price": 79700.0,
+          "volume": 20898386.0,
+          "market_cap": 471795100000000.0,
+          "per": 16.1,
+          "pbr": 1.38,
+          "eps": 4950.0,
+          "bps": 57930.0,
+          "dividend_yield": 0.0,
+          "open_price": 81100.0,
+          "high_price": 81200.0,
+          "low_price": 79600.0,
+          "prev_close": 80500.0,
+          "change_price": -800.0,
+          "change_rate": -0.99,
+          "trading_value": 1672547819584.0,
+          "listed_shares": 5919637922.0,
+          "foreign_holdings": 3025406868.0,
+          "foreign_net_buy": -537726.0,
+          "program_net_buy": 938828.0,
+          "w52_high": 81200.0,
+          "w52_low": 49900.0,
+          "d250_high": 81200.0,
+          "d250_low": 49900.0,
+          "vol_turnover": 0.35,
+          "sector": "전기·전자",
+          "market_status": "55",
+          "margin_rate": "20.00",
+          "credit_available": "Y",
+          "short_selling": "Y",
+          "investment_caution": "N",
+          "market_warning": "00",
+          "short_overheating": "N",
+          "management_stock": "N"
+        }
+      },
+      "enhanced_score": 56.226995444305196,
+      "sector_classification": [
+        {
+          "code": "ELECTRONICS",
+          "name": "전자",
+          "level": {},
+          "parent_code": "TECH",
+          "keywords": [
+            "전자",
+            "디스플레이",
+            "부품",
+            "스마트폰",
+            "TV"
+          ],
+          "characteristics": {
+            "growth_potential": "medium",
+            "volatility": "medium",
+            "innovation_cycle": "medium",
+            "capital_intensity": "high"
+          },
+          "risk_factors": [
+            "가격 경쟁",
+            "기술 변화",
+            "수요 변동"
+          ],
+          "growth_drivers": [
+            "OLED 확산",
+            "자동차 전자화",
+            "IoT 확산"
+          ]
+        },
+        {
+          "code": "SEMICONDUCTOR",
+          "name": "반도체",
+          "level": {},
+          "parent_code": "TECH",
+          "keywords": [
+            "반도체",
+            "칩",
+            "웨이퍼",
+            "메모리",
+            "시스템반도체"
+          ],
+          "characteristics": {
+            "growth_potential": "high",
+            "volatility": "very_high",
+            "innovation_cycle": "very_fast",
+            "capital_intensity": "very_high"
+          },
+          "risk_factors": [
+            "사이클 변동",
+            "기술 격차",
+            "수급 불균형"
+          ],
+          "growth_drivers": [
+            "AI/5G",
+            "자동차용 반도체",
+            "메모리 고도화"
+          ]
+        },
+        {
+          "code": "SOFTWARE",
+          "name": "소프트웨어",
+          "level": {},
+          "parent_code": "TECH",
+          "keywords": [
+            "소프트웨어",
+            "SaaS",
+            "클라우드",
+            "플랫폼",
+            "앱"
+          ],
+          "characteristics": {
+            "growth_potential": "very_high",
+            "volatility": "high",
+            "innovation_cycle": "fast",
+            "capital_intensity": "low"
+          },
+          "risk_factors": [
+            "경쟁 심화",
+            "기술 변화",
+            "데이터 보안"
+          ],
+          "growth_drivers": [
+            "클라우드 전환",
+            "AI 통합",
+            "디지털 전환"
+          ]
+        }
+      ],
+      "company_analysis": {
+        "symbol": "005930",
+        "name": "삼성전자",
+        "company_type": "large_cap",
+        "business_model": "manufacturing",
+        "comprehensive_score": 67.8,
+        "benchmark_analysis": {
+          "industry": "SEMICONDUCTOR",
+          "benchmark_comparison": {
+            "per": {
+              "company": 16.1,
+              "benchmark": 15.2,
+              "score": 94.07894736842104
+            },
+            "pbr": {
+              "company": 1.38,
+              "benchmark": 1.8,
+              "score": 76.66666666666666
+            },
+            "roe": {
+              "company": 0,
+              "benchmark": 12.5,
+              "score": 0
+            },
+            "roa": {
+              "company": 0,
+              "benchmark": 8.3,
+              "score": 0
+            },
+            "debt_ratio": {
+              "company": 0,
+              "benchmark": 45.2,
+              "score": 0
+            }
+          },
+          "overall_score": 34.14912280701754,
+          "relative_performance": "poor"
+        },
+        "peer_analysis": {
+          "peer_symbols": [
+            "000660",
+            "373220",
+            "066570"
+          ],
+          "peer_metrics": {
+            "avg_per": 18.5,
+            "avg_pbr": 2.1,
+            "avg_roe": 14.2,
+            "avg_roa": 9.8,
+            "avg_debt_ratio": 38.5
+          },
+          "company_metrics": {
+            "per": 16.1,
+            "pbr": 1.38,
+            "roe": 0,
+            "roa": 0,
+            "debt_ratio": 0
+          },
+          "peer_rankings": {
+            "per": "below_average",
+            "pbr": "below_average",
+            "roe": "below_average",
+            "roa": "below_average",
+            "debt_ratio": "below_average"
+          },
+          "peer_performance": 0.0,
+          "relative_ranking": "bottom_tier"
+        },
+        "characteristic_analysis": {
+          "characteristics": {
+            "diversification": {
+              "score": 85,
+              "description": "높은 사업 다각화로 리스크 분산 효과",
+              "impact": "positive"
+            },
+            "r_and_d": {
+              "score": 90,
+              "description": "매우 높은 R&D 투자로 혁신 경쟁력",
+              "impact": "positive"
+            },
+            "cycle_sensitivity": {
+              "score": 60,
+              "description": "높은 사이클 민감도",
+              "impact": "neutral",
+              "recommendation": "경기 사이클 고려 필요"
+            }
+          },
+          "total_score": 78.33333333333333,
+          "characteristic_level": "good"
+        },
+        "competitive_analysis": {
+          "competitive_advantages": {
+            "advantage_1": {
+              "description": "메모리 반도체 세계 1위",
+              "strength_score": 95,
+              "sustainability": "medium",
+              "impact": "positive"
+            },
+            "advantage_2": {
+              "description": "OLED 디스플레이 기술력",
+              "strength_score": 80,
+              "sustainability": "high",
+              "impact": "positive"
+            },
+            "advantage_3": {
+              "description": "생태계 통합 역량",
+              "strength_score": 75,
+              "sustainability": "high",
+              "impact": "positive"
+            },
+            "advantage_4": {
+              "description": "글로벌 제조 네트워크",
+              "strength_score": 70,
+              "sustainability": "high",
+              "impact": "positive"
+            },
+            "advantage_5": {
+              "description": "대규모 R&D 투자",
+              "strength_score": 65,
+              "sustainability": "medium",
+              "impact": "positive"
+            }
+          },
+          "total_score": 77.0,
+          "competitive_level": "good"
+        },
+        "risk_analysis": {
+          "risk_factors": {
+            "risk_1": {
+              "description": "메모리 반도체 사이클",
+              "severity_score": 80,
+              "probability": "high",
+              "mitigation": "다각화 전략",
+              "impact": "negative"
+            },
+            "risk_2": {
+              "description": "중미 무역분쟁",
+              "severity_score": 75,
+              "probability": "medium",
+              "mitigation": "리스크 관리 강화",
+              "impact": "negative"
+            },
+            "risk_3": {
+              "description": "중국 경쟁사 부상",
+              "severity_score": 70,
+              "probability": "high",
+              "mitigation": "차별화 강화",
+              "impact": "negative"
+            },
+            "risk_4": {
+              "description": "환율 변동",
+              "severity_score": 65,
+              "probability": "medium",
+              "mitigation": "헤징 전략",
+              "impact": "negative"
+            },
+            "risk_5": {
+              "description": "기술 변화 속도",
+              "severity_score": 60,
+              "probability": "medium",
+              "mitigation": "R&D 투자",
+              "impact": "negative"
+            }
+          },
+          "total_score": 30.0,
+          "risk_level": "very_high"
+        },
+        "growth_analysis": {
+          "growth_drivers": {
+            "driver_1": {
+              "description": "AI/5G 서버 메모리",
+              "potential_score": 95,
+              "timeframe": "short_term",
+              "impact": "positive"
+            },
+            "driver_2": {
+              "description": "자동차용 반도체",
+              "potential_score": 85,
+              "timeframe": "medium_term",
+              "impact": "positive"
+            },
+            "driver_3": {
+              "description": "OLED 확산",
+              "potential_score": 65,
+              "timeframe": "long_term",
+              "impact": "positive"
+            },
+            "driver_4": {
+              "description": "시스템반도체 성장",
+              "potential_score": 60,
+              "timeframe": "long_term",
+              "impact": "positive"
+            },
+            "driver_5": {
+              "description": "디지털 전환 가속",
+              "potential_score": 75,
+              "timeframe": "long_term",
+              "impact": "positive"
+            }
+          },
+          "total_score": 76.0,
+          "growth_level": "good"
+        },
+        "esg_analysis": {
+          "environmental_score": 75,
+          "social_score": 80,
+          "governance_score": 85,
+          "total_esg_score": 80.0,
+          "esg_rating": "A",
+          "esg_level": "excellent"
+        },
+        "company_profile": {
+          "symbol": "005930",
+          "name": "삼성전자",
+          "company_type": {},
+          "business_model": {},
+          "market_cap": 400000000000000,
+          "business_characteristics": {
+            "diversification": "high",
+            "global_presence": "very_high",
+            "r_and_d_intensity": "very_high",
+            "capital_intensity": "very_high",
+            "cycle_sensitivity": "high"
+          },
+          "competitive_advantages": [
+            "메모리 반도체 세계 1위",
+            "OLED 디스플레이 기술력",
+            "생태계 통합 역량",
+            "글로벌 제조 네트워크",
+            "대규모 R&D 투자"
+          ],
+          "risk_factors": [
+            "메모리 반도체 사이클",
+            "중미 무역분쟁",
+            "중국 경쟁사 부상",
+            "환율 변동",
+            "기술 변화 속도"
+          ],
+          "growth_drivers": [
+            "AI/5G 서버 메모리",
+            "자동차용 반도체",
+            "OLED 확산",
+            "시스템반도체 성장",
+            "디지털 전환 가속"
+          ],
+          "financial_structure": {
+            "debt_to_equity": 0.15,
+            "cash_ratio": 0.8,
+            "dividend_yield": 0.025,
+            "payout_ratio": 0.3
+          },
+          "management_quality": {
+            "corporate_governance": "good",
+            "transparency": "high",
+            "innovation_culture": "excellent",
+            "succession_planning": "stable"
+          },
+          "esg_profile": {
+            "environmental_score": 75,
+            "social_score": 80,
+            "governance_score": 85,
+            "esg_rating": "A"
+          },
+          "last_updated": "2025-09-21T14:06:13.860484"
+        },
+        "analysis_date": "2025-09-21T14:06:17.584797"
+      },
+      "realtime_data": {
+        "market_sentiment": 0.02001787101787102,
+        "sentiment_level": "neutral",
+        "confidence": 0.8571428571428571
+      },
+      "external_data": {
+        "esg_score": 83.66666666666667,
+        "credit_rating": "AA-",
+        "overall_external_score": 70.0
+      },
+      "analysis_timestamp": "2025-09-21T14:06:17.584811"
+    },
+    {
+      "symbol": "000660",
+      "name": "SK하이닉스",
+      "basic_result": {
+        "symbol": "000660",
+        "name": "SK하이닉스",
+        "sector": 27,
+        "analysis_date": "2025-09-21T14:06:17.826503",
+        "ultimate_score": 52.78594131324571,
+        "ultimate_grade": "C",
+        "investment_recommendation": "HOLD",
+        "confidence_level": "LOW",
+        "enhanced_score": 52.78594131324571,
+        "enhanced_grade": "C",
+        "score_breakdown": {
+          "투자의견": 16.308913454706353,
+          "추정실적": 21.1198850013965,
+          "재무비율": 12.857142857142856,
+          "성장성": 0.0,
+          "규모": 2.5,
+          "가격위치_페널티": 0.0
+        },
+        "financial_score": 12.857142857142856,
+        "price_position_penalty": 0.0,
+        "news_analysis": {
+          "sentiment_trend": "neutral",
+          "avg_sentiment": 0.5,
+          "news_count": 0,
+          "positive_count": 0,
+          "negative_count": 0,
+          "neutral_count": 0
+        },
+        "qualitative_risk_analysis": {
+          "comprehensive_risk_score": 40.9375,
+          "comprehensive_risk_level": "보통",
+          "risk_adjustment_factor": 1.0,
+          "individual_risks": {
+            "정책_리스크": {
+              "risk_type": {},
+              "risk_level": {},
+              "score": 30.0,
+              "description": "정책 변화로 인한 낮은 리스크 최근 관련 뉴스 2건 발견",
+              "confidence": 0.8,
+              "sources": [
+                "정책_뉴스_2건"
+              ],
+              "last_updated": "2025-09-21T14:06:17.825663"
+            },
+            "ESG_리스크": {
+              "risk_type": {},
+              "risk_level": {},
+              "score": 40.0,
+              "description": "ESG 관련 보통 수준의 리스크",
+              "confidence": 0.7,
+              "sources": [
+                "ESG_뉴스_1건"
+              ],
+              "last_updated": "2025-09-21T14:06:17.825680"
+            },
+            "시장_감정_리스크": {
+              "risk_type": {},
+              "risk_level": {},
+              "score": 55.0,
+              "description": "시장 감정이 중립적이며 보통 수준의 리스크",
+              "confidence": 0.6,
+              "sources": [
+                "감정_분석_5건"
+              ],
+              "last_updated": "2025-09-21T14:06:17.825690"
+            }
+          },
+          "analysis_timestamp": "20250921_140617",
+          "status": "success"
+        },
+        "sector_analysis": {
+          "total_score": 75.0,
+          "sector_grade": "B+",
+          "breakdown": {
+            "재무_건전성": 80.0,
+            "성장성": 70.0,
+            "안정성": 75.0
+          }
+        },
+        "ml_prediction": null,
+        "financial_data": {
+          "symbol": "000660",
+          "name": "전기·전자",
+          "current_price": 353000.0,
+          "volume": 4385543.0,
+          "market_cap": 256984800000000.0,
+          "per": 12.99,
+          "pbr": 3.38,
+          "eps": 27182.0,
+          "bps": 104567.0,
+          "dividend_yield": 0.0,
+          "open_price": 351500.0,
+          "high_price": 360000.0,
+          "low_price": 348000.0,
+          "prev_close": 353000.0,
+          "change_price": 0.0,
+          "change_rate": 0.0,
+          "trading_value": 1546050743059.0,
+          "listed_shares": 728002365.0,
+          "foreign_holdings": 408260104.0,
+          "foreign_net_buy": -982503.0,
+          "program_net_buy": -357729.0,
+          "w52_high": 360000.0,
+          "w52_low": 144700.0,
+          "d250_high": 360000.0,
+          "d250_low": 144700.0,
+          "vol_turnover": 0.6,
+          "sector": "전기·전자",
+          "market_status": "55",
+          "margin_rate": "20.00",
+          "credit_available": "Y",
+          "short_selling": "Y",
+          "investment_caution": "N",
+          "market_warning": "00",
+          "short_overheating": "N",
+          "management_stock": "N"
+        }
+      },
+      "enhanced_score": 57.652970656622855,
+      "sector_classification": [
+        {
+          "code": "SEMICONDUCTOR",
+          "name": "반도체",
+          "level": {},
+          "parent_code": "TECH",
+          "keywords": [
+            "반도체",
+            "칩",
+            "웨이퍼",
+            "메모리",
+            "시스템반도체"
+          ],
+          "characteristics": {
+            "growth_potential": "high",
+            "volatility": "very_high",
+            "innovation_cycle": "very_fast",
+            "capital_intensity": "very_high"
+          },
+          "risk_factors": [
+            "사이클 변동",
+            "기술 격차",
+            "수급 불균형"
+          ],
+          "growth_drivers": [
+            "AI/5G",
+            "자동차용 반도체",
+            "메모리 고도화"
+          ]
+        },
+        {
+          "code": "CHEMICAL",
+          "name": "화학",
+          "level": {},
+          "parent_code": "MANUFACTURING",
+          "keywords": [
+            "화학",
+            "석유화학",
+            "정밀화학",
+            "플라스틱",
+            "페인트"
+          ],
+          "characteristics": {
+            "growth_potential": "medium",
+            "volatility": "high",
+            "innovation_cycle": "slow",
+            "environmental_risk": "high"
+          },
+          "risk_factors": [
+            "원유 가격",
+            "환경 규제",
+            "수요 변동"
+          ],
+          "growth_drivers": [
+            "친환경 전환",
+            "신소재 개발",
+            "바이오 화학"
+          ]
+        }
+      ],
+      "company_analysis": {
+        "symbol": "000660",
+        "name": "SK하이닉스",
+        "company_type": "large_cap",
+        "business_model": "manufacturing",
+        "comprehensive_score": 64.8,
+        "benchmark_analysis": {
+          "industry": "SEMICONDUCTOR",
+          "benchmark_comparison": {
+            "per": {
+              "company": 12.99,
+              "benchmark": 15.2,
+              "score": 85.46052631578948
+            },
+            "pbr": {
+              "company": 3.38,
+              "benchmark": 1.8,
+              "score": 12.222222222222229
+            },
+            "roe": {
+              "company": 0,
+              "benchmark": 12.5,
+              "score": 0
+            },
+            "roa": {
+              "company": 0,
+              "benchmark": 8.3,
+              "score": 0
+            },
+            "debt_ratio": {
+              "company": 0,
+              "benchmark": 45.2,
+              "score": 0
+            }
+          },
+          "overall_score": 19.53654970760234,
+          "relative_performance": "poor"
+        },
+        "peer_analysis": {
+          "peer_symbols": [
+            "005930",
+            "373220"
+          ],
+          "peer_metrics": {
+            "avg_per": 18.5,
+            "avg_pbr": 2.1,
+            "avg_roe": 14.2,
+            "avg_roa": 9.8,
+            "avg_debt_ratio": 38.5
+          },
+          "company_metrics": {
+            "per": 12.99,
+            "pbr": 3.38,
+            "roe": 0,
+            "roa": 0,
+            "debt_ratio": 0
+          },
+          "peer_rankings": {
+            "per": "below_average",
+            "pbr": "above_average",
+            "roe": "below_average",
+            "roa": "below_average",
+            "debt_ratio": "below_average"
+          },
+          "peer_performance": 20.0,
+          "relative_ranking": "below_average"
+        },
+        "characteristic_analysis": {
+          "characteristics": {
+            "diversification": {
+              "score": 65,
+              "description": "적당한 사업 다각화",
+              "impact": "neutral"
+            },
+            "r_and_d": {
+              "score": 90,
+              "description": "매우 높은 R&D 투자로 혁신 경쟁력",
+              "impact": "positive"
+            },
+            "cycle_sensitivity": {
+              "score": 40,
+              "description": "매우 높은 사이클 민감도로 변동성 큼",
+              "impact": "negative",
+              "recommendation": "사이클 타이밍 중요"
+            }
+          },
+          "total_score": 65.0,
+          "characteristic_level": "average"
+        },
+        "competitive_analysis": {
+          "competitive_advantages": {
+            "advantage_1": {
+              "description": "DRAM 세계 2위",
+              "strength_score": 90,
+              "sustainability": "medium",
+              "impact": "positive"
+            },
+            "advantage_2": {
+              "description": "NAND 기술력",
+              "strength_score": 80,
+              "sustainability": "high",
+              "impact": "positive"
+            },
+            "advantage_3": {
+              "description": "HBM 선도 기술",
+              "strength_score": 85,
+              "sustainability": "medium",
+              "impact": "positive"
+            },
+            "advantage_4": {
+              "description": "AI 서버 메모리",
+              "strength_score": 70,
+              "sustainability": "medium",
+              "impact": "positive"
+            },
+            "advantage_5": {
+              "description": "고객사 다양화",
+              "strength_score": 70,
+              "sustainability": "medium",
+              "impact": "positive"
+            }
+          },
+          "total_score": 79.0,
+          "competitive_level": "good"
+        },
+        "risk_analysis": {
+          "risk_factors": {
+            "risk_1": {
+              "description": "메모리 사이클 변동",
+              "severity_score": 80,
+              "probability": "high",
+              "mitigation": "다각화 전략",
+              "impact": "negative"
+            },
+            "risk_2": {
+              "description": "기술 격차",
+              "severity_score": 60,
+              "probability": "medium",
+              "mitigation": "R&D 투자",
+              "impact": "negative"
+            },
+            "risk_3": {
+              "description": "수급 불균형",
+              "severity_score": 50,
+              "probability": "medium",
+              "mitigation": "리스크 관리 강화",
+              "impact": "negative"
+            },
+            "risk_4": {
+              "description": "중국 경쟁사",
+              "severity_score": 70,
+              "probability": "high",
+              "mitigation": "차별화 강화",
+              "impact": "negative"
+            },
+            "risk_5": {
+              "description": "투자 사이클",
+              "severity_score": 80,
+              "probability": "high",
+              "mitigation": "다각화 전략",
+              "impact": "negative"
+            }
+          },
+          "total_score": 32.0,
+          "risk_level": "very_high"
+        },
+        "growth_analysis": {
+          "growth_drivers": {
+            "driver_1": {
+              "description": "AI 서버 폭증",
+              "potential_score": 95,
+              "timeframe": "short_term",
+              "impact": "positive"
+            },
+            "driver_2": {
+              "description": "데이터센터 확장",
+              "potential_score": 65,
+              "timeframe": "medium_term",
+              "impact": "positive"
+            },
+            "driver_3": {
+              "description": "HBM 수요 증가",
+              "potential_score": 65,
+              "timeframe": "medium_term",
+              "impact": "positive"
+            },
+            "driver_4": {
+              "description": "5G/자동차",
+              "potential_score": 90,
+              "timeframe": "short_term",
+              "impact": "positive"
+            },
+            "driver_5": {
+              "description": "메모리 고도화",
+              "potential_score": 65,
+              "timeframe": "medium_term",
+              "impact": "positive"
+            }
+          },
+          "total_score": 76.0,
+          "growth_level": "good"
+        },
+        "esg_analysis": {
+          "environmental_score": 70,
+          "social_score": 75,
+          "governance_score": 80,
+          "total_esg_score": 75.0,
+          "esg_rating": "A-",
+          "esg_level": "very_good"
+        },
+        "company_profile": {
+          "symbol": "000660",
+          "name": "SK하이닉스",
+          "company_type": {},
+          "business_model": {},
+          "market_cap": 200000000000000,
+          "business_characteristics": {
+            "diversification": "medium",
+            "global_presence": "high",
+            "r_and_d_intensity": "very_high",
+            "capital_intensity": "very_high",
+            "cycle_sensitivity": "very_high"
+          },
+          "competitive_advantages": [
+            "DRAM 세계 2위",
+            "NAND 기술력",
+            "HBM 선도 기술",
+            "AI 서버 메모리",
+            "고객사 다양화"
+          ],
+          "risk_factors": [
+            "메모리 사이클 변동",
+            "기술 격차",
+            "수급 불균형",
+            "중국 경쟁사",
+            "투자 사이클"
+          ],
+          "growth_drivers": [
+            "AI 서버 폭증",
+            "데이터센터 확장",
+            "HBM 수요 증가",
+            "5G/자동차",
+            "메모리 고도화"
+          ],
+          "financial_structure": {
+            "debt_to_equity": 0.25,
+            "cash_ratio": 0.6,
+            "dividend_yield": 0.015,
+            "payout_ratio": 0.2
+          },
+          "management_quality": {
+            "corporate_governance": "good",
+            "transparency": "high",
+            "innovation_culture": "excellent",
+            "succession_planning": "stable"
+          },
+          "esg_profile": {
+            "environmental_score": 70,
+            "social_score": 75,
+            "governance_score": 80,
+            "esg_rating": "A-"
+          },
+          "last_updated": "2025-09-21T14:06:13.860492"
+        },
+        "analysis_date": "2025-09-21T14:06:17.827206"
+      },
+      "realtime_data": {
+        "market_sentiment": 0.02001787101787102,
+        "sentiment_level": "neutral",
+        "confidence": 0.8571428571428571
+      },
+      "external_data": {
+        "esg_score": 80.0,
+        "credit_rating": "AA+",
+        "overall_external_score": 70.0
+      },
+      "analysis_timestamp": "2025-09-21T14:06:17.827221"
+    },
+    {
+      "symbol": "373220",
+      "name": "LG에너지솔루션",
+      "basic_result": {
+        "symbol": "373220",
+        "name": "LG에너지솔루션",
+        "sector": 27,
+        "analysis_date": "2025-09-21T14:06:18.068705",
+        "ultimate_score": 46.24549467634585,
+        "ultimate_grade": "C",
+        "investment_recommendation": "HOLD",
+        "confidence_level": "LOW",
+        "enhanced_score": 46.24549467634585,
+        "enhanced_grade": "C",
+        "score_breakdown": {
+          "투자의견": 17.083777498666755,
+          "추정실적": 17.01886003482195,
+          "재무비율": 9.642857142857144,
+          "성장성": 0.0,
+          "규모": 2.5,
+          "가격위치_페널티": 0.0
+        },
+        "financial_score": 9.642857142857144,
+        "price_position_penalty": 0.0,
+        "news_analysis": {
+          "sentiment_trend": "neutral",
+          "avg_sentiment": 0.5,
+          "news_count": 0,
+          "positive_count": 0,
+          "negative_count": 0,
+          "neutral_count": 0
+        },
+        "qualitative_risk_analysis": {
+          "comprehensive_risk_score": 40.9375,
+          "comprehensive_risk_level": "보통",
+          "risk_adjustment_factor": 1.0,
+          "individual_risks": {
+            "정책_리스크": {
+              "risk_type": {},
+              "risk_level": {},
+              "score": 30.0,
+              "description": "정책 변화로 인한 낮은 리스크 최근 관련 뉴스 2건 발견",
+              "confidence": 0.8,
+              "sources": [
+                "정책_뉴스_2건"
+              ],
+              "last_updated": "2025-09-21T14:06:18.067986"
+            },
+            "ESG_리스크": {
+              "risk_type": {},
+              "risk_level": {},
+              "score": 40.0,
+              "description": "ESG 관련 보통 수준의 리스크",
+              "confidence": 0.7,
+              "sources": [
+                "ESG_뉴스_1건"
+              ],
+              "last_updated": "2025-09-21T14:06:18.068007"
+            },
+            "시장_감정_리스크": {
+              "risk_type": {},
+              "risk_level": {},
+              "score": 55.0,
+              "description": "시장 감정이 중립적이며 보통 수준의 리스크",
+              "confidence": 0.6,
+              "sources": [
+                "감정_분석_5건"
+              ],
+              "last_updated": "2025-09-21T14:06:18.068018"
+            }
+          },
+          "analysis_timestamp": "20250921_140618",
+          "status": "success"
+        },
+        "sector_analysis": {
+          "total_score": 75.0,
+          "sector_grade": "B+",
+          "breakdown": {
+            "재무_건전성": 80.0,
+            "성장성": 70.0,
+            "안정성": 75.0
+          }
+        },
+        "ml_prediction": null,
+        "financial_data": {
+          "symbol": "373220",
+          "name": "전기·전자",
+          "current_price": 349500.0,
+          "volume": 185906.0,
+          "market_cap": 81783000000000.0,
+          "per": -80.27,
+          "pbr": 3.87,
+          "eps": -4354.0,
+          "bps": 90240.0,
+          "dividend_yield": 0.0,
+          "open_price": 351500.0,
+          "high_price": 354500.0,
+          "low_price": 347500.0,
+          "prev_close": 354500.0,
+          "change_price": -5000.0,
+          "change_rate": -1.41,
+          "trading_value": 64980756750.0,
+          "listed_shares": 234000000.0,
+          "foreign_holdings": 9580313.0,
+          "foreign_net_buy": -23961.0,
+          "program_net_buy": -36176.0,
+          "w52_high": 444000.0,
+          "w52_low": 266000.0,
+          "d250_high": 444000.0,
+          "d250_low": 266000.0,
+          "vol_turnover": 0.08,
+          "sector": "전기·전자",
+          "market_status": "55",
+          "margin_rate": "20.00",
+          "credit_available": "Y",
+          "short_selling": "Y",
+          "investment_caution": "N",
+          "market_warning": "00",
+          "short_overheating": "N",
+          "management_stock": "N"
+        }
+      },
+      "enhanced_score": 49.672747338172925,
+      "sector_classification": [
+        {
+          "code": "ELECTRONICS",
+          "name": "전자",
+          "level": {},
+          "parent_code": "TECH",
+          "keywords": [
+            "전자",
+            "디스플레이",
+            "부품",
+            "스마트폰",
+            "TV"
+          ],
+          "characteristics": {
+            "growth_potential": "medium",
+            "volatility": "medium",
+            "innovation_cycle": "medium",
+            "capital_intensity": "high"
+          },
+          "risk_factors": [
+            "가격 경쟁",
+            "기술 변화",
+            "수요 변동"
+          ],
+          "growth_drivers": [
+            "OLED 확산",
+            "자동차 전자화",
+            "IoT 확산"
+          ]
+        },
+        {
+          "code": "CHEMICAL",
+          "name": "화학",
+          "level": {},
+          "parent_code": "MANUFACTURING",
+          "keywords": [
+            "화학",
+            "석유화학",
+            "정밀화학",
+            "플라스틱",
+            "페인트"
+          ],
+          "characteristics": {
+            "growth_potential": "medium",
+            "volatility": "high",
+            "innovation_cycle": "slow",
+            "environmental_risk": "high"
+          },
+          "risk_factors": [
+            "원유 가격",
+            "환경 규제",
+            "수요 변동"
+          ],
+          "growth_drivers": [
+            "친환경 전환",
+            "신소재 개발",
+            "바이오 화학"
+          ]
+        }
+      ],
+      "company_analysis": {
+        "symbol": "373220",
+        "name": "Company_373220",
+        "company_type": "unknown",
+        "business_model": "unknown",
+        "comprehensive_score": 50.0,
+        "analysis_type": "generic",
+        "financial_data": {
+          "symbol": "373220",
+          "name": "전기·전자",
+          "current_price": 349500.0,
+          "volume": 185906.0,
+          "market_cap": 81783000000000.0,
+          "per": -80.27,
+          "pbr": 3.87,
+          "eps": -4354.0,
+          "bps": 90240.0,
+          "dividend_yield": 0.0,
+          "open_price": 351500.0,
+          "high_price": 354500.0,
+          "low_price": 347500.0,
+          "prev_close": 354500.0,
+          "change_price": -5000.0,
+          "change_rate": -1.41,
+          "trading_value": 64980756750.0,
+          "listed_shares": 234000000.0,
+          "foreign_holdings": 9580313.0,
+          "foreign_net_buy": -23961.0,
+          "program_net_buy": -36176.0,
+          "w52_high": 444000.0,
+          "w52_low": 266000.0,
+          "d250_high": 444000.0,
+          "d250_low": 266000.0,
+          "vol_turnover": 0.08,
+          "sector": "전기·전자",
+          "market_status": "55",
+          "margin_rate": "20.00",
+          "credit_available": "Y",
+          "short_selling": "Y",
+          "investment_caution": "N",
+          "market_warning": "00",
+          "short_overheating": "N",
+          "management_stock": "N"
+        },
+        "analysis_date": "2025-09-21T14:06:18.068958"
+      },
+      "realtime_data": {
+        "market_sentiment": 0.02001787101787102,
+        "sentiment_level": "neutral",
+        "confidence": 0.8571428571428571
+      },
+      "external_data": {
+        "esg_score": 81.0,
+        "credit_rating": "A",
+        "overall_external_score": 70.0
+      },
+      "analysis_timestamp": "2025-09-21T14:06:18.068977"
+    },
+    {
+      "symbol": "207940",
+      "name": "삼성바이오로직스",
+      "basic_result": {
+        "symbol": "207940",
+        "name": "삼성바이오로직스",
+        "sector": 27,
+        "analysis_date": "2025-09-21T14:06:18.307311",
+        "ultimate_score": 35.249194483555605,
+        "ultimate_grade": "D+",
+        "investment_recommendation": "SELL",
+        "confidence_level": "LOW",
+        "enhanced_score": 35.249194483555605,
+        "enhanced_grade": "D+",
+        "score_breakdown": {
+          "투자의견": 10.803764593087998,
+          "추정실적": 15.516858461896181,
+          "재무비율": 6.428571428571428,
+          "성장성": 0.0,
+          "규모": 2.5,
+          "가격위치_페널티": 0.0
+        },
+        "financial_score": 6.428571428571428,
+        "price_position_penalty": 0.0,
+        "news_analysis": {
+          "sentiment_trend": "neutral",
+          "avg_sentiment": 0.5,
+          "news_count": 0,
+          "positive_count": 0,
+          "negative_count": 0,
+          "neutral_count": 0
+        },
+        "qualitative_risk_analysis": {
+          "comprehensive_risk_score": 40.9375,
+          "comprehensive_risk_level": "보통",
+          "risk_adjustment_factor": 1.0,
+          "individual_risks": {
+            "정책_리스크": {
+              "risk_type": {},
+              "risk_level": {},
+              "score": 30.0,
+              "description": "정책 변화로 인한 낮은 리스크 최근 관련 뉴스 2건 발견",
+              "confidence": 0.8,
+              "sources": [
+                "정책_뉴스_2건"
+              ],
+              "last_updated": "2025-09-21T14:06:18.306599"
+            },
+            "ESG_리스크": {
+              "risk_type": {},
+              "risk_level": {},
+              "score": 40.0,
+              "description": "ESG 관련 보통 수준의 리스크",
+              "confidence": 0.7,
+              "sources": [
+                "ESG_뉴스_1건"
+              ],
+              "last_updated": "2025-09-21T14:06:18.306620"
+            },
+            "시장_감정_리스크": {
+              "risk_type": {},
+              "risk_level": {},
+              "score": 55.0,
+              "description": "시장 감정이 중립적이며 보통 수준의 리스크",
+              "confidence": 0.6,
+              "sources": [
+                "감정_분석_5건"
+              ],
+              "last_updated": "2025-09-21T14:06:18.306631"
+            }
+          },
+          "analysis_timestamp": "20250921_140618",
+          "status": "success"
+        },
+        "sector_analysis": {
+          "total_score": 75.0,
+          "sector_grade": "B+",
+          "breakdown": {
+            "재무_건전성": 80.0,
+            "성장성": 70.0,
+            "안정성": 75.0
+          }
+        },
+        "ml_prediction": null,
+        "financial_data": {
+          "symbol": "207940",
+          "name": "제약",
+          "current_price": 1024000.0,
+          "volume": 91201.0,
+          "market_cap": 72882200000000.0,
+          "per": 67.28,
+          "pbr": 6.68,
+          "eps": 15221.0,
+          "bps": 153212.0,
+          "dividend_yield": 0.0,
+          "open_price": 1023000.0,
+          "high_price": 1030000.0,
+          "low_price": 1020000.0,
+          "prev_close": 1029000.0,
+          "change_price": -5000.0,
+          "change_rate": -0.49,
+          "trading_value": 93367438000.0,
+          "listed_shares": 71174000.0,
+          "foreign_holdings": 9150802.0,
+          "foreign_net_buy": 5913.0,
+          "program_net_buy": 7932.0,
+          "w52_high": 1209000.0,
+          "w52_low": 907000.0,
+          "d250_high": 1209000.0,
+          "d250_low": 907000.0,
+          "vol_turnover": 0.13,
+          "sector": "제약",
+          "market_status": "55",
+          "margin_rate": "20.00",
+          "credit_available": "Y",
+          "short_selling": "Y",
+          "investment_caution": "N",
+          "market_warning": "00",
+          "short_overheating": "N",
+          "management_stock": "N"
+        }
+      },
+      "enhanced_score": 44.7745972417778,
+      "sector_classification": [
+        {
+          "code": "BIOTECH",
+          "name": "바이오",
+          "level": {},
+          "parent_code": "HEALTHCARE",
+          "keywords": [
+            "바이오",
+            "생명공학",
+            "유전자",
+            "세포",
+            "항체"
+          ],
+          "characteristics": {
+            "growth_potential": "very_high",
+            "volatility": "very_high",
+            "innovation_cycle": "slow",
+            "regulatory_hurdle": "very_high"
+          },
+          "risk_factors": [
+            "임상시험 실패",
+            "규제 승인",
+            "특허 만료"
+          ],
+          "growth_drivers": [
+            "정밀의료",
+            "세포치료",
+            "유전자치료"
+          ]
+        },
+        {
+          "code": "SEMICONDUCTOR",
+          "name": "반도체",
+          "level": {},
+          "parent_code": "TECH",
+          "keywords": [
+            "반도체",
+            "칩",
+            "웨이퍼",
+            "메모리",
+            "시스템반도체"
+          ],
+          "characteristics": {
+            "growth_potential": "high",
+            "volatility": "very_high",
+            "innovation_cycle": "very_fast",
+            "capital_intensity": "very_high"
+          },
+          "risk_factors": [
+            "사이클 변동",
+            "기술 격차",
+            "수급 불균형"
+          ],
+          "growth_drivers": [
+            "AI/5G",
+            "자동차용 반도체",
+            "메모리 고도화"
+          ]
+        },
+        {
+          "code": "ELECTRONICS",
+          "name": "전자",
+          "level": {},
+          "parent_code": "TECH",
+          "keywords": [
+            "전자",
+            "디스플레이",
+            "부품",
+            "스마트폰",
+            "TV"
+          ],
+          "characteristics": {
+            "growth_potential": "medium",
+            "volatility": "medium",
+            "innovation_cycle": "medium",
+            "capital_intensity": "high"
+          },
+          "risk_factors": [
+            "가격 경쟁",
+            "기술 변화",
+            "수요 변동"
+          ],
+          "growth_drivers": [
+            "OLED 확산",
+            "자동차 전자화",
+            "IoT 확산"
+          ]
+        }
+      ],
+      "company_analysis": {
+        "symbol": "207940",
+        "name": "Company_207940",
+        "company_type": "unknown",
+        "business_model": "unknown",
+        "comprehensive_score": 50.0,
+        "analysis_type": "generic",
+        "financial_data": {
+          "symbol": "207940",
+          "name": "제약",
+          "current_price": 1024000.0,
+          "volume": 91201.0,
+          "market_cap": 72882200000000.0,
+          "per": 67.28,
+          "pbr": 6.68,
+          "eps": 15221.0,
+          "bps": 153212.0,
+          "dividend_yield": 0.0,
+          "open_price": 1023000.0,
+          "high_price": 1030000.0,
+          "low_price": 1020000.0,
+          "prev_close": 1029000.0,
+          "change_price": -5000.0,
+          "change_rate": -0.49,
+          "trading_value": 93367438000.0,
+          "listed_shares": 71174000.0,
+          "foreign_holdings": 9150802.0,
+          "foreign_net_buy": 5913.0,
+          "program_net_buy": 7932.0,
+          "w52_high": 1209000.0,
+          "w52_low": 907000.0,
+          "d250_high": 1209000.0,
+          "d250_low": 907000.0,
+          "vol_turnover": 0.13,
+          "sector": "제약",
+          "market_status": "55",
+          "margin_rate": "20.00",
+          "credit_available": "Y",
+          "short_selling": "Y",
+          "investment_caution": "N",
+          "market_warning": "00",
+          "short_overheating": "N",
+          "management_stock": "N"
+        },
+        "analysis_date": "2025-09-21T14:06:18.307548"
+      },
+      "realtime_data": {
+        "market_sentiment": 0.02001787101787102,
+        "sentiment_level": "neutral",
+        "confidence": 0.8571428571428571
+      },
+      "external_data": {
+        "esg_score": 80.66666666666667,
+        "credit_rating": "BBB",
+        "overall_external_score": 70.0
+      },
+      "analysis_timestamp": "2025-09-21T14:06:18.307562"
+    },
+    {
+      "symbol": "012450",
+      "name": "한화에어로스페이스",
+      "basic_result": {
+        "symbol": "012450",
+        "name": "한화에어로스페이스",
+        "sector": 27,
+        "analysis_date": "2025-09-21T14:06:18.549073",
+        "ultimate_score": 33.215722872021736,
+        "ultimate_grade": "D",
+        "investment_recommendation": "SELL",
+        "confidence_level": "LOW",
+        "enhanced_score": 33.215722872021736,
+        "enhanced_grade": "D",
+        "score_breakdown": {
+          "투자의견": 10.15670221595263,
+          "추정실적": 11.987592084640534,
+          "재무비율": 8.571428571428571,
+          "성장성": 0.0,
+          "규모": 2.5,
+          "가격위치_페널티": 0.0
+        },
+        "financial_score": 8.571428571428571,
+        "price_position_penalty": 0.0,
+        "news_analysis": {
+          "sentiment_trend": "neutral",
+          "avg_sentiment": 0.5,
+          "news_count": 0,
+          "positive_count": 0,
+          "negative_count": 0,
+          "neutral_count": 0
+        },
+        "qualitative_risk_analysis": {
+          "comprehensive_risk_score": 40.9375,
+          "comprehensive_risk_level": "보통",
+          "risk_adjustment_factor": 1.0,
+          "individual_risks": {
+            "정책_리스크": {
+              "risk_type": {},
+              "risk_level": {},
+              "score": 30.0,
+              "description": "정책 변화로 인한 낮은 리스크 최근 관련 뉴스 2건 발견",
+              "confidence": 0.8,
+              "sources": [
+                "정책_뉴스_2건"
+              ],
+              "last_updated": "2025-09-21T14:06:18.548415"
+            },
+            "ESG_리스크": {
+              "risk_type": {},
+              "risk_level": {},
+              "score": 40.0,
+              "description": "ESG 관련 보통 수준의 리스크",
+              "confidence": 0.7,
+              "sources": [
+                "ESG_뉴스_1건"
+              ],
+              "last_updated": "2025-09-21T14:06:18.548427"
+            },
+            "시장_감정_리스크": {
+              "risk_type": {},
+              "risk_level": {},
+              "score": 55.0,
+              "description": "시장 감정이 중립적이며 보통 수준의 리스크",
+              "confidence": 0.6,
+              "sources": [
+                "감정_분석_5건"
+              ],
+              "last_updated": "2025-09-21T14:06:18.548435"
+            }
+          },
+          "analysis_timestamp": "20250921_140618",
+          "status": "success"
+        },
+        "sector_analysis": {
+          "total_score": 75.0,
+          "sector_grade": "B+",
+          "breakdown": {
+            "재무_건전성": 80.0,
+            "성장성": 70.0,
+            "안정성": 75.0
+          }
+        },
+        "ml_prediction": null,
+        "financial_data": {
+          "symbol": "012450",
+          "name": "운송장비·부품",
+          "current_price": 1022000.0,
+          "volume": 363904.0,
+          "market_cap": 52697800000000.0,
+          "per": 22.13,
+          "pbr": 9.44,
+          "eps": 46183.0,
+          "bps": 108270.0,
+          "dividend_yield": 0.0,
+          "open_price": 1010000.0,
+          "high_price": 1041000.0,
+          "low_price": 1005000.0,
+          "prev_close": 1023000.0,
+          "change_price": -1000.0,
+          "change_rate": -0.1,
+          "trading_value": 372660454884.0,
+          "listed_shares": 51563401.0,
+          "foreign_holdings": 23082752.0,
+          "foreign_net_buy": 3680.0,
+          "program_net_buy": -2295.0,
+          "w52_high": 1052000.0,
+          "w52_low": 270000.0,
+          "d250_high": 1052000.0,
+          "d250_low": 265870.0,
+          "vol_turnover": 0.71,
+          "sector": "운송장비·부품",
+          "market_status": "55",
+          "margin_rate": "20.00",
+          "credit_available": "Y",
+          "short_selling": "Y",
+          "investment_caution": "N",
+          "market_warning": "00",
+          "short_overheating": "N",
+          "management_stock": "N"
+        }
+      },
+      "enhanced_score": 43.607861436010865,
+      "sector_classification": [],
+      "company_analysis": {
+        "symbol": "012450",
+        "name": "Company_012450",
+        "company_type": "unknown",
+        "business_model": "unknown",
+        "comprehensive_score": 50.0,
+        "analysis_type": "generic",
+        "financial_data": {
+          "symbol": "012450",
+          "name": "운송장비·부품",
+          "current_price": 1022000.0,
+          "volume": 363904.0,
+          "market_cap": 52697800000000.0,
+          "per": 22.13,
+          "pbr": 9.44,
+          "eps": 46183.0,
+          "bps": 108270.0,
+          "dividend_yield": 0.0,
+          "open_price": 1010000.0,
+          "high_price": 1041000.0,
+          "low_price": 1005000.0,
+          "prev_close": 1023000.0,
+          "change_price": -1000.0,
+          "change_rate": -0.1,
+          "trading_value": 372660454884.0,
+          "listed_shares": 51563401.0,
+          "foreign_holdings": 23082752.0,
+          "foreign_net_buy": 3680.0,
+          "program_net_buy": -2295.0,
+          "w52_high": 1052000.0,
+          "w52_low": 270000.0,
+          "d250_high": 1052000.0,
+          "d250_low": 265870.0,
+          "vol_turnover": 0.71,
+          "sector": "운송장비·부품",
+          "market_status": "55",
+          "margin_rate": "20.00",
+          "credit_available": "Y",
+          "short_selling": "Y",
+          "investment_caution": "N",
+          "market_warning": "00",
+          "short_overheating": "N",
+          "management_stock": "N"
+        },
+        "analysis_date": "2025-09-21T14:06:18.549375"
+      },
+      "realtime_data": {
+        "market_sentiment": 0.02001787101787102,
+        "sentiment_level": "neutral",
+        "confidence": 0.8571428571428571
+      },
+      "external_data": {
+        "esg_score": 80.0,
+        "credit_rating": "BBB-",
+        "overall_external_score": 70.0
+      },
+      "analysis_timestamp": "2025-09-21T14:06:18.549390"
+    }
+  ]
+}

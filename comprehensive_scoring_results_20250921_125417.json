@@ -1,0 +1,212 @@
+[
+  {
+    "symbol": "005930",
+    "name": "삼성전자",
+    "sector": "반도체",
+    "analysis_date": "2025-09-21T12:54:16.475229",
+    "quantitative_metrics": {
+      "per": 16.1,
+      "pbr": 1.38,
+      "roe": 0,
+      "roa": 0,
+      "debt_ratio": 0,
+      "current_ratio": 0,
+      "net_profit_margin": 0,
+      "revenue_growth": 0,
+      "profit_growth": 0,
+      "market_cap": 471795100000000.0,
+      "dividend_yield": 0.0
+    },
+    "qualitative_metrics": {
+      "sector_outlook": 75.0,
+      "market_cycle_position": 65.0,
+      "competitive_advantage": 80.0,
+      "management_quality": 75.0,
+      "esg_score": 80.0,
+      "news_sentiment": 50.0,
+      "analyst_consensus": 30.0,
+      "risk_level": "MEDIUM"
+    },
+    "comprehensive_score": {
+      "quantitative_score": 39.0,
+      "qualitative_score": 67.25,
+      "comprehensive_score": 47.474999999999994,
+      "grade": "C",
+      "recommendation": "HOLD",
+      "confidence": 0.4
+    },
+    "basic_analysis": {
+      "ultimate_score": 36.79174757868184,
+      "enhanced_score": 36.79174757868184,
+      "financial_score": 12.857142857142856
+    }
+  },
+  {
+    "symbol": "000660",
+    "name": "SK하이닉스",
+    "sector": "반도체",
+    "analysis_date": "2025-09-21T12:54:16.716891",
+    "quantitative_metrics": {
+      "per": 12.99,
+      "pbr": 3.38,
+      "roe": 0,
+      "roa": 0,
+      "debt_ratio": 0,
+      "current_ratio": 0,
+      "net_profit_margin": 0,
+      "revenue_growth": 0,
+      "profit_growth": 0,
+      "market_cap": 256984800000000.0,
+      "dividend_yield": 0.0
+    },
+    "qualitative_metrics": {
+      "sector_outlook": 75.0,
+      "market_cycle_position": 65.0,
+      "competitive_advantage": 80.0,
+      "management_quality": 75.0,
+      "esg_score": 65.0,
+      "news_sentiment": 50.0,
+      "analyst_consensus": 30.0,
+      "risk_level": "MEDIUM"
+    },
+    "comprehensive_score": {
+      "quantitative_score": 34.0,
+      "qualitative_score": 65.75,
+      "comprehensive_score": 43.52499999999999,
+      "grade": "C",
+      "recommendation": "HOLD",
+      "confidence": 0.4
+    },
+    "basic_analysis": {
+      "ultimate_score": 44.42404364714735,
+      "enhanced_score": 44.42404364714735,
+      "financial_score": 12.857142857142856
+    }
+  },
+  {
+    "symbol": "005380",
+    "name": "현대차",
+    "sector": "자동차",
+    "analysis_date": "2025-09-21T12:54:16.957204",
+    "quantitative_metrics": {
+      "per": 4.65,
+      "pbr": 0.53,
+      "roe": 0,
+      "roa": 0,
+      "debt_ratio": 0,
+      "current_ratio": 0,
+      "net_profit_margin": 0,
+      "revenue_growth": 0,
+      "profit_growth": 0,
+      "market_cap": 43818200000000.0,
+      "dividend_yield": 0.0
+    },
+    "qualitative_metrics": {
+      "sector_outlook": 70.0,
+      "market_cycle_position": 65.0,
+      "competitive_advantage": 70.0,
+      "management_quality": 75.0,
+      "esg_score": 65.0,
+      "news_sentiment": 50.0,
+      "analyst_consensus": 60.0,
+      "risk_level": "MEDIUM"
+    },
+    "comprehensive_score": {
+      "quantitative_score": 46.5,
+      "qualitative_score": 66.25,
+      "comprehensive_score": 52.425,
+      "grade": "C+",
+      "recommendation": "HOLD",
+      "confidence": 0.6
+    },
+    "basic_analysis": {
+      "ultimate_score": 59.191487688921654,
+      "enhanced_score": 59.191487688921654,
+      "financial_score": 24.642857142857142
+    }
+  },
+  {
+    "symbol": "000270",
+    "name": "기아",
+    "sector": "자동차",
+    "analysis_date": "2025-09-21T12:54:17.198776",
+    "quantitative_metrics": {
+      "per": 4.16,
+      "pbr": 0.72,
+      "roe": 0,
+      "roa": 0,
+      "debt_ratio": 0,
+      "current_ratio": 0,
+      "net_profit_margin": 0,
+      "revenue_growth": 0,
+      "profit_growth": 0,
+      "market_cap": 40009000000000.0,
+      "dividend_yield": 0.0
+    },
+    "qualitative_metrics": {
+      "sector_outlook": 70.0,
+      "market_cycle_position": 65.0,
+      "competitive_advantage": 70.0,
+      "management_quality": 75.0,
+      "esg_score": 65.0,
+      "news_sentiment": 50.0,
+      "analyst_consensus": 60.0,
+      "risk_level": "MEDIUM"
+    },
+    "comprehensive_score": {
+      "quantitative_score": 46.5,
+      "qualitative_score": 66.25,
+      "comprehensive_score": 52.425,
+      "grade": "C+",
+      "recommendation": "HOLD",
+      "confidence": 0.6
+    },
+    "basic_analysis": {
+      "ultimate_score": 50.85770986869517,
+      "enhanced_score": 50.85770986869517,
+      "financial_score": 24.642857142857142
+    }
+  },
+  {
+    "symbol": "003550",
+    "name": "LG생활건강",
+    "sector": "화장품/생활용품",
+    "analysis_date": "2025-09-21T12:54:17.438079",
+    "quantitative_metrics": {
+      "per": 21.0,
+      "pbr": 0.44,
+      "roe": 0,
+      "roa": 0,
+      "debt_ratio": 0,
+      "current_ratio": 0,
+      "net_profit_margin": 0,
+      "revenue_growth": 0,
+      "profit_growth": 0,
+      "market_cap": 11612900000000.0,
+      "dividend_yield": 0.0
+    },
+    "qualitative_metrics": {
+      "sector_outlook": 60.0,
+      "market_cycle_position": 65.0,
+      "competitive_advantage": 60.0,
+      "management_quality": 60.0,
+      "esg_score": 65.0,
+      "news_sentiment": 50.0,
+      "analyst_consensus": 60.0,
+      "risk_level": "MEDIUM"
+    },
+    "comprehensive_score": {
+      "quantitative_score": 41.5,
+      "qualitative_score": 60.5,
+      "comprehensive_score": 47.199999999999996,
+      "grade": "C",
+      "recommendation": "HOLD",
+      "confidence": 0.4
+    },
+    "basic_analysis": {
+      "ultimate_score": 52.311385492412725,
+      "enhanced_score": 52.311385492412725,
+      "financial_score": 17.142857142857142
+    }
+  }
+]

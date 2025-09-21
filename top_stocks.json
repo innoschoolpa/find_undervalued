@@ -1,0 +1,83 @@
+{
+  "metadata": {
+    "analysis_version": "2.0_enhanced",
+    "analysis_date": "2025-09-21T16:21:16.856595",
+    "analysis_time_seconds": 50.98906707763672,
+    "total_analyzed": 49,
+    "undervalued_count": 0
+  },
+  "top_recommendations": [],
+  "sector_analysis": {
+    "기술업": {
+      "count": 4,
+      "total_score": 91.49285714285715,
+      "avg_score": 22.873214285714287,
+      "recommendations": {
+        "BUY": 0,
+        "HOLD": 4,
+        "SELL": 0
+      }
+    },
+    "기타": {
+      "count": 39,
+      "total_score": 884.1857142857145,
+      "avg_score": 22.671428571428578,
+      "recommendations": {
+        "BUY": 0,
+        "HOLD": 39,
+        "SELL": 0
+      }
+    },
+    "바이오/제약": {
+      "count": 1,
+      "total_score": 34.832142857142856,
+      "avg_score": 34.832142857142856,
+      "recommendations": {
+        "BUY": 0,
+        "HOLD": 1,
+        "SELL": 0
+      }
+    },
+    "금융업": {
+      "count": 1,
+      "total_score": 25.857142857142854,
+      "avg_score": 25.857142857142854,
+      "recommendations": {
+        "BUY": 0,
+        "HOLD": 1,
+        "SELL": 0
+      }
+    },
+    "제조업": {
+      "count": 4,
+      "total_score": 100.02857142857142,
+      "avg_score": 25.007142857142856,
+      "recommendations": {
+        "BUY": 0,
+        "HOLD": 4,
+        "SELL": 0
+      }
+    }
+  },
+  "market_statistics": {
+    "total_analyzed": 49,
+    "avg_score": 23.1917638483965,
+    "max_score": 39.10714285714286,
+    "min_score": 1.9178571428571445,
+    "score_distribution": {
+      "A+": 0,
+      "A": 0,
+      "B+": 0,
+      "B": 0,
+      "C": 0,
+      "D": 33,
+      "F": 16
+    },
+    "market_cap_stats": {
+      "total_market_cap": 19821210.0,
+      "avg_market_cap": 404514.48979591834,
+      "max_market_cap": 4765308.0,
+      "min_market_cap": 119638.0
+    }
+  }
+}

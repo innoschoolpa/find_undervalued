@@ -15,9 +15,139 @@ import os
 import yaml
 import math
 import random
+from datetime import datetime
+from typing import Dict, Any, List, Optional, Tuple
+from threading import Lock, RLock
+from collections import deque, OrderedDict
 
 # monotonic time 별칭 (시스템 시간 변경에 안전)
 _monotonic = time.monotonic
+
+# =============================================================================
+# 로깅 유틸리티
+# =============================================================================
+
+def log_error(operation: str, symbol: str = None, error: Exception = None, level: str = "warning"):
+    """일관된 에러 로깅 포맷"""
+    if symbol:
+        message = f"{operation} 실패 {symbol}: {error}"
+    else:
+        message = f"{operation} 실패: {error}"
+    
+    if level == "error":
+        logging.error(message)
+    elif level == "warning":
+        logging.warning(message)
+    else:
+        logging.info(message)
+
+def log_success(operation: str, symbol: str = None, details: str = None):
+    """일관된 성공 로깅 포맷"""
+    if symbol and details:
+        message = f"✅ {operation} 성공 {symbol}: {details}"
+    elif symbol:
+        message = f"✅ {operation} 성공 {symbol}"
+    else:
+        message = f"✅ {operation} 성공"
+    
+    logging.info(message)
+
+# =============================================================================
+# 메트릭 수집 클래스
+# =============================================================================
+
+class MetricsCollector:
+    """시스템 메트릭 수집 및 관리"""
+    
+    def __init__(self):
+        self.metrics = {
+            'api_calls': {'total': 0, 'success': 0, 'error': 0},
+            'cache_hits': {'price': 0, 'financial': 0, 'sector': 0},
+            'cache_misses': {'price': 0, 'financial': 0, 'sector': 0},
+            'analysis_duration': {'total': 0, 'count': 0, 'avg': 0},
+            'sector_evaluation': {'total': 0, 'count': 0, 'avg': 0},
+            'stocks_analyzed': 0,
+            'errors_by_type': {},
+            'start_time': time.time()
+        }
+        self.lock = RLock()
+    
+    def record_api_call(self, success: bool, error_type: str = None):
+        """API 호출 기록"""
+        with self.lock:
+            self.metrics['api_calls']['total'] += 1
+            if success:
+                self.metrics['api_calls']['success'] += 1
+            else:
+                self.metrics['api_calls']['error'] += 1
+                if error_type:
+                    self.metrics['errors_by_type'][error_type] = self.metrics['errors_by_type'].get(error_type, 0) + 1
+    
+    def record_cache_hit(self, cache_type: str):
+        """캐시 히트 기록"""
+        with self.lock:
+            self.metrics['cache_hits'][cache_type] = self.metrics['cache_hits'].get(cache_type, 0) + 1
+    
+    def record_cache_miss(self, cache_type: str):
+        """캐시 미스 기록"""
+        with self.lock:
+            self.metrics['cache_misses'][cache_type] = self.metrics['cache_misses'].get(cache_type, 0) + 1
+    
+    def record_analysis_duration(self, duration: float):
+        """분석 소요 시간 기록"""
+        with self.lock:
+            self.metrics['analysis_duration']['total'] += duration
+            self.metrics['analysis_duration']['count'] += 1
+            self.metrics['analysis_duration']['avg'] = (
+                self.metrics['analysis_duration']['total'] / self.metrics['analysis_duration']['count']
+            )
+    
+    def record_sector_evaluation(self, duration: float):
+        """섹터 평가 소요 시간 기록"""
+        with self.lock:
+            self.metrics['sector_evaluation']['total'] += duration
+            self.metrics['sector_evaluation']['count'] += 1
+            self.metrics['sector_evaluation']['avg'] = (
+                self.metrics['sector_evaluation']['total'] / self.metrics['sector_evaluation']['count']
+            )
+    
+    def record_stocks_analyzed(self, count: int):
+        """분석된 종목 수 기록"""
+        with self.lock:
+            self.metrics['stocks_analyzed'] += count
+    
+    def get_cache_hit_rate(self, cache_type: str) -> float:
+        """캐시 히트율 계산"""
+        with self.lock:
+            hits = self.metrics['cache_hits'].get(cache_type, 0)
+            misses = self.metrics['cache_misses'].get(cache_type, 0)
+            total = hits + misses
+            return (hits / total * 100) if total > 0 else 0.0
+    
+    def get_api_success_rate(self) -> float:
+        """API 성공률 계산"""
+        with self.lock:
+            total = self.metrics['api_calls']['total']
+            success = self.metrics['api_calls']['success']
+            return (success / total * 100) if total > 0 else 0.0
+    
+    def get_summary(self) -> Dict[str, Any]:
+        """메트릭 요약 반환"""
+        with self.lock:
+            return {
+                'runtime_seconds': time.time() - self.metrics['start_time'],
+                'stocks_analyzed': self.metrics['stocks_analyzed'],
+                'api_calls': self.metrics['api_calls'].copy(),
+                'api_success_rate': self.get_api_success_rate(),
+                'cache_hit_rates': {
+                    'price': self.get_cache_hit_rate('price'),
+                    'financial': self.get_cache_hit_rate('financial'),
+                    'sector': self.get_cache_hit_rate('sector')
+                },
+                'avg_analysis_duration': self.metrics['analysis_duration']['avg'],
+                'avg_sector_evaluation': self.metrics['sector_evaluation']['avg'],
+                'errors_by_type': self.metrics['errors_by_type'].copy()
+            }
 
 # API 재시도 유틸 (백오프+지터)
 def _with_retries(call, tries=3, base=0.2, jitter=0.15):
@@ -31,19 +161,18 @@ def _with_retries(call, tries=3, base=0.2, jitter=0.15):
             sleep = base * (2 ** i) + random.uniform(0, jitter)
             time.sleep(sleep)
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from threading import Lock, RLock
-from collections import deque, OrderedDict
 
 # 로깅 설정은 메인 실행부에서 초기화
 from rich.console import Console
 from rich.table import Table
-from typing import Dict, Any, Tuple, Optional
+from rich import box
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from enum import Enum
 
 # 기존 import들
 from kis_data_provider import KISDataProvider
+from enhanced_price_provider import EnhancedPriceProvider
 from investment_opinion_analyzer import InvestmentOpinionAnalyzer
 from estimate_performance_analyzer import EstimatePerformanceAnalyzer
 from financial_ratio_analyzer import FinancialRatioAnalyzer
@@ -163,7 +292,7 @@ class TPSRateLimiter:
                     break
 
                 # 초과면 필요한 대기시간 계산만 하고, 바로 lock을 풀고 잔다
-                sleep_time = 1.0 - (now - self.ts[0])
+                sleep_time = max(0.0, 1.0 - (now - self.ts[0]))
             if sleep_time > 0:
                 time.sleep(sleep_time + random.uniform(0.01, 0.08))
 
@@ -211,7 +340,8 @@ class ConfigManager:
                     'estimate_analysis': 30,
                     'financial_ratios': 30,
                     'growth_analysis': 10,
-                    'scale_analysis': 5
+                    'scale_analysis': 5,
+                    'price_position': 5
                 },
                 'financial_ratio_weights': {
                     'roe_score': 8,
@@ -272,13 +402,24 @@ class DataValidator:
     
     @staticmethod
     def is_preferred_stock(name: str) -> bool:
-        """우선주 여부 확인 (확장된 정규식)"""
+        """우선주 여부 확인 (강화된 정규식)"""
         if not name or not isinstance(name, str):
             return False
         import re
-        # 더 포괄적인 우선주 패턴
-        pref_pattern = r'(우선주$)|(\s*우(?:[ABC])?(?:\(.+?\))?\s*$)|(\(우\)\s*$)'
-        return bool(re.search(pref_pattern, str(name)))
+        # 강화된 우선주 패턴 - 끝-anchor 위주로 정확성 향상
+        pref_pattern = r'(^.+?우$|우B$|우C$|\(우\)$|우선주$)'
+        return bool(re.search(pref_pattern, str(name).strip()))
+    
+    @staticmethod
+    def _getattr_or_get(d, key, default=None):
+        """객체/딕셔너리 안전 접근 유틸"""
+        try:
+            return getattr(d, key)
+        except Exception:
+            try:
+                return d.get(key, default)
+            except Exception:
+                return default
 
 class DataConverter:
     """데이터 변환 유틸리티 클래스"""
@@ -330,8 +471,9 @@ class DataConverter:
 class FinancialDataProvider(DataProvider):
     """재무 데이터 제공자"""
     
-    def __init__(self, provider: KISDataProvider, rate_limiter: TPSRateLimiter, ttl: float = None):
+    def __init__(self, provider: KISDataProvider, rate_limiter: TPSRateLimiter, ttl: float = None, metrics: MetricsCollector = None):
         self.provider = provider
+        self.price_provider = EnhancedPriceProvider()
         self.rate_limiter = rate_limiter
         self.financial_ratio_analyzer = FinancialRatioAnalyzer(provider)
         self.profit_ratio_analyzer = ProfitRatioAnalyzer(provider)
@@ -341,6 +483,7 @@ class FinancialDataProvider(DataProvider):
         self._cache_lock = RLock()
         self._ttl = ttl if ttl is not None else float(os.getenv("KIS_CACHE_TTL", "15.0"))
         self._max_keys = int(os.getenv("KIS_CACHE_MAX_KEYS", "2000"))
+        self.metrics = metrics
     
     def _get_cached(self, cache, key):
         """캐시에서 데이터 조회 (동시성 안전)"""
@@ -348,7 +491,12 @@ class FinancialDataProvider(DataProvider):
         with self._cache_lock:
             hit = cache.get(key)
             if hit and now - hit[0] < self._ttl:
+                if self.metrics:
+                    self.metrics.record_cache_hit('price' if cache is self._cache_price else 'financial')
                 return hit[1]
+        
+        if self.metrics:
+            self.metrics.record_cache_miss('price' if cache is self._cache_price else 'financial')
         return None
 
     def _set_cached(self, cache, key, value):
@@ -384,7 +532,7 @@ class FinancialDataProvider(DataProvider):
                     'net_income_growth_rate': DataValidator.safe_float(latest_ratios.get('net_income_growth_rate'))
                 })
         except Exception as e:
-            logging.warning(f"재무비율 분석 실패 {symbol}: {e}")
+            log_error("재무비율 분석", symbol, e)
         
         # 수익성비율 분석 (재시도 적용)
         try:
@@ -398,7 +546,7 @@ class FinancialDataProvider(DataProvider):
                     'profitability_grade': latest_profit.get('profitability_grade', '평가불가')
                 })
         except Exception as e:
-            logging.warning(f"수익성비율 분석 실패 {symbol}: {e}")
+            log_error("수익성비율 분석", symbol, e)
         
         # 안정성비율 분석 (current_ratio 포함)
         try:
@@ -410,7 +558,7 @@ class FinancialDataProvider(DataProvider):
                     'current_ratio': DataConverter.as_percent_maybe_ratio(latest_stab.get('current_ratio'))
                 })
         except Exception as e:
-            logging.warning(f"안정성비율 분석 실패 {symbol}: {e}")
+            log_error("안정성비율 분석", symbol, e)
         
         # 혼재 단위 정규화 일괄 적용
         for key in ('debt_ratio', 'equity_ratio', 'revenue_growth_rate',
@@ -426,6 +574,24 @@ class FinancialDataProvider(DataProvider):
                 # 0<x<=5면 %로 오인 가능: ×100
                 financial_data[key] = v * 100.0 if 0 < v <= 5.0 else v
         
+        # 현재가 기반 PER/PBR 추가 계산 (일관성 확보)
+        try:
+            price_data = self.get_price_data(symbol)
+            current_price = price_data.get('current_price', 0)
+            
+            if current_price and current_price > 0:
+                # EPS/BPS가 있으면 PER/PBR 계산
+                eps = price_data.get('eps', 0)
+                bps = price_data.get('bps', 0)
+                
+                if eps and eps > 0:
+                    financial_data['per'] = current_price / eps
+                if bps and bps > 0:
+                    financial_data['pbr'] = current_price / bps
+                    
+        except Exception as e:
+            logging.debug(f"현재가 기반 재무지표 계산 실패 {symbol}: {e}")
+        
         # 캐시에 저장
         self._set_cached(self._cache_fin, symbol, financial_data)
         return financial_data
@@ -438,23 +604,79 @@ class FinancialDataProvider(DataProvider):
             return hit
             
         try:
-            self.rate_limiter.acquire()
-            price_info = _with_retries(lambda: self.provider.get_stock_price_info(symbol))
-            if price_info:
+            # 향상된 가격 프로바이더 사용
+            price_data = self.price_provider.get_comprehensive_price_data(symbol)
+            if price_data:
+                if self.metrics:
+                    self.metrics.record_api_call(True)
+            else:
+                if self.metrics:
+                    self.metrics.record_api_call(False, "empty_price_payload")
+            
+            if price_data:
+                current_price = DataValidator._finite(price_data.get('current_price'))
+                
                 data = {
-                    'current_price': DataValidator._finite(price_info.get('current_price')),
-                    'w52_high': DataValidator._finite(price_info.get('w52_high')),
-                    'w52_low': DataValidator._finite(price_info.get('w52_low')),
-                    'per': DataValidator._finite(price_info.get('per')),
-                    'pbr': DataValidator._finite(price_info.get('pbr')),
-                    'eps': DataValidator._finite(price_info.get('eps')),
-                    'bps': DataValidator._finite(price_info.get('bps'))
+                    'current_price': current_price,
+                    'price_change': DataValidator._finite(price_data.get('price_change')),
+                    'price_change_rate': DataValidator._finite(price_data.get('price_change_rate')),
+                    'volume': DataValidator._finite(price_data.get('volume')),
+                    'eps': DataValidator._finite(price_data.get('eps')),
+                    'bps': DataValidator._finite(price_data.get('bps')),
+                    'market_cap': DataValidator._finite(price_data.get('market_cap'))
                 }
+                
+                # PER/PBR을 현재가 기반으로 실시간 계산
+                if current_price and current_price > 0:
+                    # EPS/BPS가 있으면 PER/PBR 계산
+                    eps = DataValidator._finite(price_data.get('eps'))
+                    bps = DataValidator._finite(price_data.get('bps'))
+                    
+                    if eps and eps > 0:
+                        data['per'] = current_price / eps
+                    else:
+                        data['per'] = DataValidator._finite(price_data.get('per'))
+                    
+                    if bps and bps > 0:
+                        data['pbr'] = current_price / bps
+                    else:
+                        data['pbr'] = DataValidator._finite(price_data.get('pbr'))
+                else:
+                    # 현재가가 없으면 기존 값 사용
+                    data['per'] = DataValidator._finite(price_data.get('per'))
+                    data['pbr'] = DataValidator._finite(price_data.get('pbr'))
+                
+                # 52주 고저 정보 조회 (실시간 플래그에 따라)
+                w52_high = DataValidator._finite(price_data.get('w52_high'))
+                w52_low = DataValidator._finite(price_data.get('w52_low'))
+                
+                if getattr(self, 'include_realtime', True) and (not w52_high or not w52_low):
+                    # KIS API에서 추가 조회
+                    try:
+                        self.rate_limiter.acquire()
+                        price_info = _with_retries(lambda: self.provider.get_stock_price_info(symbol))
+                        if price_info:
+                            w52_high = DataValidator._finite(price_info.get('w52_high')) or w52_high
+                            w52_low = DataValidator._finite(price_info.get('w52_low')) or w52_low
+                    except Exception as e:
+                        logging.debug(f"KIS API 52주 고저 데이터 조회 실패 {symbol}: {e}")
+                    
+                    # 두 번째 재호출은 생략(초기 호출에서 대부분 커버됨)
+                    # 정말 필요한 경우에만 플래그로 허용 가능
+                
+                # 여전히 없으면 기본값 설정 (0이 아닌 None으로)
+                if w52_high and w52_high > 0:
+                    data['w52_high'] = w52_high
+                if w52_low and w52_low > 0:
+                    data['w52_low'] = w52_low
+                
                 # 캐시에 저장
                 self._set_cached(self._cache_price, symbol, data)
                 return data
         except Exception as e:
-            logging.warning(f"가격 데이터 조회 실패 {symbol}: {e}")
+            if self.metrics:
+                self.metrics.record_api_call(False, "price_data_error")
+            log_error("가격 데이터 조회", symbol, e)
         
         data = {}
         self._set_cached(self._cache_price, symbol, data)
@@ -478,32 +700,87 @@ class EnhancedScoreCalculator(ScoreCalculator):
         growth_score = self._calculate_growth_score(data.get('financial_data', {}))
         scale_score = self._calculate_scale_score(data.get('market_cap', 0))
         
-        # 52주 위치 페널티 계산
-        price_position_penalty = self._calculate_price_position_penalty(data.get('price_position'))
+        # 52주 위치 점수 계산 (0~100 정규화)
+        price_position_score = self._calculate_price_position_score(data.get('price_position'))
         
-        # 가중치 적용
-        weights = self.config.weights
-        score += opinion_score * weights.get('opinion_analysis', 0) / 100
-        score += estimate_score * weights.get('estimate_analysis', 0) / 100
-        score += financial_score * weights.get('financial_ratios', 0) / 100
-        score += growth_score * weights.get('growth_analysis', 0) / 100
-        score += scale_score * weights.get('scale_analysis', 0) / 100
-        score += price_position_penalty  # 페널티 적용
+        # 가중치 적용 (외부 신호 가중치 0으로 고정)
+        weights = self.config.weights.copy()
+        weights['external_signal'] = 0  # 실데이터 미반영 항목은 0으로 고정
+        
+        # 결측 데이터 감지 및 가중치 조정
+        available_weights = {}
+        total_weight = 0
+        
+        # 각 요소별 가용성 확인 및 가중치 조정
+        if opinion_score > 0:  # 데이터가 있는 경우
+            available_weights['opinion_analysis'] = weights.get('opinion_analysis', 0)
+        else:  # 데이터가 없는 경우 중립점 적용
+            opinion_score = 50.0  # 중립점
+            available_weights['opinion_analysis'] = weights.get('opinion_analysis', 0) * 0.5  # 가중치 절반
+        
+        if estimate_score > 0:
+            available_weights['estimate_analysis'] = weights.get('estimate_analysis', 0)
+        else:
+            estimate_score = 50.0
+            available_weights['estimate_analysis'] = weights.get('estimate_analysis', 0) * 0.5
+        
+        if financial_score > 0:
+            available_weights['financial_ratios'] = weights.get('financial_ratios', 0)
+        else:
+            financial_score = 50.0
+            available_weights['financial_ratios'] = weights.get('financial_ratios', 0) * 0.5
+        
+        if growth_score > 0:
+            available_weights['growth_analysis'] = weights.get('growth_analysis', 0)
+        else:
+            growth_score = 50.0
+            available_weights['growth_analysis'] = weights.get('growth_analysis', 0) * 0.5
+        
+        if scale_score > 0:
+            available_weights['scale_analysis'] = weights.get('scale_analysis', 0)
+        else:
+            scale_score = 50.0
+            available_weights['scale_analysis'] = weights.get('scale_analysis', 0) * 0.5
+        
+        # 가격위치는 항상 적용 (None이면 중립점)
+        available_weights['price_position'] = weights.get('price_position', 0)
+        
+        # 총 가중치 계산
+        total_weight = sum(available_weights.values())
+        
+        # 가중치 정규화 (총합이 100이 되도록)
+        if total_weight > 0:
+            for key in available_weights:
+                available_weights[key] = (available_weights[key] / total_weight) * 100
+        
+        score += opinion_score * available_weights.get('opinion_analysis', 0) / 100
+        score += estimate_score * available_weights.get('estimate_analysis', 0) / 100
+        score += financial_score * available_weights.get('financial_ratios', 0) / 100
+        score += growth_score * available_weights.get('growth_analysis', 0) / 100
+        score += scale_score * available_weights.get('scale_analysis', 0) / 100
+        score += price_position_score * available_weights.get('price_position', 0) / 100
         
         breakdown = {
-            '투자의견': opinion_score * weights.get('opinion_analysis', 0) / 100,
-            '추정실적': estimate_score * weights.get('estimate_analysis', 0) / 100,
-            '재무비율': financial_score * weights.get('financial_ratios', 0) / 100,
-            '성장성': growth_score * weights.get('growth_analysis', 0) / 100,
-            '규모': scale_score * weights.get('scale_analysis', 0) / 100,
-            '가격위치': price_position_penalty
+            '투자의견': opinion_score * available_weights.get('opinion_analysis', 0) / 100,
+            '추정실적': estimate_score * available_weights.get('estimate_analysis', 0) / 100,
+            '재무비율': financial_score * available_weights.get('financial_ratios', 0) / 100,
+            '성장성': growth_score * available_weights.get('growth_analysis', 0) / 100,
+            '규모': scale_score * available_weights.get('scale_analysis', 0) / 100,
+            '가격위치': price_position_score * available_weights.get('price_position', 0) / 100
         }
+        
         
         return min(100, max(0, score)), breakdown
     
     def _calculate_opinion_score(self, opinion_data: Dict[str, Any]) -> float:
         """투자의견 점수 계산"""
-        consensus_score = opinion_data.get('consensus_score')
+        # consensus_score를 여러 위치에서 찾기
+        consensus_score = None
+        if 'consensus_score' in opinion_data:
+            consensus_score = opinion_data.get('consensus_score')
+        elif 'consensus_analysis' in opinion_data:
+            consensus_score = opinion_data.get('consensus_analysis', {}).get('consensus_score')
+        
         if consensus_score is not None:
             try:
                 cs = max(-1.0, min(1.0, float(consensus_score)))
@@ -589,43 +866,72 @@ class EnhancedScoreCalculator(ScoreCalculator):
         else:
             return 0
     
-    def _calculate_price_position_penalty(self, price_position: Optional[float]) -> float:
-        """52주 위치에 따른 페널티 계산 (개선된 버전)"""
+    def _calculate_price_position_score(self, price_position: Optional[float]) -> float:
+        """52주 위치에 따른 점수 계산 (0~100 정규화)"""
         if price_position is None:
-            return 0.0
+            return 50.0  # 중립점
         
-        # 52주 위치가 높을수록 페널티 증가 (하지만 덜 보수적으로)
+        # 52주 위치에 따른 점수 (0~100)
         if price_position >= 95:  # 52주 최고가의 95% 이상 (매우 높은 위치)
-            return -15.0  # 강한 페널티 (기존 -20에서 완화)
+            return 10.0  # 매우 낮은 점수
         elif price_position >= 90:  # 52주 최고가의 90% 이상
-            return -10.0  # 중간 페널티 (기존 -15에서 완화)
+            return 25.0  # 낮은 점수
         elif price_position >= 85:  # 52주 최고가의 85% 이상
-            return -5.0   # 약한 페널티 (기존 -10에서 완화)
+            return 40.0  # 약간 낮은 점수
         elif price_position >= 80:  # 52주 최고가의 80% 이상
-            return -2.0   # 매우 약한 페널티 (새로 추가)
+            return 48.0  # 약간 낮은 점수
         elif price_position <= 20:  # 52주 최저가의 20% 이하
-            return 5.0    # 보너스 (저가 매수 기회)
+            return 85.0  # 높은 점수 (저가 매수 기회)
         elif price_position <= 30:  # 52주 최저가의 30% 이하
-            return 2.0    # 약간의 보너스
+            return 70.0  # 약간 높은 점수
         else:
-            return 0.0    # 중간 위치는 페널티 없음
+            return 50.0  # 중간 위치 (중립점)
+    
+    def _calculate_price_position_penalty(self, price_position: Optional[float]) -> float:
+        """52주 위치에 따른 페널티 계산 (기존 호환성 유지)"""
+        # 새로운 정규화된 점수 시스템으로 전환
+        return self._calculate_price_position_score(price_position)
 
 # =============================================================================
 # 5. 메인 분석 클래스
 # =============================================================================
 
 class EnhancedIntegratedAnalyzer:
-    """리팩토링된 향상된 통합 분석 클래스"""
+    """
+    리팩토링된 향상된 통합 분석 클래스
     
-    def __init__(self, config_file: str = "config.yaml"):
+    이 클래스는 다음과 같은 기능을 제공합니다:
+    - 단일 종목 분석 (투자의견, 추정실적, 재무비율 통합)
+    - 전체 시장 분석 (병렬 처리 지원)
+    - 시가총액 상위 종목 분석
+    - 업종별 분포 분석
+    - 향상된 점수 계산 및 등급 평가
+    
+    주요 특징:
+    - 안전한 데이터 접근 (객체/딕셔너리 혼용 대응)
+    - 병렬 처리로 성능 최적화
+    - 포괄적인 에러 처리
+    - TTL 캐싱 시스템
+    - 실시간 데이터 통합
+    """
+    
+    def __init__(self, config_file: str = "config.yaml", include_realtime: bool = True, include_external: bool = True):
         self.config_manager = ConfigManager(config_file)
         self.rate_limiter = TPSRateLimiter()
+        self.include_realtime = include_realtime
+        self.include_external = include_external
+        
+        # 메트릭 수집기 초기화
+        self.metrics = MetricsCollector()
         
         # 분석기 초기화
         self.opinion_analyzer = InvestmentOpinionAnalyzer()
         self.estimate_analyzer = EstimatePerformanceAnalyzer()
         self.provider = KISDataProvider()
-        self.data_provider = FinancialDataProvider(self.provider, self.rate_limiter)
+        self.enhanced_price_provider = EnhancedPriceProvider()
+        self.data_provider = FinancialDataProvider(self.provider, self.rate_limiter, metrics=self.metrics)
+        # 플래그 전달
+        self.data_provider.include_realtime = self.include_realtime
         
         # 설정 로드
         self.config = self._load_analysis_config()
@@ -634,6 +940,14 @@ class EnhancedIntegratedAnalyzer:
         # KOSPI 데이터 로드
         self.kospi_data = None
         self._load_kospi_data()
+        
+        # 섹터 벡터 캐시 (TTL 10분)
+        self._sector_cache = OrderedDict()
+        self._sector_cache_ttl = 600  # 10분
+        self._sector_cache_lock = RLock()
+        
+        # 외부 분석기 스레드 안전성을 위한 락
+        self._ext_lock = RLock()
     
     def _load_analysis_config(self) -> AnalysisConfig:
         """분석 설정을 로드합니다."""
@@ -646,7 +960,8 @@ class EnhancedIntegratedAnalyzer:
                 'estimate_analysis': 30,
                 'financial_ratios': 30,
                 'growth_analysis': 10,
-                'scale_analysis': 5
+                'scale_analysis': 5,
+                'price_position': 5
             }),
             financial_ratio_weights=enhanced_config.get('financial_ratio_weights', {
                 'roe_score': 8,
@@ -713,14 +1028,47 @@ class EnhancedIntegratedAnalyzer:
                 logging.warning(f"{kospi_file} 파일을 찾을 수 없습니다.")
                 self.kospi_data = pd.DataFrame()
         except Exception as e:
-            logging.error(f"KOSPI 데이터 로드 실패: {e}")
+            log_error("KOSPI 데이터 로드", error=e, level="error")
             self.kospi_data = pd.DataFrame()
     
     def analyze_single_stock(self, symbol: str, name: str, days_back: int = 30) -> AnalysisResult:
-        """단일 종목 분석을 수행합니다."""
+        """
+        단일 종목 분석을 수행합니다.
+        
+        Args:
+            symbol (str): 종목 코드 (6자리 숫자)
+            name (str): 종목명
+            days_back (int): 투자의견 분석 기간 (일)
+            
+        Returns:
+            AnalysisResult: 분석 결과 객체
+            
+        Raises:
+            ValueError: 종목 코드가 유효하지 않은 경우
+            ValueError: 종목명이 없는 경우
+        """
+        start_time = time.time()
         try:
+            # 입력 검증
+            if not DataValidator.is_valid_symbol(symbol):
+                return AnalysisResult(
+                    symbol=symbol,
+                    name=name,
+                    status=AnalysisStatus.ERROR,
+                    error=f"유효하지 않은 종목 코드: {symbol}"
+                )
+            
+            if not name or not isinstance(name, str):
+                return AnalysisResult(
+                    symbol=symbol,
+                    name=name or "Unknown",
+                    status=AnalysisStatus.ERROR,
+                    error="종목명이 없거나 유효하지 않음"
+                )
+            
             # 우선주 확인
             if self._is_preferred_stock(name):
+                logging.info(f"우선주 제외: {name} ({symbol})")
                 return AnalysisResult(
                     symbol=symbol,
                     name=name,
@@ -754,8 +1102,14 @@ class EnhancedIntegratedAnalyzer:
                 'financial_data': financial_data,
                 'market_cap': market_cap,
                 'current_price': price_data.get('current_price', 0),
-                'price_position': self._calculate_price_position(price_data)
+                'price_position': self._calculate_price_position(price_data),
+                'sector_info': self._get_sector_characteristics(symbol),
+                'price_data': price_data,
             }
+            
+            # 스코어러에 컨텍스트 주입
+            self.score_calculator._ctx_sector = analysis_data['sector_info']
+            self.score_calculator._ctx_price = analysis_data['price_data']
             
             enhanced_score, score_breakdown = self.score_calculator.calculate_score(analysis_data)
             enhanced_grade = self._get_grade(enhanced_score)
@@ -781,13 +1135,17 @@ class EnhancedIntegratedAnalyzer:
             )
             
         except Exception as e:
-            logging.error(f"분석 실패 {name} ({symbol}): {e}")
+            log_error("종목 분석", f"{name}({symbol})", e, "error")
             return AnalysisResult(
                 symbol=symbol,
                 name=name,
                 status=AnalysisStatus.ERROR,
                 error=str(e)
             )
+        finally:
+            # 분석 소요 시간 기록
+            if hasattr(self, "metrics") and self.metrics:
+                self.metrics.record_analysis_duration(time.time() - start_time)
     
     def _is_preferred_stock(self, name: str) -> bool:
         """우선주 여부 확인"""
@@ -795,18 +1153,24 @@ class EnhancedIntegratedAnalyzer:
     
     def _analyze_opinion(self, symbol: str, days_back: int, name: str = "") -> Dict[str, Any]:
         """투자의견 분석 (컨텍스트 보강)"""
+        if not self.include_external:
+            return {}
         try:
-            return self.opinion_analyzer.analyze_single_stock(symbol, days_back=days_back)
+            with self._ext_lock:
+                return self.opinion_analyzer.analyze_single_stock(symbol, days_back=days_back)
         except Exception as e:
-            logging.warning(f"투자의견 분석 실패 {symbol}({name}): {e}")
+            log_error("투자의견 분석", f"{symbol}({name})", e)
             return {}
     
     def _analyze_estimate(self, symbol: str, name: str = "") -> Dict[str, Any]:
         """추정실적 분석 (컨텍스트 보강)"""
+        if not self.include_external:
+            return {}
         try:
-            return self.estimate_analyzer.analyze_single_stock(symbol)
+            with self._ext_lock:
+                return self.estimate_analyzer.analyze_single_stock(symbol)
         except Exception as e:
-            logging.warning(f"추정실적 분석 실패 {symbol}({name}): {e}")
+            log_error("추정실적 분석", f"{symbol}({name})", e)
             return {}
     
     def _get_market_cap(self, symbol: str) -> float:
@@ -839,7 +1203,7 @@ class EnhancedIntegratedAnalyzer:
                 return "unknown"
             return "stable"
         except Exception as e:
-            logging.warning(f"이익률 추세 분석 실패: {e}")
+            log_error("이익률 추세 분석", error=e)
             return "unknown"
     
     def _get_sector_characteristics(self, symbol: str) -> Dict[str, Any]:
@@ -876,7 +1240,7 @@ class EnhancedIntegratedAnalyzer:
             
             return self._get_sector_benchmarks('기타')
         except Exception as e:
-            logging.warning(f"업종 특성 분석 실패 {symbol}: {e}")
+            log_error("업종 특성 분석", symbol, e)
             return self._get_sector_benchmarks('기타')
     
     def _sanitize_leaders(self, leaders):
@@ -975,69 +1339,79 @@ class EnhancedIntegratedAnalyzer:
             if not is_leader:
                 return 0.0
             
-            # 시가총액 기반 가산점 (대장주일 경우)
+            # 품질 조건 추가: ROE >= 8 & PBR <= 섹터 상단
+            price = self.data_provider.get_price_data(symbol)
+            fin = self.data_provider.get_financial_data(symbol)
+            pbr = DataValidator.safe_float(price.get('pbr'), 0)
+            roe = DataValidator.safe_float(fin.get('roe'), 0)
+            sec = self._get_sector_benchmarks(sector)
+            
+            # 품질 컷: ROE < 8 또는 PBR > 섹터 상단 시 보너스 없음
+            if roe < 8 or (sec and pbr > sec['pbr_range'][1]):
+                return 0.0
+            
+            # 강도 축소: 캡 5점
             if market_cap >= 1000000:  # 100조원 이상 (초대형)
-                return 15.0
-            elif market_cap >= 500000:  # 50조원 이상 (대형)
-                return 12.0
-            elif market_cap >= 100000:  # 10조원 이상 (중대형)
-                return 10.0
-            elif market_cap >= 50000:   # 5조원 이상 (중형)
-                return 8.0
-            else:  # 5조원 미만 (소형)
                 return 5.0
+            elif market_cap >= 500000:  # 50조원 이상 (대형)
+                return 4.0
+            elif market_cap >= 100000:  # 10조원 이상 (중대형)
+                return 3.5
+            elif market_cap >= 50000:   # 5조원 이상 (중형)
+                return 3.0
+            else:  # 5조원 미만 (소형)
+                return 2.5
                 
         except Exception as e:
-            logging.warning(f"대장주 가산점 계산 실패 {symbol}: {e}")
+            log_error("대장주 가산점 계산", symbol, e)
             return 0.0
     
     def _evaluate_valuation_by_sector(self, symbol: str, per: float, pbr: float, roe: float, market_cap: float = 0) -> Dict[str, Any]:
-        """업종별 특성을 고려한 밸류에이션 평가"""
+        """섹터 내부 백분위 기반 밸류에이션 평가"""
+        start_time = time.time()
         try:
+            import math
+            import numpy as np
+            
             sector_info = self._get_sector_characteristics(symbol)
+            sector_name = sector_info.get('name', '기타')
             
-            # 업종별 기준 범위
-            per_min, per_max = sector_info['per_range']
-            pbr_min, pbr_max = sector_info['pbr_range']
-            roe_min, roe_max = sector_info['roe_range']
+            # 섹터 동종군 샘플링 + 캐시 사용
+            vals = self._get_sector_peers_snapshot(sector_name)
             
-            # 점수 계산 (0-100점)
-            per_score = self._calculate_metric_score(per, per_min, per_max, reverse=True)  # PER은 낮을수록 좋음
-            pbr_score = self._calculate_metric_score(pbr, pbr_min, pbr_max, reverse=True)  # PBR은 낮을수록 좋음
-            roe_score = self._calculate_metric_score(roe, roe_min, roe_max, reverse=False)  # ROE는 높을수록 좋음
+            # 백분위 계산
+            if len(vals) == 0:
+                return {'total_score': 50, 'base_score': 50, 'leader_bonus': 0, 'is_leader': False, 'grade': 'C', 'description': '평가 불가 - 데이터 부족', 'per_score': 50, 'pbr_score': 50, 'roe_score': 50, 'sector_info': sector_info}
             
-            # 기본 종합 점수
-            base_score = (per_score + pbr_score + roe_score) / 3
+            arr = np.array(vals)
+            if arr.ndim == 1:  # 1차원 배열인 경우 2차원으로 변환
+                arr = arr.reshape(-1, 3)
             
-            # 업종별 대장주 가산점 계산 (간소화)
-            actual_sector = sector_info.get('name', '기타')
-            leader_bonus = self._calculate_leader_bonus(symbol, actual_sector, market_cap)
+            def pct_rank(x, col):
+                if arr.shape[1] <= col:
+                    return 0.5
+                colv = arr[:, col]
+                colv = colv[~np.isnan(colv)]
+                if len(colv) < 10 or not math.isfinite(x):  # 최소 10개 데이터 필요
+                    return 0.5
+                return (colv < x).mean()  # 0~1
             
-            # 최종 점수 (가산점 반영)
-            total_score = min(100, base_score + leader_bonus)
+            per_p = pct_rank(per, 0)   # 낮을수록 좋음 → score = 1 - per_p
+            pbr_p = pct_rank(pbr, 1)   # 낮을수록 좋음 → score = 1 - pbr_p
+            roe_p = pct_rank(roe, 2)   # 높을수록 좋음 → score = roe_p
+            
+            # 기본 점수 계산
+            base_score = ((1-per_p) + (1-pbr_p) + roe_p) / 3 * 100.0
+            
+            # 리더 보너스(축소 후) 적용
+            leader_bonus = self._calculate_leader_bonus(symbol, sector_name, market_cap)
+            total_score = min(100, max(0, base_score + leader_bonus))
             
             # 등급 결정
-            if total_score >= 80:
-                grade = "A+"
-                description = "업종 대비 매우 우수"
-            elif total_score >= 70:
-                grade = "A"
-                description = "업종 대비 우수"
-            elif total_score >= 60:
-                grade = "B+"
-                description = "업종 대비 양호"
-            elif total_score >= 50:
-                grade = "B"
-                description = "업종 대비 보통"
-            elif total_score >= 40:
-                grade = "C"
-                description = "업종 대비 미흡"
-            else:
-                grade = "D"
-                description = "업종 대비 부족"
+            grade = "A+" if total_score>=80 else "A" if total_score>=70 else "B+" if total_score>=60 else "B" if total_score>=50 else "C" if total_score>=40 else "D"
             
             # 대장주 여부 확인
-            is_leader = self._is_sector_leader(symbol, actual_sector)
+            is_leader = self._is_sector_leader(symbol, sector_name)
             
             return {
                 'total_score': total_score,
@@ -1045,15 +1419,15 @@ class EnhancedIntegratedAnalyzer:
                 'leader_bonus': leader_bonus,
                 'is_leader': is_leader,
                 'grade': grade,
-                'description': description,
-                'per_score': per_score,
-                'pbr_score': pbr_score,
-                'roe_score': roe_score,
+                'description': '섹터 백분위 기반 점수',
+                'per_score': (1-per_p)*100,
+                'pbr_score': (1-pbr_p)*100,
+                'roe_score': (roe_p)*100,
                 'sector_info': sector_info
             }
             
         except Exception as e:
-            logging.warning(f"업종별 밸류에이션 평가 실패 {symbol}: {e}")
+            log_error("업종별 밸류에이션 평가", symbol, e)
             return {
                 'total_score': 50,
                 'base_score': 50,
@@ -1066,9 +1440,14 @@ class EnhancedIntegratedAnalyzer:
                 'roe_score': 50,
                 'sector_info': {'description': '기타'}
             }
+        finally:
+            # 섹터 평가 소요 시간 기록
+            duration = time.time() - start_time
+            if self.metrics:
+                self.metrics.record_sector_evaluation(duration)
     
     def _calculate_metric_score(self, value: float, min_val: float, max_val: float, reverse: bool = False) -> float:
-        """지표별 점수 계산 (분모 0 방어)"""
+        """지표별 점수 계산 (분모 0 방어) - 미사용 헬퍼(보관)"""
         if value <= 0:
             return 0
         
@@ -1113,6 +1492,521 @@ class EnhancedIntegratedAnalyzer:
             return 'D'
         else:
             return 'F'
+    
+    def _resolve_price_and_position(self, stock_dict):
+        """가격·52주 정보 계산 경로 통합 헬퍼"""
+        def _pick_price(d):
+            if not d:
+                return {}
+            # dict이면 그대로, 객체이면 price_data 우선 접근
+            if isinstance(d, dict):
+                return d.get('price_data', d) or {}
+            return getattr(d, 'price_data', {}) or {}
+        
+        # 1) enhanced(price_data) -> 2) basic(price_data) -> 3) (필요 시) 실시간/엑셀
+        p = _pick_price(stock_dict.get('enhanced_result')) or _pick_price(stock_dict.get('basic_result'))
+        current = p.get('current_price')
+        w52h, w52l = p.get('w52_high'), p.get('w52_low')
+        
+        # 현재가가 없으면 (옵션 허용 시) 실시간 조회
+        if not current and self.include_realtime:
+            try:
+                current = self.enhanced_price_provider.get_current_price(stock_dict.get('symbol'))
+            except: 
+                pass
+        
+        # 52주 고가/저가가 없으면 (옵션 허용 시) 실시간 조회 (KIS + 재시도 + 레이트리미터)
+        if (not w52h or not w52l) and self.include_realtime:
+            try:
+                symbol = stock_dict.get('symbol')
+                if symbol:
+                    self.rate_limiter.acquire()
+                    price_info = _with_retries(lambda: self.provider.get_stock_price_info(symbol))
+                    if price_info:
+                        w52h = price_info.get('w52_high') or w52h
+                        w52l = price_info.get('w52_low') or w52l
+            except Exception as e:
+                logging.debug(f"52주 고가/저가 조회 실패 {stock_dict.get('symbol')}: {e}")
+        
+        # 여전히 52주 정보가 없으면 KOSPI 파일에서 시도
+        if (not w52h or not w52l) and self.kospi_data is not None and not self.kospi_data.empty:
+            try:
+                code = stock_dict.get('symbol')
+                row = self.kospi_data[self.kospi_data['단축코드'] == str(code)]
+                if not row.empty:
+                    # KOSPI 파일에서 52주 정보가 있다면 사용
+                    if '52주최고가' in row.columns:
+                        w52h = row.iloc[0].get('52주최고가') or w52h
+                    if '52주최저가' in row.columns:
+                        w52l = row.iloc[0].get('52주최저가') or w52l
+            except Exception as e:
+                logging.debug(f"KOSPI 파일 52주 정보 조회 실패 {stock_dict.get('symbol')}: {e}")
+        
+        # 52주 위치 계산
+        position = None
+        try:
+            if current and w52h and w52l and w52h > w52l:
+                position = max(0, min(100, (float(current)-float(w52l))/(float(w52h)-float(w52l))*100))
+                logging.debug(f"52주 위치 계산 성공 {stock_dict.get('symbol')}: current={current}, w52h={w52h}, w52l={w52l}, position={position:.1f}%")
+            else:
+                logging.debug(f"52주 위치 계산 불가 {stock_dict.get('symbol')}: current={current}, w52h={w52h}, w52l={w52l}")
+        except Exception as e:
+            logging.debug(f"52주 위치 계산 실패 {stock_dict.get('symbol')}: {e}")
+        
+        return current, position
+    
+    def _get_sector_peers_snapshot(self, sector_name: str):
+        """섹터 동종군 샘플링 + 캐시 (TTL 10분)"""
+        with self._sector_cache_lock:
+            now = time.monotonic()
+            hit = self._sector_cache.get(sector_name)
+            if hit and now - hit[0] < self._sector_cache_ttl:
+                if self.metrics:
+                    self.metrics.record_cache_hit('sector')
+                return hit[1]
+            
+            if self.metrics:
+                self.metrics.record_cache_miss('sector')
+            
+            # 동종군 찾기
+            peers = self.kospi_data.copy()
+            for col in ('업종', '지수업종대분류', '업종명', '섹터'):
+                if col in peers.columns:
+                    colseries = peers[col].astype(str)
+                    exact = peers[colseries == sector_name]
+                    peers = exact if not exact.empty else peers[colseries.str.contains(sector_name, na=False)]
+                    break
+            
+            # 샘플링 (최대 200개)
+            codes = peers['단축코드'].astype(str).tolist()
+            import random
+            random.shuffle(codes)
+            codes = codes[:200]
+            
+            vals = []
+            for code in codes:
+                try:
+                    pr = self.data_provider.get_price_data(code)
+                    fn = self.data_provider.get_financial_data(code)
+                    vals.append((
+                        DataValidator.safe_float(pr.get('per'), float('nan')),
+                        DataValidator.safe_float(pr.get('pbr'), float('nan')),
+                        DataValidator.safe_float(fn.get('roe'), float('nan')),
+                    ))
+                except Exception:
+                    continue
+            
+            snapshot = vals
+            self._sector_cache[sector_name] = (now, snapshot)
+            
+            # LRU 관리 (최대 32개 섹터)
+            while len(self._sector_cache) > 32:
+                self._sector_cache.popitem(last=False)
+            
+            return snapshot
+    
+    def _analyze_stocks_parallel(self, stocks_data, max_workers: int = None) -> List[AnalysisResult]:
+        """종목들을 병렬로 분석하는 공통 메서드"""
+        results = []
+        if max_workers is None:
+            max_workers = min(4, os.cpu_count() or 1)
+
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            # 작업 제출
+            futures = []
+            for _, stock in stocks_data.iterrows():
+                symbol = str(stock['단축코드'])
+                name = stock['한글명']
+                future = executor.submit(self.analyze_single_stock, symbol, name)
+                futures.append((future, symbol, name))
+
+            # 결과 수집 (as_completed 사용으로 완료된 작업부터 처리)
+            future_map = {f: (symbol, name) for f, symbol, name in futures}
+            for f in as_completed(future_map):
+                symbol, name = future_map[f]
+                try:
+                    result = f.result()
+                    if result.status == AnalysisStatus.SUCCESS:
+                        results.append(result)
+                    elif result.status == AnalysisStatus.SKIPPED_PREF:
+                        logging.debug(f"우선주 제외: {name} ({symbol})")
+                    else:
+                        logging.warning(f"분석 실패: {name} ({symbol}) - {result.error}")
+                except Exception as e:
+                    log_error("종목 분석", f"{name}({symbol})", e)
+                    continue
+
+        # 분석된 종목 수 기록
+        if hasattr(self, "metrics") and self.metrics:
+            self.metrics.record_stocks_analyzed(len(results))
+        
+        return results
+    
+    def analyze_full_market_enhanced(self, max_stocks: int = 100, min_score: float = 20.0, 
+                                   include_realtime: bool = True, include_external: bool = True,
+                                   max_workers: Optional[int] = None) -> Dict[str, Any]:
+        """
+        향상된 전체 시장 분석을 수행합니다.
+        
+        시가총액 상위 종목들을 병렬로 분석하여 저평가 종목을 찾습니다.
+        
+        Note: include_realtime, include_external 파라미터는 메타데이터 표시용입니다.
+              실제 로직은 인스턴스 플래그(self.include_realtime, self.include_external)를 사용합니다.
+        
+        Args:
+            max_stocks (int): 최대 분석 종목 수 (기본값: 100)
+            min_score (float): 최소 점수 필터 (기본값: 20.0)
+            include_realtime (bool): 실시간 데이터 포함 여부 (기본값: True)
+            include_external (bool): 외부 데이터 포함 여부 (기본값: True)
+            
+        Returns:
+            Dict[str, Any]: 분석 결과 딕셔너리
+                - metadata: 분석 메타데이터
+                - top_recommendations: 상위 추천 종목 리스트
+                - sector_analysis: 업종별 분석 결과
+                - market_statistics: 시장 통계
+                
+        Note:
+            병렬 처리를 사용하여 성능을 최적화합니다.
+            CPU 코어 수에 맞춰 워커 수를 자동 조정합니다.
+        """
+        try:
+            start_time = time.time()
+            
+            # KOSPI 데이터 확인
+            if self.kospi_data is None or self.kospi_data.empty:
+                raise ValueError("KOSPI 데이터를 로드할 수 없습니다.")
+            
+            # 시가총액 상위 종목 선별
+            top_stocks = self.kospi_data.nlargest(max_stocks, '시가총액')
+            
+            # 병렬 처리로 성능 최적화
+            results = self._analyze_stocks_parallel(top_stocks, max_workers=max_workers)
+            
+            # 결과 정렬 및 필터링
+            filtered_results = [
+                r for r in results 
+                if r.enhanced_score >= min_score
+            ]
+            filtered_results.sort(key=lambda x: x.enhanced_score, reverse=True)
+            
+            # 메타데이터 생성
+            analysis_time = time.time() - start_time
+            metadata = {
+                'analysis_version': '2.0_enhanced',
+                'analysis_date': datetime.now().isoformat(),
+                'analysis_time_seconds': analysis_time,
+                'total_analyzed': len(results),
+                'total_stocks_analyzed': len(results),
+                'undervalued_count': len(filtered_results),
+                'features_enabled': {
+                    'realtime_data': self.include_realtime,
+                    'external_data': self.include_external,
+                    'enhanced_scoring': True
+                }
+            }
+            
+            return {
+                'metadata': metadata,
+                'top_recommendations': [
+                    {
+                        'symbol': r.symbol,
+                        'name': r.name,
+                        'enhanced_score': r.enhanced_score,
+                        'enhanced_grade': r.enhanced_grade,
+                        'market_cap': r.market_cap,
+                        'current_price': r.current_price,
+                        'price_position': r.price_position,
+                        'breakdown': r.score_breakdown,
+                        'basic_result': r,
+                        'enhanced_result': r
+                    }
+                    for r in filtered_results[:20]  # 상위 20개만
+                ],
+                'sector_analysis': self._analyze_sector_distribution_enhanced(results),
+                'market_statistics': self._calculate_enhanced_market_statistics(results)
+            }
+            
+        except Exception as e:
+            log_error("전체 시장 분석", error=e, level="error")
+            return {
+                'metadata': {'error': str(e)},
+                'top_recommendations': [],
+                'sector_analysis': {},
+                'market_statistics': {}
+            }
+    
+    def analyze_top_market_cap_stocks_enhanced(self, count: int = 50, min_score: float = 20.0, 
+                                             max_workers: Optional[int] = None) -> Dict[str, Any]:
+        """
+        시가총액 상위 종목 향상된 분석
+        
+        Note: 실제 로직은 인스턴스 플래그(self.include_realtime, self.include_external)를 사용합니다.
+        """
+        try:
+            start_time = time.time()
+            
+            if self.kospi_data is None or self.kospi_data.empty:
+                raise ValueError("KOSPI 데이터를 로드할 수 없습니다.")
+            
+            # 시가총액 상위 종목 선별
+            top_stocks = self.kospi_data.nlargest(count, '시가총액')
+            
+            # 병렬 처리로 성능 최적화
+            results = self._analyze_stocks_parallel(top_stocks, max_workers=max_workers)
+            
+            # 결과 필터링 및 정렬
+            filtered_results = [
+                r for r in results 
+                if r.enhanced_score >= min_score
+            ]
+            filtered_results.sort(key=lambda x: x.enhanced_score, reverse=True)
+            
+            # 메타데이터 생성
+            analysis_time = time.time() - start_time
+            metadata = {
+                'analysis_version': '2.0_enhanced',
+                'analysis_date': datetime.now().isoformat(),
+                'analysis_time_seconds': analysis_time,
+                'total_analyzed': len(results),
+                'total_stocks_analyzed': len(results),
+                'undervalued_count': len(filtered_results),
+                'features_enabled': {
+                    'realtime_data': self.include_realtime,
+                    'external_data': self.include_external,
+                    'enhanced_scoring': True
+                }
+            }
+            
+            return {
+                'metadata': metadata,
+                'top_recommendations': [
+                    {
+                        'symbol': r.symbol,
+                        'name': r.name,
+                        'enhanced_score': r.enhanced_score,
+                        'enhanced_grade': r.enhanced_grade,
+                        'market_cap': r.market_cap,
+                        'current_price': r.current_price,
+                        'price_position': r.price_position,
+                        'breakdown': r.score_breakdown,
+                        'basic_result': r,
+                        'enhanced_result': r
+                    }
+                    for r in filtered_results[:15]  # 상위 15개만
+                ],
+                'sector_analysis': self._analyze_sector_distribution_enhanced(results),
+                'market_statistics': self._calculate_enhanced_market_statistics(results)
+            }
+            
+        except Exception as e:
+            log_error("시가총액 상위 종목 분석", error=e, level="error")
+            return {
+                'metadata': {'error': str(e)},
+                'top_recommendations': [],
+                'sector_analysis': {},
+                'market_statistics': {}
+            }
+    
+    def _analyze_sector_distribution_enhanced(self, results: List[AnalysisResult]) -> Dict[str, Any]:
+        """향상된 업종별 분포 분석"""
+        try:
+            sector_distribution = {}
+            
+            for result in results:
+                # 업종 정보 추출 (간단한 하드코딩 방식)
+                sector = self._get_sector_characteristics(result.symbol).get('name', '기타')
+                
+                if sector not in sector_distribution:
+                    sector_distribution[sector] = {
+                        'count': 0,
+                        'total_score': 0,
+                        'avg_score': 0,
+                        'recommendations': {'BUY': 0, 'HOLD': 0, 'SELL': 0}
+                    }
+                
+                sector_distribution[sector]['count'] += 1
+                sector_distribution[sector]['total_score'] += result.enhanced_score
+                
+                # 투자 추천 분포 (안전 접근)
+                recommendation = DataValidator._getattr_or_get(result, 'investment_recommendation', 'HOLD')
+                if recommendation in sector_distribution[sector]['recommendations']:
+                    sector_distribution[sector]['recommendations'][recommendation] += 1
+            
+            # 평균 점수 계산
+            for sector in sector_distribution:
+                if sector_distribution[sector]['count'] > 0:
+                    sector_distribution[sector]['avg_score'] = (
+                        sector_distribution[sector]['total_score'] / sector_distribution[sector]['count']
+                    )
+            
+            return sector_distribution
+            
+        except Exception as e:
+            log_error("업종별 분포 분석", error=e, level="error")
+            return {}
+    
+    def _calculate_enhanced_market_statistics(self, results: List[AnalysisResult]) -> Dict[str, Any]:
+        """향상된 시장 통계 계산"""
+        try:
+            if not results:
+                return {}
+            
+            scores = [r.enhanced_score for r in results if r.enhanced_score > 0]
+            market_caps = [r.market_cap for r in results if r.market_cap > 0]
+            
+            if not scores:
+                return {}
+            
+            return {
+                'total_analyzed': len(results),
+                'avg_score': sum(scores) / len(scores),
+                'max_score': max(scores),
+                'min_score': min(scores),
+                'score_distribution': {
+                    'A+': len([s for s in scores if s >= 80]),
+                    'A': len([s for s in scores if 70 <= s < 80]),
+                    'B+': len([s for s in scores if 60 <= s < 70]),
+                    'B': len([s for s in scores if 50 <= s < 60]),
+                    'C': len([s for s in scores if 40 <= s < 50]),
+                    'D': len([s for s in scores if 20 <= s < 40]),
+                    'F': len([s for s in scores if s < 20])
+                },
+                'market_cap_stats': {
+                    'total_market_cap': sum(market_caps),
+                    'avg_market_cap': sum(market_caps) / len(market_caps) if market_caps else 0,
+                    'max_market_cap': max(market_caps) if market_caps else 0,
+                    'min_market_cap': min(market_caps) if market_caps else 0
+                }
+            }
+            
+        except Exception as e:
+            log_error("시장 통계 계산", error=e, level="error")
+            return {}
+    
+    def _display_enhanced_results_table(self, results: Dict[str, Any]):
+        """향상된 분석 결과를 표 형태로 출력"""
+        try:
+            console = Console()
+            
+            # 메타데이터 출력
+            metadata = results.get('metadata', {})
+            console.print(f"\n🚀 [bold blue]향상된 통합 분석 결과 v{metadata.get('analysis_version', '2.0_enhanced')}[/bold blue]")
+            console.print(f"📅 분석 일시: {metadata.get('analysis_date', 'Unknown')}")
+            console.print(f"⏱️ 분석 시간: {metadata.get('analysis_time_seconds', 0):.1f}초")
+            total = metadata.get('total_analyzed', metadata.get('total_stocks_analyzed', 0))
+            console.print(f"📊 총 분석 종목: {total}개")
+            console.print(f"🎯 저평가 종목: {metadata.get('undervalued_count', 0)}개")
+            
+            # 활성화된 기능 표시
+            features = metadata.get('features_enabled', {})
+            enabled_features = [k for k, v in features.items() if v]
+            if enabled_features:
+                console.print(f"✨ 활성화된 기능: {', '.join(enabled_features)}")
+            
+            # 상위 추천 종목 표
+            top_recommendations = results.get('top_recommendations', [])
+            if top_recommendations:
+                table = Table(title="🏆 향상된 종목 추천 결과", box=box.ROUNDED)
+                
+                # 컬럼 추가
+                table.add_column("순위", style="cyan", width=4)
+                table.add_column("종목코드", style="magenta", width=8)
+                table.add_column("종목명", style="green", width=15)
+                table.add_column("현재가", style="white", width=10)
+                table.add_column("종합점수", style="yellow", width=8)
+                table.add_column("등급", style="red", width=6)
+                table.add_column("시가총액", style="blue", width=12)
+                table.add_column("52주위치", style="magenta", width=8)
+                table.add_column("투자의견", style="cyan", width=8)
+                table.add_column("재무비율", style="green", width=8)
+                table.add_column("가격위치", style="yellow", width=8)
+                
+                for i, stock in enumerate(top_recommendations[:10], 1):
+                    # 가격/위치 정보 해결
+                    current_price, price_position = self._resolve_price_and_position(stock)
+                    
+                    # 현재가 표시
+                    current_price_display = f"{current_price:,.0f}원" if current_price else "N/A"
+                    
+                    # 52주 위치 표시 (디버깅 정보 추가)
+                    if price_position is not None:
+                        if price_position >= 95:
+                            position_text = f"{price_position:.1f}% 🔴"
+                        elif price_position >= 90:
+                            position_text = f"{price_position:.1f}% 🟠"
+                        elif price_position >= 80:
+                            position_text = f"{price_position:.1f}% 🟡"
+                        elif price_position <= 20:
+                            position_text = f"{price_position:.1f}% 🟢"
+                        elif price_position <= 30:
+                            position_text = f"{price_position:.1f}% 🔵"
+                        else:
+                            position_text = f"{price_position:.1f}%"
+                    else:
+                        symbol = stock.get('symbol', 'Unknown')
+                        logging.debug(f"52주 위치 계산 실패 {symbol}: current={current_price}")
+                        position_text = "N/A"
+                    
+                    # breakdown 정보 추출
+                    breakdown = stock.get('breakdown', {})
+                    opinion_score = breakdown.get('투자의견', 0)
+                    financial_score = breakdown.get('재무비율', 0)
+                    price_position_score = breakdown.get('가격위치', 0)
+
+                    # 색상/라벨
+                    grade = stock.get('enhanced_grade', 'F')
+                    grade_style = "green" if grade in ['A+','A','B+','B'] else "yellow" if grade in ['C+','C','D+','D'] else "red"
+                    
+                    table.add_row(
+                        str(i),
+                        stock.get('symbol', 'N/A'),
+                        stock.get('name', 'N/A')[:12] + ('...' if len(stock.get('name',''))>12 else ''),
+                        current_price_display,
+                        f"{stock.get('enhanced_score', 0):.1f}",
+                        f"[{grade_style}]{grade}[/{grade_style}]",
+                        f"{stock.get('market_cap', 0):,.0f}억",
+                        position_text,
+                        f"{opinion_score:.1f}",
+                        f"{financial_score:.1f}",
+                        f"{price_position_score:.1f}"
+                    )
+                
+                console.print(table)
+            
+            # 업종별 분석 결과
+            sector_analysis = results.get('sector_analysis', {})
+            if sector_analysis:
+                console.print(f"\n📊 [bold green]업종별 분석 결과[/bold green]")
+                for sector, data in sector_analysis.items():
+                    console.print(f"  {sector}: {data['count']}개 종목, 평균점수 {data['avg_score']:.1f}")
+            
+            # 시장 통계
+            market_stats = results.get('market_statistics', {})
+            if market_stats:
+                console.print(f"\n📈 [bold blue]시장 통계[/bold blue]")
+                console.print(f"  평균 점수: {market_stats.get('avg_score', 0):.1f}")
+                console.print(f"  최고 점수: {market_stats.get('max_score', 0):.1f}")
+                console.print(f"  최저 점수: {market_stats.get('min_score', 0):.1f}")
+                
+                score_dist = market_stats.get('score_distribution', {})
+                if score_dist:
+                    console.print(f"  점수 분포: A+({score_dist.get('A+', 0)}) A({score_dist.get('A', 0)}) B+({score_dist.get('B+', 0)}) B({score_dist.get('B', 0)})")
+            
+            # 메트릭 표시
+            if hasattr(self, 'metrics'):
+                metrics_summary = self.metrics.get_summary()
+                console.print(f"\n📊 [bold blue]시스템 메트릭[/bold blue]")
+                console.print(f"  API 성공률: {metrics_summary['api_success_rate']:.1f}%")
+                console.print(f"  캐시 히트율: 가격({metrics_summary['cache_hit_rates']['price']:.1f}%) 재무({metrics_summary['cache_hit_rates']['financial']:.1f}%) 섹터({metrics_summary['cache_hit_rates']['sector']:.1f}%)")
+                console.print(f"  평균 분석 시간: {metrics_summary['avg_analysis_duration']:.2f}초")
+                console.print(f"  평균 섹터 평가: {metrics_summary['avg_sector_evaluation']:.2f}초")
+                if metrics_summary['errors_by_type']:
+                    console.print(f"  오류 유형: {', '.join([f'{k}({v}건)' for k, v in metrics_summary['errors_by_type'].items()])}")
+            
+        except Exception as e:
+            log_error("결과 표시", error=e, level="error")
+            print(f"❌ 결과 표시 중 오류 발생: {e}")
 
 # =============================================================================
 # 6. CLI 인터페이스 (기존과 동일)
@@ -1124,12 +2018,14 @@ app = typer.Typer(help="리팩토링된 향상된 통합 분석 시스템")
 @app.command()
 def test_enhanced_analysis(
     count: int = typer.Option(15, help="분석할 종목 수"),
-    min_score: float = typer.Option(50, help="최소 점수"),
+    min_score: float = typer.Option(20, help="최소 점수"),
     max_workers: int = typer.Option(int(os.getenv("MAX_WORKERS", "2")), help="병렬 워커 수"),
-    export: Optional[str] = typer.Option(None, help="CSV 경로 저장(예: result.csv)")
+    export: Optional[str] = typer.Option(None, help="CSV 경로 저장(예: result.csv)"),
+    include_realtime: bool = typer.Option(True, help="실시간 데이터 포함"),
+    include_external: bool = typer.Option(True, help="외부 데이터 포함")
 ):
     """향상된 분석 테스트"""
-    analyzer = EnhancedIntegratedAnalyzer()
+    analyzer = EnhancedIntegratedAnalyzer(include_realtime=include_realtime, include_external=include_external)
     
     # 시가총액 상위 종목 선별
     if analyzer.kospi_data is None or analyzer.kospi_data.empty:
@@ -1154,11 +2050,35 @@ def test_enhanced_analysis(
                 f.cancel()
             raise
     
-    # 결과 필터링 및 정렬
+    # 품질 하드필터 함수 (현실적 버전)
+    def pass_quality(r: AnalysisResult) -> bool:
+        """최소 품질 기준 통과 여부 확인 (현실적 버전)"""
+        f = r.financial_data or {}
+        roe = DataValidator.safe_float(f.get('roe'), 0)
+        debt = DataValidator.safe_float(f.get('debt_ratio'), 999)
+        npm = DataValidator.safe_float(f.get('net_profit_margin'), -999)
+        # 현실적 컷: ROE≥3, 부채비율≤400, 순이익률≥-10
+        return (roe >= 3) and (debt <= 400) and (npm >= -10)
+    
+    # 결과 필터링 전 통계 (선택적)
+    if len(results) > 0:
+        success_count = sum(1 for r in results if r.status == AnalysisStatus.SUCCESS)
+        logging.info(f"분석 완료: {success_count}개 종목 성공 / {len(results)}개 전체")
+    
+    # 결과 필터링 및 정렬 (품질 필터 활성화)
     filtered_results = [
         r for r in results 
-        if r.status == AnalysisStatus.SUCCESS and r.enhanced_score >= min_score
+        if r.status == AnalysisStatus.SUCCESS 
+        and r.enhanced_score >= min_score
+        and pass_quality(r)  # 품질 필터 활성화
     ]
+    
+    # 고위치 차단형 룰 (85% 이하로 설정)
+    filtered_results = [
+        r for r in filtered_results
+        if (r.price_position is None) or (r.price_position <= 85)  # 85% 이하만 허용
+    ]
+    
     filtered_results.sort(key=lambda x: (x.enhanced_score, x.market_cap), reverse=True)
     
     # 결과 출력
@@ -1293,6 +2213,74 @@ def test_enhanced_analysis(
                 writer.writeheader()
                 writer.writerows(rows)
             logging.info(f"결과 저장: {export}")
+
+@app.command()
+def analyze_full_market(
+    max_stocks: int = typer.Option(100, help="최대 분석 종목 수"),
+    min_score: float = typer.Option(20, help="최소 점수"),
+    include_realtime: bool = typer.Option(True, help="실시간 데이터 포함"),
+    include_external: bool = typer.Option(True, help="외부 데이터 포함"),
+    max_workers: Optional[int] = typer.Option(None, help="병렬 처리 워커 수 (기본값: CPU 코어 수)"),
+    export: Optional[str] = typer.Option(None, help="JSON 결과 저장 경로")
+):
+    """향상된 전체 시장 분석"""
+    analyzer = EnhancedIntegratedAnalyzer(include_realtime=include_realtime, include_external=include_external)
+    
+    # 전체 시장 분석 수행
+    results = analyzer.analyze_full_market_enhanced(
+        max_stocks=max_stocks, 
+        min_score=min_score,
+        include_realtime=include_realtime, 
+        include_external=include_external,
+        max_workers=max_workers
+    )
+    
+    # 결과 표시
+    analyzer._display_enhanced_results_table(results)
+    
+    # JSON 저장
+    if export:
+        try:
+            import json
+            os.makedirs(os.path.dirname(export) or ".", exist_ok=True)
+            with open(export, 'w', encoding='utf-8') as f:
+                json.dump(results, f, ensure_ascii=False, indent=2, default=str)
+            logging.info(f"결과 저장: {export}")
+        except Exception as e:
+            log_error("결과 저장", error=e, level="error")
+
+@app.command()
+def analyze_top_market_cap(
+    count: int = typer.Option(50, help="분석할 종목 수"),
+    min_score: float = typer.Option(20, help="최소 점수"),
+    include_realtime: bool = typer.Option(True, help="실시간 데이터 포함"),
+    include_external: bool = typer.Option(True, help="외부 분석 포함"),
+    max_workers: Optional[int] = typer.Option(None, help="병렬 처리 워커 수 (기본값: CPU 코어 수)"),
+    export: Optional[str] = typer.Option(None, help="JSON 결과 저장 경로")
+):
+    """시가총액 상위 종목 향상된 분석"""
+    analyzer = EnhancedIntegratedAnalyzer(include_realtime=include_realtime, include_external=include_external)
+    
+    # 시가총액 상위 종목 분석 수행
+    results = analyzer.analyze_top_market_cap_stocks_enhanced(
+        count=count, 
+        min_score=min_score,
+        max_workers=max_workers
+    )
+    
+    # 결과 표시
+    analyzer._display_enhanced_results_table(results)
+    
+    # JSON 저장
+    if export:
+        try:
+            import json
+            os.makedirs(os.path.dirname(export) or ".", exist_ok=True)
+            with open(export, 'w', encoding='utf-8') as f:
+                json.dump(results, f, ensure_ascii=False, indent=2, default=str)
+            logging.info(f"결과 저장: {export}")
+        except Exception as e:
+            log_error("결과 저장", error=e, level="error")
 
 if __name__ == "__main__":
     # 로깅 설정 (개선된 포맷터)

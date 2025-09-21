@@ -1,0 +1,83 @@
+[
+  {
+    "symbol": "003550",
+    "name": "LG생활건강",
+    "sector": "화장품/생활용품",
+    "analysis_date": "2025-09-21T11:49:57.475621",
+    "ultimate_score": 44.1249750499002,
+    "ultimate_grade": "F",
+    "investment_recommendation": "SELL",
+    "confidence_level": "LOW",
+    "enhanced_score": 75.0,
+    "enhanced_grade": "B+",
+    "news_analysis": {
+      "total_news": 167,
+      "avg_sentiment": 0.3812375249500998,
+      "sentiment_trend": "positive",
+      "recent_sentiment": 0.529320987654321,
+      "news_by_source": {
+        "기타": 164,
+        "동아일보": 2,
+        "조선일보": 1
+      },
+      "sentiment_distribution": {
+        "positive": 82,
+        "neutral": 67,
+        "negative": 18
+      },
+      "recent_news_count": 108
+    },
+    "qualitative_risk_analysis": {
+      "comprehensive_risk_score": 40.9375,
+      "comprehensive_risk_level": "보통",
+      "risk_adjustment_factor": 1.0,
+      "individual_risks": {
+        "정책_리스크": {
+          "risk_type": "정책_리스크",
+          "risk_level": "낮음",
+          "score": 30.0,
+          "description": "정책 변화로 인한 낮은 리스크 최근 관련 뉴스 2건 발견",
+          "confidence": 0.8,
+          "sources": [
+            "정책_뉴스_2건"
+          ],
+          "last_updated": "2025-09-21T11:49:57.475175"
+        },
+        "ESG_리스크": {
+          "risk_type": "ESG_리스크",
+          "risk_level": "보통",
+          "score": 40.0,
+          "description": "ESG 관련 보통 수준의 리스크",
+          "confidence": 0.7,
+          "sources": [
+            "ESG_뉴스_1건"
+          ],
+          "last_updated": "2025-09-21T11:49:57.475191"
+        },
+        "시장_감정_리스크": {
+          "risk_type": "시장_감정_리스크",
+          "risk_level": "보통",
+          "score": 55.0,
+          "description": "시장 감정이 중립적이며 보통 수준의 리스크",
+          "confidence": 0.6,
+          "sources": [
+            "감정_분석_5건"
+          ],
+          "last_updated": "2025-09-21T11:49:57.475202"
+        }
+      },
+      "analysis_timestamp": "20250921_114957",
+      "status": "success"
+    },
+    "sector_analysis": {
+      "total_score": 75.0,
+      "sector_grade": "B+",
+      "breakdown": {
+        "재무_건전성": 80.0,
+        "성장성": 70.0,
+        "안정성": 75.0
+      }
+    },
+    "ml_prediction": {}
+  }
+]

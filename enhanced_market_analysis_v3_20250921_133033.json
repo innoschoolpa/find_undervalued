@@ -1,0 +1,1913 @@
+{
+  "metadata": {
+    "analysis_version": "3.0",
+    "analysis_date": "2025-09-21T13:30:33.101054",
+    "total_stocks": 3,
+    "features": [
+      "realtime_data",
+      "enhanced_sector_classification",
+      "company_specific_analysis",
+      "external_data_integration"
+    ]
+  },
+  "results": [
+    {
+      "symbol": "035420",
+      "name": "NAVER",
+      "sector_classification": {
+        "classifications": [
+          {
+            "code": "FINTECH",
+            "name": "핀테크",
+            "level": "SectorLevel.SPECIALIZED",
+            "parent_code": "BANKING",
+            "keywords": [
+              "핀테크",
+              "모바일",
+              "결제",
+              "송금",
+              "대출"
+            ],
+            "characteristics": {
+              "growth_potential": "very_high",
+              "volatility": "high",
+              "innovation_cycle": "fast",
+              "regulatory_uncertainty": "medium"
+            },
+            "risk_factors": [
+              "규제 변화",
+              "경쟁 심화",
+              "보안 리스크"
+            ],
+            "growth_drivers": [
+              "디지털 전환",
+              "금융 포용성",
+              "API 개방"
+            ]
+          },
+          {
+            "code": "SOFTWARE",
+            "name": "소프트웨어",
+            "level": "SectorLevel.MEDIUM",
+            "parent_code": "TECH",
+            "keywords": [
+              "소프트웨어",
+              "SaaS",
+              "클라우드",
+              "플랫폼",
+              "앱"
+            ],
+            "characteristics": {
+              "growth_potential": "very_high",
+              "volatility": "high",
+              "innovation_cycle": "fast",
+              "capital_intensity": "low"
+            },
+            "risk_factors": [
+              "경쟁 심화",
+              "기술 변화",
+              "데이터 보안"
+            ],
+            "growth_drivers": [
+              "클라우드 전환",
+              "AI 통합",
+              "디지털 전환"
+            ]
+          }
+        ],
+        "sector_opportunities": {},
+        "hierarchy": {
+          "current": {
+            "code": "FINTECH",
+            "name": "핀테크",
+            "level": "SectorLevel.SPECIALIZED",
+            "parent_code": "BANKING",
+            "keywords": [
+              "핀테크",
+              "모바일",
+              "결제",
+              "송금",
+              "대출"
+            ],
+            "characteristics": {
+              "growth_potential": "very_high",
+              "volatility": "high",
+              "innovation_cycle": "fast",
+              "regulatory_uncertainty": "medium"
+            },
+            "risk_factors": [
+              "규제 변화",
+              "경쟁 심화",
+              "보안 리스크"
+            ],
+            "growth_drivers": [
+              "디지털 전환",
+              "금융 포용성",
+              "API 개방"
+            ]
+          },
+          "parents": [
+            {
+              "code": "BANKING",
+              "name": "은행",
+              "level": "SectorLevel.MEDIUM",
+              "parent_code": "FINANCE",
+              "keywords": [
+                "은행",
+                "상업은행",
+                "저축은행",
+                "특수은행"
+              ],
+              "characteristics": {
+                "growth_potential": "low",
+                "volatility": "medium",
+                "innovation_cycle": "slow",
+                "capital_requirement": "high"
+              },
+              "risk_factors": [
+                "금리 리스크",
+                "신용 리스크",
+                "규제 리스크"
+              ],
+              "growth_drivers": [
+                "핀테크 협력",
+                "ESG 금융",
+                "디지털 뱅킹"
+              ]
+            },
+            {
+              "code": "FINANCE",
+              "name": "금융",
+              "level": "SectorLevel.MAJOR",
+              "parent_code": null,
+              "keywords": [
+                "금융",
+                "은행",
+                "보험",
+                "증권",
+                "카드"
+              ],
+              "characteristics": {
+                "growth_potential": "medium",
+                "volatility": "medium",
+                "innovation_cycle": "medium",
+                "regulatory_risk": "high"
+              },
+              "risk_factors": [
+                "금리 변동",
+                "부실채권",
+                "규제 강화"
+              ],
+              "growth_drivers": [
+                "금융혁신",
+                "핀테크",
+                "ESG 투자"
+              ]
+            }
+          ],
+          "children": [],
+          "level": "specialized",
+          "depth": 2
+        },
+        "primary_sector": "핀테크",
+        "timestamp": "2025-09-21T13:30:32.235843"
+      },
+      "company_profile": {
+        "symbol": "035420",
+        "name": "NAVER",
+        "company_type": "large_cap",
+        "business_model": "platform",
+        "comprehensive_score": 71.69999999999999,
+        "benchmark_analysis": {
+          "industry": "PLATFORM",
+          "benchmark_comparison": {
+            "per": {
+              "company": 19.64,
+              "benchmark": 25.8,
+              "score": 76.12403100775194
+            },
+            "pbr": {
+              "company": 1.41,
+              "benchmark": 3.2,
+              "score": 44.06249999999999
+            },
+            "roe": {
+              "company": 0,
+              "benchmark": 18.5,
+              "score": 0
+            },
+            "roa": {
+              "company": 0,
+              "benchmark": 12.3,
+              "score": 0
+            },
+            "debt_ratio": {
+              "company": 0,
+              "benchmark": 25.2,
+              "score": 0
+            }
+          },
+          "overall_score": 24.037306201550386,
+          "relative_performance": "poor"
+        },
+        "peer_analysis": {
+          "peer_symbols": [
+            "035720",
+            "068270"
+          ],
+          "peer_metrics": {
+            "avg_per": 18.5,
+            "avg_pbr": 2.1,
+            "avg_roe": 14.2,
+            "avg_roa": 9.8,
+            "avg_debt_ratio": 38.5
+          },
+          "company_metrics": {
+            "per": 19.64,
+            "pbr": 1.41,
+            "roe": 0,
+            "roa": 0,
+            "debt_ratio": 0
+          },
+          "peer_rankings": {
+            "per": "above_average",
+            "pbr": "below_average",
+            "roe": "below_average",
+            "roa": "below_average",
+            "debt_ratio": "below_average"
+          },
+          "peer_performance": 20.0,
+          "relative_ranking": "below_average"
+        },
+        "characteristic_analysis": {
+          "characteristics": {
+            "diversification": {
+              "score": 85,
+              "description": "높은 사업 다각화로 리스크 분산 효과",
+              "impact": "positive"
+            },
+            "r_and_d": {
+              "score": 90,
+              "description": "매우 높은 R&D 투자로 혁신 경쟁력",
+              "impact": "positive"
+            },
+            "cycle_sensitivity": {
+              "score": 80,
+              "description": "낮은 사이클 민감도로 안정적",
+              "impact": "positive"
+            }
+          },
+          "total_score": 85.0,
+          "characteristic_level": "very_good"
+        },
+        "competitive_analysis": {
+          "competitive_advantages": {
+            "advantage_1": {
+              "description": "한국 검색 1위",
+              "strength_score": 70,
+              "sustainability": "medium",
+              "impact": "positive"
+            },
+            "advantage_2": {
+              "description": "모바일 플랫폼",
+              "strength_score": 70,
+              "sustainability": "medium",
+              "impact": "positive"
+            },
+            "advantage_3": {
+              "description": "AI 기술력",
+              "strength_score": 80,
+              "sustainability": "high",
+              "impact": "positive"
+            },
+            "advantage_4": {
+              "description": "클라우드 서비스",
+              "strength_score": 70,
+              "sustainability": "medium",
+              "impact": "positive"
+            },
+            "advantage_5": {
+              "description": "글로벌 진출",
+              "strength_score": 70,
+              "sustainability": "medium",
+              "impact": "positive"
+            }
+          },
+          "total_score": 72.0,
+          "competitive_level": "good"
+        },
+        "risk_analysis": {
+          "risk_factors": {
+            "risk_1": {
+              "description": "경쟁 심화",
+              "severity_score": 50,
+              "probability": "high",
+              "mitigation": "차별화 강화",
+              "impact": "negative"
+            },
+            "risk_2": {
+              "description": "규제 변화",
+              "severity_score": 55,
+              "probability": "medium",
+              "mitigation": "정책 모니터링",
+              "impact": "negative"
+            },
+            "risk_3": {
+              "description": "광고 시장 변동",
+              "severity_score": 50,
+              "probability": "medium",
+              "mitigation": "리스크 관리 강화",
+              "impact": "negative"
+            },
+            "risk_4": {
+              "description": "기술 변화",
+              "severity_score": 60,
+              "probability": "medium",
+              "mitigation": "R&D 투자",
+              "impact": "negative"
+            },
+            "risk_5": {
+              "description": "글로벌 경쟁",
+              "severity_score": 50,
+              "probability": "high",
+              "mitigation": "차별화 강화",
+              "impact": "negative"
+            }
+          },
+          "total_score": 47.0,
+          "risk_level": "high"
+        },
+        "growth_analysis": {
+          "growth_drivers": {
+            "driver_1": {
+              "description": "AI 검색",
+              "potential_score": 95,
+              "timeframe": "short_term",
+              "impact": "positive"
+            },
+            "driver_2": {
+              "description": "클라우드 성장",
+              "potential_score": 80,
+              "timeframe": "short_term",
+              "impact": "positive"
+            },
+            "driver_3": {
+              "description": "핀테크 확장",
+              "potential_score": 65,
+              "timeframe": "medium_term",
+              "impact": "positive"
+            },
+            "driver_4": {
+              "description": "글로벌 진출",
+              "potential_score": 65,
+              "timeframe": "medium_term",
+              "impact": "positive"
+            },
+            "driver_5": {
+              "description": "디지털 전환",
+              "potential_score": 75,
+              "timeframe": "long_term",
+              "impact": "positive"
+            }
+          },
+          "total_score": 76.0,
+          "growth_level": "good"
+        },
+        "esg_analysis": {
+          "environmental_score": 80,
+          "social_score": 85,
+          "governance_score": 90,
+          "total_esg_score": 85.0,
+          "esg_rating": "A+",
+          "esg_level": "excellent"
+        },
+        "company_profile": {
+          "symbol": "035420",
+          "name": "NAVER",
+          "company_type": "CompanyType.LARGE_CAP",
+          "business_model": "BusinessModel.PLATFORM",
+          "market_cap": 35000000000000,
+          "business_characteristics": {
+            "diversification": "high",
+            "global_presence": "medium",
+            "r_and_d_intensity": "very_high",
+            "capital_intensity": "low",
+            "cycle_sensitivity": "medium"
+          },
+          "competitive_advantages": [
+            "한국 검색 1위",
+            "모바일 플랫폼",
+            "AI 기술력",
+            "클라우드 서비스",
+            "글로벌 진출"
+          ],
+          "risk_factors": [
+            "경쟁 심화",
+            "규제 변화",
+            "광고 시장 변동",
+            "기술 변화",
+            "글로벌 경쟁"
+          ],
+          "growth_drivers": [
+            "AI 검색",
+            "클라우드 성장",
+            "핀테크 확장",
+            "글로벌 진출",
+            "디지털 전환"
+          ],
+          "financial_structure": {
+            "debt_to_equity": 0.1,
+            "cash_ratio": 0.9,
+            "dividend_yield": 0.0,
+            "payout_ratio": 0.0
+          },
+          "management_quality": {
+            "corporate_governance": "excellent",
+            "transparency": "very_high",
+            "innovation_culture": "excellent",
+            "succession_planning": "stable"
+          },
+          "esg_profile": {
+            "environmental_score": 80,
+            "social_score": 85,
+            "governance_score": 90,
+            "esg_rating": "A+"
+          },
+          "last_updated": "2025-09-21 13:30:30.315558"
+        },
+        "analysis_date": "2025-09-21T13:30:32.236575",
+        "timestamp": "2025-09-21T13:30:32.236580"
+      },
+      "realtime_sentiment": {
+        "market_sentiment": 0.020054394981471713,
+        "sentiment_level": "neutral",
+        "news_sentiment": {
+          "sentiment_score": 0.00013598745367927366,
+          "sentiment_label": "neutral",
+          "confidence": 0.9000000000000001
+        },
+        "market_indicators": [],
+        "economic_indicators": [
+          {
+            "data_type": "MarketDataType.ECONOMIC_INDICATOR",
+            "symbol": "KOREA_IR",
+            "name": "한국 기준금리",
+            "value": 3.25,
+            "change": 0.0,
+            "change_percent": 0.0,
+            "timestamp": "2025-09-21 13:30:32.233565",
+            "source": "bok_api",
+            "confidence": 0.95
+          },
+          {
+            "data_type": "MarketDataType.ECONOMIC_INDICATOR",
+            "symbol": "KOREA_INFLATION",
+            "name": "한국 소비자물가상승률",
+            "value": 2.8,
+            "change": -0.1,
+            "change_percent": -3.45,
+            "timestamp": "2025-09-21 13:30:32.233574",
+            "source": "kostat_api",
+            "confidence": 0.9
+          },
+          {
+            "data_type": "MarketDataType.ECONOMIC_INDICATOR",
+            "symbol": "KOREA_GDP",
+            "name": "한국 GDP 성장률",
+            "value": 1.2,
+            "change": 0.1,
+            "change_percent": 9.09,
+            "timestamp": "2025-09-21 13:30:32.233577",
+            "source": "bok_api",
+            "confidence": 0.85
+          },
+          {
+            "data_type": "MarketDataType.ECONOMIC_INDICATOR",
+            "symbol": "KOREA_UNEMPLOYMENT",
+            "name": "한국 실업률",
+            "value": 2.6,
+            "change": -0.1,
+            "change_percent": -3.7,
+            "timestamp": "2025-09-21 13:30:32.233579",
+            "source": "kostat_api",
+            "confidence": 0.9
+          }
+        ],
+        "confidence": 0.9000000000000001
+      },
+      "external_data": {
+        "esg_data": {
+          "symbol": "035420",
+          "company_name": "NAVER",
+          "environmental_score": 79,
+          "social_score": 76,
+          "governance_score": 86,
+          "overall_score": 80.33333333333333,
+          "esg_rating": "A",
+          "data_source": "MSCI_ESG",
+          "last_updated": "2025-09-21 13:30:32.236944",
+          "peer_ranking": 16,
+          "industry_avg": 71.33333333333333
+        },
+        "credit_data": {
+          "symbol": "035420",
+          "company_name": "NAVER",
+          "rating": "AAA",
+          "outlook": "Positive",
+          "data_source": "S&P_Global",
+          "last_updated": "2025-09-21 13:30:32.237332",
+          "previous_rating": null
+        },
+        "consensus_data": {},
+        "overall_external_score": 70.0
+      },
+      "financial_analysis": {
+        "symbol": "035420",
+        "name": "NAVER",
+        "financial_data": {
+          "symbol": "035420",
+          "name": "IT 서비스",
+          "current_price": 234000.0,
+          "volume": 1585243.0,
+          "market_cap": 36703500000000.0,
+          "per": 19.64,
+          "pbr": 1.41,
+          "eps": 11913.0,
+          "bps": 166221.0,
+          "dividend_yield": 0.0,
+          "open_price": 239000.0,
+          "high_price": 240000.0,
+          "low_price": 233500.0,
+          "prev_close": 238500.0,
+          "change_price": -4500.0,
+          "change_rate": -1.89,
+          "trading_value": 373739044750.0,
+          "listed_shares": 156852638.0,
+          "foreign_holdings": 65377061.0,
+          "foreign_net_buy": -525533.0,
+          "program_net_buy": -419776.0,
+          "w52_high": 295000.0,
+          "w52_low": 159500.0,
+          "d250_high": 295000.0,
+          "d250_low": 152500.0,
+          "vol_turnover": 1.01,
+          "sector": "IT 서비스",
+          "market_status": "55",
+          "margin_rate": "20.00",
+          "credit_available": "Y",
+          "short_selling": "Y",
+          "investment_caution": "N",
+          "market_warning": "00",
+          "short_overheating": "N",
+          "management_stock": "N"
+        },
+        "enhanced_score": 48.70046456527723,
+        "ultimate_score": 48.70046456527723,
+        "investment_recommendation": "HOLD",
+        "confidence_level": "LOW",
+        "timestamp": "2025-09-21T13:30:30.989822"
+      },
+      "comprehensive_score": 55.73518582611089,
+      "investment_recommendation": "SELL",
+      "confidence_level": "MEDIUM",
+      "risk_assessment": {
+        "risk_score": 65,
+        "risk_level": "high",
+        "risk_factors": [],
+        "risk_summary": "0개 주요 리스크 요인 식별"
+      },
+      "growth_outlook": {
+        "growth_score": 50,
+        "growth_level": "low",
+        "growth_drivers": [
+          "AI 검색",
+          "클라우드 성장",
+          "핀테크 확장",
+          "글로벌 진출",
+          "디지털 전환"
+        ],
+        "growth_summary": "5개 성장 동력 식별"
+      },
+      "timestamp": "2025-09-21T13:30:33.100262"
+    },
+    {
+      "symbol": "000660",
+      "name": "SK하이닉스",
+      "sector_classification": {
+        "classifications": [
+          {
+            "code": "SEMICONDUCTOR",
+            "name": "반도체",
+            "level": "SectorLevel.MEDIUM",
+            "parent_code": "TECH",
+            "keywords": [
+              "반도체",
+              "칩",
+              "웨이퍼",
+              "메모리",
+              "시스템반도체"
+            ],
+            "characteristics": {
+              "growth_potential": "high",
+              "volatility": "very_high",
+              "innovation_cycle": "very_fast",
+              "capital_intensity": "very_high"
+            },
+            "risk_factors": [
+              "사이클 변동",
+              "기술 격차",
+              "수급 불균형"
+            ],
+            "growth_drivers": [
+              "AI/5G",
+              "자동차용 반도체",
+              "메모리 고도화"
+            ]
+          },
+          {
+            "code": "CHEMICAL",
+            "name": "화학",
+            "level": "SectorLevel.MEDIUM",
+            "parent_code": "MANUFACTURING",
+            "keywords": [
+              "화학",
+              "석유화학",
+              "정밀화학",
+              "플라스틱",
+              "페인트"
+            ],
+            "characteristics": {
+              "growth_potential": "medium",
+              "volatility": "high",
+              "innovation_cycle": "slow",
+              "environmental_risk": "high"
+            },
+            "risk_factors": [
+              "원유 가격",
+              "환경 규제",
+              "수요 변동"
+            ],
+            "growth_drivers": [
+              "친환경 전환",
+              "신소재 개발",
+              "바이오 화학"
+            ]
+          }
+        ],
+        "sector_opportunities": {
+          "SEMICONDUCTOR": {
+            "sector_code": "SEMICONDUCTOR",
+            "sector_name": "반도체",
+            "total_score": 67.86666666666667,
+            "grade": "C",
+            "recommendation": "HOLD",
+            "scores": {
+              "growth": 85.0,
+              "profitability": 100,
+              "stability": 30.0,
+              "valuation": 49.33333333333334
+            },
+            "metrics": {
+              "sector_code": "SEMICONDUCTOR",
+              "avg_per": 15.2,
+              "avg_pbr": 1.8,
+              "avg_roe": 12.5,
+              "avg_roa": 8.3,
+              "avg_debt_ratio": 45.2,
+              "avg_growth_rate": 8.5,
+              "market_cap_ratio": 25.3,
+              "volatility": 0.35,
+              "correlation_kospi": 0.78,
+              "last_updated": "2025-09-21 13:30:32.235732"
+            },
+            "characteristics": {
+              "growth_potential": "high",
+              "volatility": "very_high",
+              "innovation_cycle": "very_fast",
+              "capital_intensity": "very_high"
+            },
+            "risk_factors": [
+              "사이클 변동",
+              "기술 격차",
+              "수급 불균형"
+            ],
+            "growth_drivers": [
+              "AI/5G",
+              "자동차용 반도체",
+              "메모리 고도화"
+            ],
+            "analysis_date": "2025-09-21T13:30:32.235750"
+          }
+        },
+        "hierarchy": {
+          "current": {
+            "code": "SEMICONDUCTOR",
+            "name": "반도체",
+            "level": "SectorLevel.MEDIUM",
+            "parent_code": "TECH",
+            "keywords": [
+              "반도체",
+              "칩",
+              "웨이퍼",
+              "메모리",
+              "시스템반도체"
+            ],
+            "characteristics": {
+              "growth_potential": "high",
+              "volatility": "very_high",
+              "innovation_cycle": "very_fast",
+              "capital_intensity": "very_high"
+            },
+            "risk_factors": [
+              "사이클 변동",
+              "기술 격차",
+              "수급 불균형"
+            ],
+            "growth_drivers": [
+              "AI/5G",
+              "자동차용 반도체",
+              "메모리 고도화"
+            ]
+          },
+          "parents": [
+            {
+              "code": "TECH",
+              "name": "기술",
+              "level": "SectorLevel.MAJOR",
+              "parent_code": null,
+              "keywords": [
+                "기술",
+                "IT",
+                "소프트웨어",
+                "하드웨어",
+                "반도체",
+                "전자"
+              ],
+              "characteristics": {
+                "growth_potential": "high",
+                "volatility": "high",
+                "innovation_cycle": "fast",
+                "regulatory_risk": "medium"
+              },
+              "risk_factors": [
+                "기술 변화",
+                "경쟁 심화",
+                "규제 변화"
+              ],
+              "growth_drivers": [
+                "디지털 전환",
+                "AI 발전",
+                "5G 확산"
+              ]
+            }
+          ],
+          "children": [
+            {
+              "code": "MEMORY_SEMICONDUCTOR",
+              "name": "메모리반도체",
+              "level": "SectorLevel.DETAILED",
+              "parent_code": "SEMICONDUCTOR",
+              "keywords": [
+                "메모리",
+                "DRAM",
+                "NAND",
+                "플래시",
+                "HBM"
+              ],
+              "characteristics": {
+                "growth_potential": "high",
+                "volatility": "very_high",
+                "innovation_cycle": "fast",
+                "sector_cycle": "strong"
+              },
+              "risk_factors": [
+                "메모리 사이클",
+                "기술 격차",
+                "수급 불균형"
+              ],
+              "growth_drivers": [
+                "AI 서버",
+                "데이터센터",
+                "모바일 고도화"
+              ]
+            },
+            {
+              "code": "SYSTEM_SEMICONDUCTOR",
+              "name": "시스템반도체",
+              "level": "SectorLevel.DETAILED",
+              "parent_code": "SEMICONDUCTOR",
+              "keywords": [
+                "시스템",
+                "SoC",
+                "AP",
+                "MCU",
+                "센서"
+              ],
+              "characteristics": {
+                "growth_potential": "very_high",
+                "volatility": "high",
+                "innovation_cycle": "fast",
+                "design_complexity": "high"
+              },
+              "risk_factors": [
+                "설계 복잡도",
+                "공정 기술",
+                "경쟁 심화"
+              ],
+              "growth_drivers": [
+                "AI 칩",
+                "자동차 전자화",
+                "IoT 확산"
+              ]
+            }
+          ],
+          "level": "medium",
+          "depth": 1
+        },
+        "primary_sector": "반도체",
+        "timestamp": "2025-09-21T13:30:32.235793"
+      },
+      "company_profile": {
+        "symbol": "000660",
+        "name": "SK하이닉스",
+        "company_type": "large_cap",
+        "business_model": "manufacturing",
+        "comprehensive_score": 64.8,
+        "benchmark_analysis": {
+          "industry": "SEMICONDUCTOR",
+          "benchmark_comparison": {
+            "per": {
+              "company": 12.99,
+              "benchmark": 15.2,
+              "score": 85.46052631578948
+            },
+            "pbr": {
+              "company": 3.38,
+              "benchmark": 1.8,
+              "score": 12.222222222222229
+            },
+            "roe": {
+              "company": 0,
+              "benchmark": 12.5,
+              "score": 0
+            },
+            "roa": {
+              "company": 0,
+              "benchmark": 8.3,
+              "score": 0
+            },
+            "debt_ratio": {
+              "company": 0,
+              "benchmark": 45.2,
+              "score": 0
+            }
+          },
+          "overall_score": 19.53654970760234,
+          "relative_performance": "poor"
+        },
+        "peer_analysis": {
+          "peer_symbols": [
+            "005930",
+            "373220"
+          ],
+          "peer_metrics": {
+            "avg_per": 18.5,
+            "avg_pbr": 2.1,
+            "avg_roe": 14.2,
+            "avg_roa": 9.8,
+            "avg_debt_ratio": 38.5
+          },
+          "company_metrics": {
+            "per": 12.99,
+            "pbr": 3.38,
+            "roe": 0,
+            "roa": 0,
+            "debt_ratio": 0
+          },
+          "peer_rankings": {
+            "per": "below_average",
+            "pbr": "above_average",
+            "roe": "below_average",
+            "roa": "below_average",
+            "debt_ratio": "below_average"
+          },
+          "peer_performance": 20.0,
+          "relative_ranking": "below_average"
+        },
+        "characteristic_analysis": {
+          "characteristics": {
+            "diversification": {
+              "score": 65,
+              "description": "적당한 사업 다각화",
+              "impact": "neutral"
+            },
+            "r_and_d": {
+              "score": 90,
+              "description": "매우 높은 R&D 투자로 혁신 경쟁력",
+              "impact": "positive"
+            },
+            "cycle_sensitivity": {
+              "score": 40,
+              "description": "매우 높은 사이클 민감도로 변동성 큼",
+              "impact": "negative",
+              "recommendation": "사이클 타이밍 중요"
+            }
+          },
+          "total_score": 65.0,
+          "characteristic_level": "average"
+        },
+        "competitive_analysis": {
+          "competitive_advantages": {
+            "advantage_1": {
+              "description": "DRAM 세계 2위",
+              "strength_score": 90,
+              "sustainability": "medium",
+              "impact": "positive"
+            },
+            "advantage_2": {
+              "description": "NAND 기술력",
+              "strength_score": 80,
+              "sustainability": "high",
+              "impact": "positive"
+            },
+            "advantage_3": {
+              "description": "HBM 선도 기술",
+              "strength_score": 85,
+              "sustainability": "medium",
+              "impact": "positive"
+            },
+            "advantage_4": {
+              "description": "AI 서버 메모리",
+              "strength_score": 70,
+              "sustainability": "medium",
+              "impact": "positive"
+            },
+            "advantage_5": {
+              "description": "고객사 다양화",
+              "strength_score": 70,
+              "sustainability": "medium",
+              "impact": "positive"
+            }
+          },
+          "total_score": 79.0,
+          "competitive_level": "good"
+        },
+        "risk_analysis": {
+          "risk_factors": {
+            "risk_1": {
+              "description": "메모리 사이클 변동",
+              "severity_score": 80,
+              "probability": "high",
+              "mitigation": "다각화 전략",
+              "impact": "negative"
+            },
+            "risk_2": {
+              "description": "기술 격차",
+              "severity_score": 60,
+              "probability": "medium",
+              "mitigation": "R&D 투자",
+              "impact": "negative"
+            },
+            "risk_3": {
+              "description": "수급 불균형",
+              "severity_score": 50,
+              "probability": "medium",
+              "mitigation": "리스크 관리 강화",
+              "impact": "negative"
+            },
+            "risk_4": {
+              "description": "중국 경쟁사",
+              "severity_score": 70,
+              "probability": "high",
+              "mitigation": "차별화 강화",
+              "impact": "negative"
+            },
+            "risk_5": {
+              "description": "투자 사이클",
+              "severity_score": 80,
+              "probability": "high",
+              "mitigation": "다각화 전략",
+              "impact": "negative"
+            }
+          },
+          "total_score": 32.0,
+          "risk_level": "very_high"
+        },
+        "growth_analysis": {
+          "growth_drivers": {
+            "driver_1": {
+              "description": "AI 서버 폭증",
+              "potential_score": 95,
+              "timeframe": "short_term",
+              "impact": "positive"
+            },
+            "driver_2": {
+              "description": "데이터센터 확장",
+              "potential_score": 65,
+              "timeframe": "medium_term",
+              "impact": "positive"
+            },
+            "driver_3": {
+              "description": "HBM 수요 증가",
+              "potential_score": 65,
+              "timeframe": "medium_term",
+              "impact": "positive"
+            },
+            "driver_4": {
+              "description": "5G/자동차",
+              "potential_score": 90,
+              "timeframe": "short_term",
+              "impact": "positive"
+            },
+            "driver_5": {
+              "description": "메모리 고도화",
+              "potential_score": 65,
+              "timeframe": "medium_term",
+              "impact": "positive"
+            }
+          },
+          "total_score": 76.0,
+          "growth_level": "good"
+        },
+        "esg_analysis": {
+          "environmental_score": 70,
+          "social_score": 75,
+          "governance_score": 80,
+          "total_esg_score": 75.0,
+          "esg_rating": "A-",
+          "esg_level": "very_good"
+        },
+        "company_profile": {
+          "symbol": "000660",
+          "name": "SK하이닉스",
+          "company_type": "CompanyType.LARGE_CAP",
+          "business_model": "BusinessModel.MANUFACTURING",
+          "market_cap": 200000000000000,
+          "business_characteristics": {
+            "diversification": "medium",
+            "global_presence": "high",
+            "r_and_d_intensity": "very_high",
+            "capital_intensity": "very_high",
+            "cycle_sensitivity": "very_high"
+          },
+          "competitive_advantages": [
+            "DRAM 세계 2위",
+            "NAND 기술력",
+            "HBM 선도 기술",
+            "AI 서버 메모리",
+            "고객사 다양화"
+          ],
+          "risk_factors": [
+            "메모리 사이클 변동",
+            "기술 격차",
+            "수급 불균형",
+            "중국 경쟁사",
+            "투자 사이클"
+          ],
+          "growth_drivers": [
+            "AI 서버 폭증",
+            "데이터센터 확장",
+            "HBM 수요 증가",
+            "5G/자동차",
+            "메모리 고도화"
+          ],
+          "financial_structure": {
+            "debt_to_equity": 0.25,
+            "cash_ratio": 0.6,
+            "dividend_yield": 0.015,
+            "payout_ratio": 0.2
+          },
+          "management_quality": {
+            "corporate_governance": "good",
+            "transparency": "high",
+            "innovation_culture": "excellent",
+            "succession_planning": "stable"
+          },
+          "esg_profile": {
+            "environmental_score": 70,
+            "social_score": 75,
+            "governance_score": 80,
+            "esg_rating": "A-"
+          },
+          "last_updated": "2025-09-21 13:30:30.315553"
+        },
+        "analysis_date": "2025-09-21T13:30:32.236421",
+        "timestamp": "2025-09-21T13:30:32.236423"
+      },
+      "realtime_sentiment": {
+        "market_sentiment": 0.020054394981471713,
+        "sentiment_level": "neutral",
+        "news_sentiment": {
+          "sentiment_score": 0.00013598745367927366,
+          "sentiment_label": "neutral",
+          "confidence": 0.9000000000000001
+        },
+        "market_indicators": [],
+        "economic_indicators": [
+          {
+            "data_type": "MarketDataType.ECONOMIC_INDICATOR",
+            "symbol": "KOREA_IR",
+            "name": "한국 기준금리",
+            "value": 3.25,
+            "change": 0.0,
+            "change_percent": 0.0,
+            "timestamp": "2025-09-21 13:30:32.233565",
+            "source": "bok_api",
+            "confidence": 0.95
+          },
+          {
+            "data_type": "MarketDataType.ECONOMIC_INDICATOR",
+            "symbol": "KOREA_INFLATION",
+            "name": "한국 소비자물가상승률",
+            "value": 2.8,
+            "change": -0.1,
+            "change_percent": -3.45,
+            "timestamp": "2025-09-21 13:30:32.233574",
+            "source": "kostat_api",
+            "confidence": 0.9
+          },
+          {
+            "data_type": "MarketDataType.ECONOMIC_INDICATOR",
+            "symbol": "KOREA_GDP",
+            "name": "한국 GDP 성장률",
+            "value": 1.2,
+            "change": 0.1,
+            "change_percent": 9.09,
+            "timestamp": "2025-09-21 13:30:32.233577",
+            "source": "bok_api",
+            "confidence": 0.85
+          },
+          {
+            "data_type": "MarketDataType.ECONOMIC_INDICATOR",
+            "symbol": "KOREA_UNEMPLOYMENT",
+            "name": "한국 실업률",
+            "value": 2.6,
+            "change": -0.1,
+            "change_percent": -3.7,
+            "timestamp": "2025-09-21 13:30:32.233579",
+            "source": "kostat_api",
+            "confidence": 0.9
+          }
+        ],
+        "confidence": 0.9000000000000001
+      },
+      "external_data": {
+        "esg_data": {
+          "symbol": "000660",
+          "company_name": "SK하이닉스",
+          "environmental_score": 73,
+          "social_score": 81,
+          "governance_score": 85,
+          "overall_score": 79.66666666666667,
+          "esg_rating": "A",
+          "data_source": "MSCI_ESG",
+          "last_updated": "2025-09-21 13:30:32.236863",
+          "peer_ranking": 91,
+          "industry_avg": 72.66666666666667
+        },
+        "credit_data": {
+          "symbol": "000660",
+          "company_name": "SK하이닉스",
+          "rating": "AA+",
+          "outlook": "Negative",
+          "data_source": "S&P_Global",
+          "last_updated": "2025-09-21 13:30:32.237252",
+          "previous_rating": null
+        },
+        "consensus_data": {},
+        "overall_external_score": 70.0
+      },
+      "financial_analysis": {
+        "symbol": "000660",
+        "name": "SK하이닉스",
+        "financial_data": {
+          "symbol": "000660",
+          "name": "전기·전자",
+          "current_price": 353000.0,
+          "volume": 4385543.0,
+          "market_cap": 256984800000000.0,
+          "per": 12.99,
+          "pbr": 3.38,
+          "eps": 27182.0,
+          "bps": 104567.0,
+          "dividend_yield": 0.0,
+          "open_price": 351500.0,
+          "high_price": 360000.0,
+          "low_price": 348000.0,
+          "prev_close": 353000.0,
+          "change_price": 0.0,
+          "change_rate": 0.0,
+          "trading_value": 1546050743059.0,
+          "listed_shares": 728002365.0,
+          "foreign_holdings": 408260104.0,
+          "foreign_net_buy": -982503.0,
+          "program_net_buy": -357729.0,
+          "w52_high": 360000.0,
+          "w52_low": 144700.0,
+          "d250_high": 360000.0,
+          "d250_low": 144700.0,
+          "vol_turnover": 0.6,
+          "sector": "전기·전자",
+          "market_status": "55",
+          "margin_rate": "20.00",
+          "credit_available": "Y",
+          "short_selling": "Y",
+          "investment_caution": "N",
+          "market_warning": "00",
+          "short_overheating": "N",
+          "management_stock": "N"
+        },
+        "enhanced_score": 44.451660518955215,
+        "ultimate_score": 44.451660518955215,
+        "investment_recommendation": "SELL",
+        "confidence_level": "LOW",
+        "timestamp": "2025-09-21T13:30:30.751167"
+      },
+      "comprehensive_score": 55.68066420758209,
+      "investment_recommendation": "SELL",
+      "confidence_level": "MEDIUM",
+      "risk_assessment": {
+        "risk_score": 65,
+        "risk_level": "high",
+        "risk_factors": [
+          "사이클 변동",
+          "기술 격차"
+        ],
+        "risk_summary": "2개 주요 리스크 요인 식별"
+      },
+      "growth_outlook": {
+        "growth_score": 67.86666666666667,
+        "growth_level": "medium",
+        "growth_drivers": [
+          "AI/5G",
+          "자동차용 반도체",
+          "메모리 고도화",
+          "AI 서버 폭증",
+          "데이터센터 확장"
+        ],
+        "growth_summary": "8개 성장 동력 식별"
+      },
+      "timestamp": "2025-09-21T13:30:33.100245"
+    },
+    {
+      "symbol": "005930",
+      "name": "삼성전자",
+      "sector_classification": {
+        "classifications": [
+          {
+            "code": "ELECTRONICS",
+            "name": "전자",
+            "level": "SectorLevel.MEDIUM",
+            "parent_code": "TECH",
+            "keywords": [
+              "전자",
+              "디스플레이",
+              "부품",
+              "스마트폰",
+              "TV"
+            ],
+            "characteristics": {
+              "growth_potential": "medium",
+              "volatility": "medium",
+              "innovation_cycle": "medium",
+              "capital_intensity": "high"
+            },
+            "risk_factors": [
+              "가격 경쟁",
+              "기술 변화",
+              "수요 변동"
+            ],
+            "growth_drivers": [
+              "OLED 확산",
+              "자동차 전자화",
+              "IoT 확산"
+            ]
+          },
+          {
+            "code": "SEMICONDUCTOR",
+            "name": "반도체",
+            "level": "SectorLevel.MEDIUM",
+            "parent_code": "TECH",
+            "keywords": [
+              "반도체",
+              "칩",
+              "웨이퍼",
+              "메모리",
+              "시스템반도체"
+            ],
+            "characteristics": {
+              "growth_potential": "high",
+              "volatility": "very_high",
+              "innovation_cycle": "very_fast",
+              "capital_intensity": "very_high"
+            },
+            "risk_factors": [
+              "사이클 변동",
+              "기술 격차",
+              "수급 불균형"
+            ],
+            "growth_drivers": [
+              "AI/5G",
+              "자동차용 반도체",
+              "메모리 고도화"
+            ]
+          },
+          {
+            "code": "SOFTWARE",
+            "name": "소프트웨어",
+            "level": "SectorLevel.MEDIUM",
+            "parent_code": "TECH",
+            "keywords": [
+              "소프트웨어",
+              "SaaS",
+              "클라우드",
+              "플랫폼",
+              "앱"
+            ],
+            "characteristics": {
+              "growth_potential": "very_high",
+              "volatility": "high",
+              "innovation_cycle": "fast",
+              "capital_intensity": "low"
+            },
+            "risk_factors": [
+              "경쟁 심화",
+              "기술 변화",
+              "데이터 보안"
+            ],
+            "growth_drivers": [
+              "클라우드 전환",
+              "AI 통합",
+              "디지털 전환"
+            ]
+          },
+          {
+            "code": "TECH",
+            "name": "기술",
+            "level": "SectorLevel.MAJOR",
+            "parent_code": null,
+            "keywords": [
+              "기술",
+              "IT",
+              "소프트웨어",
+              "하드웨어",
+              "반도체",
+              "전자"
+            ],
+            "characteristics": {
+              "growth_potential": "high",
+              "volatility": "high",
+              "innovation_cycle": "fast",
+              "regulatory_risk": "medium"
+            },
+            "risk_factors": [
+              "기술 변화",
+              "경쟁 심화",
+              "규제 변화"
+            ],
+            "growth_drivers": [
+              "디지털 전환",
+              "AI 발전",
+              "5G 확산"
+            ]
+          }
+        ],
+        "sector_opportunities": {
+          "SEMICONDUCTOR": {
+            "sector_code": "SEMICONDUCTOR",
+            "sector_name": "반도체",
+            "total_score": 67.86666666666667,
+            "grade": "C",
+            "recommendation": "HOLD",
+            "scores": {
+              "growth": 85.0,
+              "profitability": 100,
+              "stability": 30.0,
+              "valuation": 49.33333333333334
+            },
+            "metrics": {
+              "sector_code": "SEMICONDUCTOR",
+              "avg_per": 15.2,
+              "avg_pbr": 1.8,
+              "avg_roe": 12.5,
+              "avg_roa": 8.3,
+              "avg_debt_ratio": 45.2,
+              "avg_growth_rate": 8.5,
+              "market_cap_ratio": 25.3,
+              "volatility": 0.35,
+              "correlation_kospi": 0.78,
+              "last_updated": "2025-09-21 13:30:32.235618"
+            },
+            "characteristics": {
+              "growth_potential": "high",
+              "volatility": "very_high",
+              "innovation_cycle": "very_fast",
+              "capital_intensity": "very_high"
+            },
+            "risk_factors": [
+              "사이클 변동",
+              "기술 격차",
+              "수급 불균형"
+            ],
+            "growth_drivers": [
+              "AI/5G",
+              "자동차용 반도체",
+              "메모리 고도화"
+            ],
+            "analysis_date": "2025-09-21T13:30:32.235646"
+          }
+        },
+        "hierarchy": {
+          "current": {
+            "code": "ELECTRONICS",
+            "name": "전자",
+            "level": "SectorLevel.MEDIUM",
+            "parent_code": "TECH",
+            "keywords": [
+              "전자",
+              "디스플레이",
+              "부품",
+              "스마트폰",
+              "TV"
+            ],
+            "characteristics": {
+              "growth_potential": "medium",
+              "volatility": "medium",
+              "innovation_cycle": "medium",
+              "capital_intensity": "high"
+            },
+            "risk_factors": [
+              "가격 경쟁",
+              "기술 변화",
+              "수요 변동"
+            ],
+            "growth_drivers": [
+              "OLED 확산",
+              "자동차 전자화",
+              "IoT 확산"
+            ]
+          },
+          "parents": [
+            {
+              "code": "TECH",
+              "name": "기술",
+              "level": "SectorLevel.MAJOR",
+              "parent_code": null,
+              "keywords": [
+                "기술",
+                "IT",
+                "소프트웨어",
+                "하드웨어",
+                "반도체",
+                "전자"
+              ],
+              "characteristics": {
+                "growth_potential": "high",
+                "volatility": "high",
+                "innovation_cycle": "fast",
+                "regulatory_risk": "medium"
+              },
+              "risk_factors": [
+                "기술 변화",
+                "경쟁 심화",
+                "규제 변화"
+              ],
+              "growth_drivers": [
+                "디지털 전환",
+                "AI 발전",
+                "5G 확산"
+              ]
+            }
+          ],
+          "children": [],
+          "level": "medium",
+          "depth": 1
+        },
+        "primary_sector": "전자",
+        "timestamp": "2025-09-21T13:30:32.235706"
+      },
+      "company_profile": {
+        "symbol": "005930",
+        "name": "삼성전자",
+        "company_type": "large_cap",
+        "business_model": "manufacturing",
+        "comprehensive_score": 67.8,
+        "benchmark_analysis": {
+          "industry": "SEMICONDUCTOR",
+          "benchmark_comparison": {
+            "per": {
+              "company": 16.1,
+              "benchmark": 15.2,
+              "score": 94.07894736842104
+            },
+            "pbr": {
+              "company": 1.38,
+              "benchmark": 1.8,
+              "score": 76.66666666666666
+            },
+            "roe": {
+              "company": 0,
+              "benchmark": 12.5,
+              "score": 0
+            },
+            "roa": {
+              "company": 0,
+              "benchmark": 8.3,
+              "score": 0
+            },
+            "debt_ratio": {
+              "company": 0,
+              "benchmark": 45.2,
+              "score": 0
+            }
+          },
+          "overall_score": 34.14912280701754,
+          "relative_performance": "poor"
+        },
+        "peer_analysis": {
+          "peer_symbols": [
+            "000660",
+            "373220",
+            "066570"
+          ],
+          "peer_metrics": {
+            "avg_per": 18.5,
+            "avg_pbr": 2.1,
+            "avg_roe": 14.2,
+            "avg_roa": 9.8,
+            "avg_debt_ratio": 38.5
+          },
+          "company_metrics": {
+            "per": 16.1,
+            "pbr": 1.38,
+            "roe": 0,
+            "roa": 0,
+            "debt_ratio": 0
+          },
+          "peer_rankings": {
+            "per": "below_average",
+            "pbr": "below_average",
+            "roe": "below_average",
+            "roa": "below_average",
+            "debt_ratio": "below_average"
+          },
+          "peer_performance": 0.0,
+          "relative_ranking": "bottom_tier"
+        },
+        "characteristic_analysis": {
+          "characteristics": {
+            "diversification": {
+              "score": 85,
+              "description": "높은 사업 다각화로 리스크 분산 효과",
+              "impact": "positive"
+            },
+            "r_and_d": {
+              "score": 90,
+              "description": "매우 높은 R&D 투자로 혁신 경쟁력",
+              "impact": "positive"
+            },
+            "cycle_sensitivity": {
+              "score": 60,
+              "description": "높은 사이클 민감도",
+              "impact": "neutral",
+              "recommendation": "경기 사이클 고려 필요"
+            }
+          },
+          "total_score": 78.33333333333333,
+          "characteristic_level": "good"
+        },
+        "competitive_analysis": {
+          "competitive_advantages": {
+            "advantage_1": {
+              "description": "메모리 반도체 세계 1위",
+              "strength_score": 95,
+              "sustainability": "medium",
+              "impact": "positive"
+            },
+            "advantage_2": {
+              "description": "OLED 디스플레이 기술력",
+              "strength_score": 80,
+              "sustainability": "high",
+              "impact": "positive"
+            },
+            "advantage_3": {
+              "description": "생태계 통합 역량",
+              "strength_score": 75,
+              "sustainability": "high",
+              "impact": "positive"
+            },
+            "advantage_4": {
+              "description": "글로벌 제조 네트워크",
+              "strength_score": 70,
+              "sustainability": "high",
+              "impact": "positive"
+            },
+            "advantage_5": {
+              "description": "대규모 R&D 투자",
+              "strength_score": 65,
+              "sustainability": "medium",
+              "impact": "positive"
+            }
+          },
+          "total_score": 77.0,
+          "competitive_level": "good"
+        },
+        "risk_analysis": {
+          "risk_factors": {
+            "risk_1": {
+              "description": "메모리 반도체 사이클",
+              "severity_score": 80,
+              "probability": "high",
+              "mitigation": "다각화 전략",
+              "impact": "negative"
+            },
+            "risk_2": {
+              "description": "중미 무역분쟁",
+              "severity_score": 75,
+              "probability": "medium",
+              "mitigation": "리스크 관리 강화",
+              "impact": "negative"
+            },
+            "risk_3": {
+              "description": "중국 경쟁사 부상",
+              "severity_score": 70,
+              "probability": "high",
+              "mitigation": "차별화 강화",
+              "impact": "negative"
+            },
+            "risk_4": {
+              "description": "환율 변동",
+              "severity_score": 65,
+              "probability": "medium",
+              "mitigation": "헤징 전략",
+              "impact": "negative"
+            },
+            "risk_5": {
+              "description": "기술 변화 속도",
+              "severity_score": 60,
+              "probability": "medium",
+              "mitigation": "R&D 투자",
+              "impact": "negative"
+            }
+          },
+          "total_score": 30.0,
+          "risk_level": "very_high"
+        },
+        "growth_analysis": {
+          "growth_drivers": {
+            "driver_1": {
+              "description": "AI/5G 서버 메모리",
+              "potential_score": 95,
+              "timeframe": "short_term",
+              "impact": "positive"
+            },
+            "driver_2": {
+              "description": "자동차용 반도체",
+              "potential_score": 85,
+              "timeframe": "medium_term",
+              "impact": "positive"
+            },
+            "driver_3": {
+              "description": "OLED 확산",
+              "potential_score": 65,
+              "timeframe": "long_term",
+              "impact": "positive"
+            },
+            "driver_4": {
+              "description": "시스템반도체 성장",
+              "potential_score": 60,
+              "timeframe": "long_term",
+              "impact": "positive"
+            },
+            "driver_5": {
+              "description": "디지털 전환 가속",
+              "potential_score": 75,
+              "timeframe": "long_term",
+              "impact": "positive"
+            }
+          },
+          "total_score": 76.0,
+          "growth_level": "good"
+        },
+        "esg_analysis": {
+          "environmental_score": 75,
+          "social_score": 80,
+          "governance_score": 85,
+          "total_esg_score": 80.0,
+          "esg_rating": "A",
+          "esg_level": "excellent"
+        },
+        "company_profile": {
+          "symbol": "005930",
+          "name": "삼성전자",
+          "company_type": "CompanyType.LARGE_CAP",
+          "business_model": "BusinessModel.MANUFACTURING",
+          "market_cap": 400000000000000,
+          "business_characteristics": {
+            "diversification": "high",
+            "global_presence": "very_high",
+            "r_and_d_intensity": "very_high",
+            "capital_intensity": "very_high",
+            "cycle_sensitivity": "high"
+          },
+          "competitive_advantages": [
+            "메모리 반도체 세계 1위",
+            "OLED 디스플레이 기술력",
+            "생태계 통합 역량",
+            "글로벌 제조 네트워크",
+            "대규모 R&D 투자"
+          ],
+          "risk_factors": [
+            "메모리 반도체 사이클",
+            "중미 무역분쟁",
+            "중국 경쟁사 부상",
+            "환율 변동",
+            "기술 변화 속도"
+          ],
+          "growth_drivers": [
+            "AI/5G 서버 메모리",
+            "자동차용 반도체",
+            "OLED 확산",
+            "시스템반도체 성장",
+            "디지털 전환 가속"
+          ],
+          "financial_structure": {
+            "debt_to_equity": 0.15,
+            "cash_ratio": 0.8,
+            "dividend_yield": 0.025,
+            "payout_ratio": 0.3
+          },
+          "management_quality": {
+            "corporate_governance": "good",
+            "transparency": "high",
+            "innovation_culture": "excellent",
+            "succession_planning": "stable"
+          },
+          "esg_profile": {
+            "environmental_score": 75,
+            "social_score": 80,
+            "governance_score": 85,
+            "esg_rating": "A"
+          },
+          "last_updated": "2025-09-21 13:30:30.315543"
+        },
+        "analysis_date": "2025-09-21T13:30:32.236232",
+        "timestamp": "2025-09-21T13:30:32.236235"
+      },
+      "realtime_sentiment": {
+        "market_sentiment": 0.020054394981471713,
+        "sentiment_level": "neutral",
+        "news_sentiment": {
+          "sentiment_score": 0.00013598745367927366,
+          "sentiment_label": "neutral",
+          "confidence": 0.9000000000000001
+        },
+        "market_indicators": [],
+        "economic_indicators": [
+          {
+            "data_type": "MarketDataType.ECONOMIC_INDICATOR",
+            "symbol": "KOREA_IR",
+            "name": "한국 기준금리",
+            "value": 3.25,
+            "change": 0.0,
+            "change_percent": 0.0,
+            "timestamp": "2025-09-21 13:30:32.233565",
+            "source": "bok_api",
+            "confidence": 0.95
+          },
+          {
+            "data_type": "MarketDataType.ECONOMIC_INDICATOR",
+            "symbol": "KOREA_INFLATION",
+            "name": "한국 소비자물가상승률",
+            "value": 2.8,
+            "change": -0.1,
+            "change_percent": -3.45,
+            "timestamp": "2025-09-21 13:30:32.233574",
+            "source": "kostat_api",
+            "confidence": 0.9
+          },
+          {
+            "data_type": "MarketDataType.ECONOMIC_INDICATOR",
+            "symbol": "KOREA_GDP",
+            "name": "한국 GDP 성장률",
+            "value": 1.2,
+            "change": 0.1,
+            "change_percent": 9.09,
+            "timestamp": "2025-09-21 13:30:32.233577",
+            "source": "bok_api",
+            "confidence": 0.85
+          },
+          {
+            "data_type": "MarketDataType.ECONOMIC_INDICATOR",
+            "symbol": "KOREA_UNEMPLOYMENT",
+            "name": "한국 실업률",
+            "value": 2.6,
+            "change": -0.1,
+            "change_percent": -3.7,
+            "timestamp": "2025-09-21 13:30:32.233579",
+            "source": "kostat_api",
+            "confidence": 0.9
+          }
+        ],
+        "confidence": 0.9000000000000001
+      },
+      "external_data": {
+        "esg_data": {
+          "symbol": "005930",
+          "company_name": "삼성전자",
+          "environmental_score": 77,
+          "social_score": 84,
+          "governance_score": 89,
+          "overall_score": 83.33333333333333,
+          "esg_rating": "A",
+          "data_source": "MSCI_ESG",
+          "last_updated": "2025-09-21 13:30:32.236758",
+          "peer_ranking": 75,
+          "industry_avg": 73.33333333333333
+        },
+        "credit_data": {
+          "symbol": "005930",
+          "company_name": "삼성전자",
+          "rating": "AA",
+          "outlook": "Negative",
+          "data_source": "S&P_Global",
+          "last_updated": "2025-09-21 13:30:32.237122",
+          "previous_rating": null
+        },
+        "consensus_data": {},
+        "overall_external_score": 70.0
+      },
+      "financial_analysis": {
+        "symbol": "005930",
+        "name": "삼성전자",
+        "financial_data": {
+          "symbol": "005930",
+          "name": "전기·전자",
+          "current_price": 79700.0,
+          "volume": 20898386.0,
+          "market_cap": 471795100000000.0,
+          "per": 16.1,
+          "pbr": 1.38,
+          "eps": 4950.0,
+          "bps": 57930.0,
+          "dividend_yield": 0.0,
+          "open_price": 81100.0,
+          "high_price": 81200.0,
+          "low_price": 79600.0,
+          "prev_close": 80500.0,
+          "change_price": -800.0,
+          "change_rate": -0.99,
+          "trading_value": 1672547819584.0,
+          "listed_shares": 5919637922.0,
+          "foreign_holdings": 3025406868.0,
+          "foreign_net_buy": -537726.0,
+          "program_net_buy": 938828.0,
+          "w52_high": 81200.0,
+          "w52_low": 49900.0,
+          "d250_high": 81200.0,
+          "d250_low": 49900.0,
+          "vol_turnover": 0.35,
+          "sector": "전기·전자",
+          "market_status": "55",
+          "margin_rate": "20.00",
+          "credit_available": "Y",
+          "short_selling": "Y",
+          "investment_caution": "N",
+          "market_warning": "00",
+          "short_overheating": "N",
+          "management_stock": "N"
+        },
+        "enhanced_score": 41.8393279877951,
+        "ultimate_score": 41.8393279877951,
+        "investment_recommendation": "SELL",
+        "confidence_level": "LOW",
+        "timestamp": "2025-09-21T13:30:30.509255"
+      },
+      "comprehensive_score": 55.08573119511804,
+      "investment_recommendation": "SELL",
+      "confidence_level": "MEDIUM",
+      "risk_assessment": {
+        "risk_score": 65,
+        "risk_level": "high",
+        "risk_factors": [
+          "사이클 변동",
+          "기술 격차"
+        ],
+        "risk_summary": "2개 주요 리스크 요인 식별"
+      },
+      "growth_outlook": {
+        "growth_score": 67.86666666666667,
+        "growth_level": "medium",
+        "growth_drivers": [
+          "AI/5G",
+          "자동차용 반도체",
+          "메모리 고도화",
+          "AI/5G 서버 메모리",
+          "자동차용 반도체"
+        ],
+        "growth_summary": "8개 성장 동력 식별"
+      },
+      "timestamp": "2025-09-21T13:30:33.100172"
+    }
+  ]
+}

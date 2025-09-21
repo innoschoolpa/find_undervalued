@@ -1,0 +1,111 @@
+{
+  "metadata": {
+    "analysis_version": "2.0_enhanced",
+    "analysis_date": "2025-09-21T17:28:16.449303",
+    "analysis_time_seconds": 5.230931282043457,
+    "total_analyzed": 3,
+    "undervalued_count": 3
+  },
+  "top_recommendations": [
+    {
+      "symbol": "000660",
+      "name": "SK하이닉스",
+      "enhanced_score": 74.22660098522168,
+      "enhanced_grade": "B+",
+      "market_cap": 2569848.0,
+      "current_price": 353000.0,
+      "price_position": 96.7487227124942,
+      "breakdown": {
+        "투자의견": 6.896551724137931,
+        "추정실적": 8.620689655172415,
+        "재무비율": 37.33004926108375,
+        "성장성": 13.793103448275861,
+        "규모": 6.896551724137931,
+        "가격위치": 0.689655172413793
+      },
+      "basic_result": "AnalysisResult(symbol='000660', name='SK하이닉스', status=<AnalysisStatus.SUCCESS: 'success'>, enhanced_score=74.22660098522168, enhanced_grade='B+', market_cap=2569848.0, current_price=353000.0, price_position=96.7487227124942, risk_score=None, financial_data={'roe': 37.52, 'roa': 25.32910281509485, 'debt_ratio': 48.13, 'equity_ratio': 51.87, 'revenue_growth_rate': 38.19, 'operating_income_growth_rate': 99.33, 'net_income_growth_rate': 150.2, 'net_profit_margin': 37.88, 'gross_profit_margin': 55.39, 'profitability_grade': '우수', 'current_ratio': 178.5, 'per': 12.98653520712236, 'pbr': 3.3758260254191095}, opinion_analysis={}, estimate_analysis={}, integrated_analysis={'symbol': '', 'analysis_timestamp': '2025-09-21T17:28:11.516622', 'opinion_analysis': {}, 'estimate_analysis': {}, 'integrated_score': 0, 'integrated_grade': 'F', 'investment_recommendation': '매도 검토', 'risk_assessment': '보통'}, risk_analysis={}, score_breakdown={'투자의견': 6.896551724137931, '추정실적': 8.620689655172415, '재무비율': 37.33004926108375, '성장성': 13.793103448275861, '규모': 6.896551724137931, '가격위치': 0.689655172413793}, error=None, price_data={'current_price': 353000.0, 'price_change': 0.0, 'price_change_rate': 0.0, 'volume': 4385543.0, 'eps': 27182.0, 'bps': 104567.0, 'market_cap': 256984800000000.0, 'per': 12.98653520712236, 'pbr': 3.3758260254191095, 'w52_high': 360000.0, 'w52_low': 144700.0})",
+      "enhanced_result": "AnalysisResult(symbol='000660', name='SK하이닉스', status=<AnalysisStatus.SUCCESS: 'success'>, enhanced_score=74.22660098522168, enhanced_grade='B+', market_cap=2569848.0, current_price=353000.0, price_position=96.7487227124942, risk_score=None, financial_data={'roe': 37.52, 'roa': 25.32910281509485, 'debt_ratio': 48.13, 'equity_ratio': 51.87, 'revenue_growth_rate': 38.19, 'operating_income_growth_rate': 99.33, 'net_income_growth_rate': 150.2, 'net_profit_margin': 37.88, 'gross_profit_margin': 55.39, 'profitability_grade': '우수', 'current_ratio': 178.5, 'per': 12.98653520712236, 'pbr': 3.3758260254191095}, opinion_analysis={}, estimate_analysis={}, integrated_analysis={'symbol': '', 'analysis_timestamp': '2025-09-21T17:28:11.516622', 'opinion_analysis': {}, 'estimate_analysis': {}, 'integrated_score': 0, 'integrated_grade': 'F', 'investment_recommendation': '매도 검토', 'risk_assessment': '보통'}, risk_analysis={}, score_breakdown={'투자의견': 6.896551724137931, '추정실적': 8.620689655172415, '재무비율': 37.33004926108375, '성장성': 13.793103448275861, '규모': 6.896551724137931, '가격위치': 0.689655172413793}, error=None, price_data={'current_price': 353000.0, 'price_change': 0.0, 'price_change_rate': 0.0, 'volume': 4385543.0, 'eps': 27182.0, 'bps': 104567.0, 'market_cap': 256984800000000.0, 'per': 12.98653520712236, 'pbr': 3.3758260254191095, 'w52_high': 360000.0, 'w52_low': 144700.0})"
+    },
+    {
+      "symbol": "005930",
+      "name": "삼성전자",
+      "enhanced_score": 56.600985221674875,
+      "enhanced_grade": "B",
+      "market_cap": 4765308.0,
+      "current_price": 79700.0,
+      "price_position": 95.2076677316294,
+      "breakdown": {
+        "투자의견": 6.896551724137931,
+        "추정실적": 8.620689655172415,
+        "재무비율": 26.600985221674883,
+        "성장성": 6.896551724137931,
+        "규모": 6.896551724137931,
+        "가격위치": 0.689655172413793
+      },
+      "basic_result": "AnalysisResult(symbol='005930', name='삼성전자', status=<AnalysisStatus.SUCCESS: 'success'>, enhanced_score=56.600985221674875, enhanced_grade='B', market_cap=4765308.0, current_price=79700.0, price_position=95.2076677316294, risk_score=None, financial_data={'roe': 6.64, 'roa': 5.254827477049699, 'debt_ratio': 26.36, 'equity_ratio': 73.64, 'revenue_growth_rate': 5.29, 'operating_income_growth_rate': 0.0, 'net_income_growth_rate': 0.0, 'net_profit_margin': 8.68, 'gross_profit_margin': 34.89, 'profitability_grade': '양호', 'current_ratio': 251.37, 'per': 16.1010101010101, 'pbr': 1.3757983773519766}, opinion_analysis={}, estimate_analysis={}, integrated_analysis={'symbol': '', 'analysis_timestamp': '2025-09-21T17:28:16.448385', 'opinion_analysis': {}, 'estimate_analysis': {}, 'integrated_score': 0, 'integrated_grade': 'F', 'investment_recommendation': '매도 검토', 'risk_assessment': '보통'}, risk_analysis={}, score_breakdown={'투자의견': 6.896551724137931, '추정실적': 8.620689655172415, '재무비율': 26.600985221674883, '성장성': 6.896551724137931, '규모': 6.896551724137931, '가격위치': 0.689655172413793}, error=None, price_data={'current_price': 79700.0, 'price_change': -800.0, 'price_change_rate': -0.99, 'volume': 20898386.0, 'eps': 4950.0, 'bps': 57930.0, 'market_cap': 471795100000000.0, 'per': 16.1010101010101, 'pbr': 1.3757983773519766, 'w52_high': 81200.0, 'w52_low': 49900.0})",
+      "enhanced_result": "AnalysisResult(symbol='005930', name='삼성전자', status=<AnalysisStatus.SUCCESS: 'success'>, enhanced_score=56.600985221674875, enhanced_grade='B', market_cap=4765308.0, current_price=79700.0, price_position=95.2076677316294, risk_score=None, financial_data={'roe': 6.64, 'roa': 5.254827477049699, 'debt_ratio': 26.36, 'equity_ratio': 73.64, 'revenue_growth_rate': 5.29, 'operating_income_growth_rate': 0.0, 'net_income_growth_rate': 0.0, 'net_profit_margin': 8.68, 'gross_profit_margin': 34.89, 'profitability_grade': '양호', 'current_ratio': 251.37, 'per': 16.1010101010101, 'pbr': 1.3757983773519766}, opinion_analysis={}, estimate_analysis={}, integrated_analysis={'symbol': '', 'analysis_timestamp': '2025-09-21T17:28:16.448385', 'opinion_analysis': {}, 'estimate_analysis': {}, 'integrated_score': 0, 'integrated_grade': 'F', 'investment_recommendation': '매도 검토', 'risk_assessment': '보통'}, risk_analysis={}, score_breakdown={'투자의견': 6.896551724137931, '추정실적': 8.620689655172415, '재무비율': 26.600985221674883, '성장성': 6.896551724137931, '규모': 6.896551724137931, '가격위치': 0.689655172413793}, error=None, price_data={'current_price': 79700.0, 'price_change': -800.0, 'price_change_rate': -0.99, 'volume': 20898386.0, 'eps': 4950.0, 'bps': 57930.0, 'market_cap': 471795100000000.0, 'per': 16.1010101010101, 'pbr': 1.3757983773519766, 'w52_high': 81200.0, 'w52_low': 49900.0})"
+    },
+    {
+      "symbol": "373220",
+      "name": "LG에너지솔루션",
+      "enhanced_score": 41.610837438423644,
+      "enhanced_grade": "C",
+      "market_cap": 829530.0,
+      "current_price": 349500.0,
+      "price_position": 46.91011235955056,
+      "breakdown": {
+        "투자의견": 6.896551724137931,
+        "추정실적": 8.620689655172415,
+        "재무비율": 8.852216748768473,
+        "성장성": 6.896551724137931,
+        "규모": 6.896551724137931,
+        "가격위치": 3.4482758620689653
+      },
+      "basic_result": "AnalysisResult(symbol='373220', name='LG에너지솔루션', status=<AnalysisStatus.SUCCESS: 'success'>, enhanced_score=41.610837438423644, enhanced_grade='C', market_cap=829530.0, current_price=349500.0, price_position=46.91011235955056, risk_score=None, financial_data={'roe': -4.35, 'roa': 0.0, 'debt_ratio': 122.55, 'equity_ratio': 0.0, 'revenue_growth_rate': 0.0, 'operating_income_growth_rate': 0.0, 'net_income_growth_rate': 68.43, 'net_profit_margin': 268.0, 'gross_profit_margin': 17.03, 'profitability_grade': '우려', 'current_ratio': 121.04, 'pbr': 3.873005319148936}, opinion_analysis={}, estimate_analysis={}, integrated_analysis={'symbol': '', 'analysis_timestamp': '2025-09-21T17:28:13.991790', 'opinion_analysis': {}, 'estimate_analysis': {}, 'integrated_score': 0, 'integrated_grade': 'F', 'investment_recommendation': '매도 검토', 'risk_assessment': '보통'}, risk_analysis={}, score_breakdown={'투자의견': 6.896551724137931, '추정실적': 8.620689655172415, '재무비율': 8.852216748768473, '성장성': 6.896551724137931, '규모': 6.896551724137931, '가격위치': 3.4482758620689653}, error=None, price_data={'current_price': 349500.0, 'price_change': -5000.0, 'price_change_rate': -1.41, 'volume': 185906.0, 'eps': -4354.0, 'bps': 90240.0, 'market_cap': 81783000000000.0, 'per': -80.27, 'pbr': 3.873005319148936, 'w52_high': 444000.0, 'w52_low': 266000.0})",
+      "enhanced_result": "AnalysisResult(symbol='373220', name='LG에너지솔루션', status=<AnalysisStatus.SUCCESS: 'success'>, enhanced_score=41.610837438423644, enhanced_grade='C', market_cap=829530.0, current_price=349500.0, price_position=46.91011235955056, risk_score=None, financial_data={'roe': -4.35, 'roa': 0.0, 'debt_ratio': 122.55, 'equity_ratio': 0.0, 'revenue_growth_rate': 0.0, 'operating_income_growth_rate': 0.0, 'net_income_growth_rate': 68.43, 'net_profit_margin': 268.0, 'gross_profit_margin': 17.03, 'profitability_grade': '우려', 'current_ratio': 121.04, 'pbr': 3.873005319148936}, opinion_analysis={}, estimate_analysis={}, integrated_analysis={'symbol': '', 'analysis_timestamp': '2025-09-21T17:28:13.991790', 'opinion_analysis': {}, 'estimate_analysis': {}, 'integrated_score': 0, 'integrated_grade': 'F', 'investment_recommendation': '매도 검토', 'risk_assessment': '보통'}, risk_analysis={}, score_breakdown={'투자의견': 6.896551724137931, '추정실적': 8.620689655172415, '재무비율': 8.852216748768473, '성장성': 6.896551724137931, '규모': 6.896551724137931, '가격위치': 3.4482758620689653}, error=None, price_data={'current_price': 349500.0, 'price_change': -5000.0, 'price_change_rate': -1.41, 'volume': 185906.0, 'eps': -4354.0, 'bps': 90240.0, 'market_cap': 81783000000000.0, 'per': -80.27, 'pbr': 3.873005319148936, 'w52_high': 444000.0, 'w52_low': 266000.0})"
+    }
+  ],
+  "sector_analysis": {
+    "기술업": {
+      "count": 2,
+      "total_score": 130.82758620689657,
+      "avg_score": 65.41379310344828,
+      "recommendations": {
+        "BUY": 0,
+        "HOLD": 2,
+        "SELL": 0
+      }
+    },
+    "기타": {
+      "count": 1,
+      "total_score": 41.610837438423644,
+      "avg_score": 41.610837438423644,
+      "recommendations": {
+        "BUY": 0,
+        "HOLD": 1,
+        "SELL": 0
+      }
+    }
+  },
+  "market_statistics": {
+    "total_analyzed": 3,
+    "avg_score": 57.479474548440066,
+    "max_score": 74.22660098522168,
+    "min_score": 41.610837438423644,
+    "score_distribution": {
+      "A+": 0,
+      "A": 1,
+      "B+": 0,
+      "B": 1,
+      "C": 1,
+      "D": 0,
+      "F": 0
+    },
+    "market_cap_stats": {
+      "total_market_cap": 8164686.0,
+      "avg_market_cap": 2721562.0,
+      "max_market_cap": 4765308.0,
+      "min_market_cap": 829530.0
+    }
+  }
+}

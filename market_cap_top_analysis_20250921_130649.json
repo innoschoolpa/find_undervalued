@@ -1,0 +1,133 @@
+{
+  "analysis_date": "2025-09-21T13:06:49.626111",
+  "total_analyzed": 10,
+  "top_n": 10,
+  "undervalued_count": 10,
+  "min_score_threshold": 30.0,
+  "market_cap_analysis": {
+    "total_market_cap": 1160561100000000.0,
+    "avg_weighted_score": 47.35356847039595,
+    "distribution": {
+      "100조 이상": {
+        "count": 2,
+        "total_market_cap": 728779900000000.0,
+        "avg_score": 47.56164065981766,
+        "stocks": [
+          {
+            "symbol": "005930",
+            "name": "삼성전자",
+            "score": 49.5360916065217,
+            "market_cap": 471795100000000.0
+          },
+          {
+            "symbol": "000660",
+            "name": "SK하이닉스",
+            "score": 45.587189713113624,
+            "market_cap": 256984800000000.0
+          }
+        ]
+      },
+      "50조~100조": {
+        "count": 4,
+        "total_market_cap": 259748600000000.0,
+        "avg_score": 43.61709745664773,
+        "stocks": [
+          {
+            "symbol": "373220",
+            "name": "LG에너지솔루션",
+            "score": 44.73533614762573,
+            "market_cap": 81783000000000.0
+          },
+          {
+            "symbol": "207940",
+            "name": "삼성바이오로직스",
+            "score": 32.288804224093255,
+            "market_cap": 72882200000000.0
+          },
+          {
+            "symbol": "012450",
+            "name": "한화에어로스페이스",
+            "score": 39.452535374507534,
+            "market_cap": 52697800000000.0
+          },
+          {
+            "symbol": "005935",
+            "name": "삼성전자우",
+            "score": 57.9917140803644,
+            "market_cap": 52385600000000.0
+          }
+        ]
+      },
+      "10조~50조": {
+        "count": 4,
+        "total_market_cap": 172032600000000.0,
+        "avg_score": 50.932410777252336,
+        "stocks": [
+          {
+            "symbol": "105560",
+            "name": "KB금융",
+            "score": 54.13659610806476,
+            "market_cap": 44440300000000.0
+          },
+          {
+            "symbol": "005380",
+            "name": "현대차",
+            "score": 59.82049782931415,
+            "market_cap": 43818200000000.0
+          },
+          {
+            "symbol": "329180",
+            "name": "HD현대중공업",
+            "score": 32.737339221645996,
+            "market_cap": 43765100000000.0
+          },
+          {
+            "symbol": "000270",
+            "name": "기아",
+            "score": 57.035209949984434,
+            "market_cap": 40009000000000.0
+          }
+        ]
+      }
+    }
+  },
+  "results": [
+    {
+      "symbol": "005930",
+      "name": "삼성전자",
+      "sector": "기타",
+      "analysis_date": "2025-09-21T13:06:47.456789",
+      "ultimate_score": 49.5360916065217,
+      "ultimate_grade": "C",
+      "investment_recommendation": "HOLD",
+      "confidence_level": "LOW",
+      "enhanced_score": 49.5360916065217,
+      "enhanced_grade": "C",
+      "score_breakdown": {
+        "투자의견": 13.308948700419435,
+        "추정실적": 20.870000048959415,
+        "재무비율": 12.857142857142856,
+        "성장성": 0.0,
+        "규모": 2.5,
+        "가격위치_페널티": 0.0
+      },
+      "financial_score": 12.857142857142856,
+      "price_position_penalty": 0.0,
+      "news_analysis": {
+        "sentiment_trend": "neutral",
+        "avg_sentiment": 0.5,
+        "news_count": 0,
+        "positive_count": 0,
+        "negative_count": 0,
+        "neutral_count": 0
+      },
+      "qualitative_risk_analysis": {
+        "comprehensive_risk_score": 40.9375,
+        "comprehensive_risk_level": "보통",
+        "risk_adjustment_factor": 1.0,
+        "individual_risks": {
+          "정책_리스크": {
+            "risk_type": {
+              "_value_": "정책_리스크",
+              "_name_": "POLICY",
+              "__objclass__": 

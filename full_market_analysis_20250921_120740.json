@@ -1,0 +1,57 @@
+{
+  "analysis_info": {
+    "total_analyzed": 20,
+    "undervalued_found": 0,
+    "analysis_time_seconds": 42.165662,
+    "analysis_date": "2025-09-21T12:06:58.687015",
+    "min_score_threshold": 30.0,
+    "parallel_workers": 3
+  },
+  "all_results": [
+    {
+      "symbol": "005930",
+      "name": "삼성전자",
+      "sector": "반도체",
+      "analysis_date": "2025-09-21T12:07:01.649910",
+      "enhanced_score": 75.0,
+      "enhanced_grade": "B+",
+      "financial_data": {
+        "symbol": "005930",
+        "current_price": 75300,
+        "per": 21.0,
+        "pbr": 0.44,
+        "roe": 5.79,
+        "debt_ratio": 10.18,
+        "revenue_growth_rate": 8.3,
+        "operating_income_growth_rate": 24.98,
+        "net_income_growth_rate": 29.43,
+        "net_profit_margin": 22.84
+      },
+      "news_analysis": {
+        "total_news": 155,
+        "avg_sentiment": 0.7550537634408602,
+        "sentiment_trend": "positive",
+        "recent_sentiment": 0.7550537634408602,
+        "news_by_source": {
+          "기타": 146,
+          "조선일보": 6,
+          "동아일보": 2,
+          "중앙일보": 1
+        },
+        "sentiment_distribution": {
+          "positive": 125,
+          "neutral": 22,
+          "negative": 8
+        },
+        "recent_news_count": 155
+      },
+      "qualitative_risk_analysis": {
+        "comprehensive_risk_score": 42.75,
+        "comprehensive_risk_level": "보통",
+        "risk_adjustment_factor": 1.0,
+        "individual_risks": {
+          "정책_리스크": {
+            "risk_type": {
+              "_value_": "정책_리스크",
+              "_name_": "POLICY",
+              "__objclass__": 

@@ -1,0 +1,1036 @@
+{
+  "analysis_info": {
+    "total_analyzed": 5,
+    "undervalued_found": 5,
+    "analysis_time_seconds": 2.079244,
+    "analysis_date": "2025-09-21T12:58:00.305928",
+    "min_comprehensive_score": 30.0,
+    "analysis_type": "comprehensive_scoring"
+  },
+  "all_results": [
+    {
+      "symbol": "F70100009",
+      "name": "한투삼성그룹성장테마1호(A)",
+      "sector": 0,
+      "analysis_date": "2025-09-21T12:58:01.424871",
+      "quantitative_metrics": {
+        "per": 0.0,
+        "pbr": 0.0,
+        "roe": 0,
+        "roa": 0,
+        "debt_ratio": 0,
+        "current_ratio": 0,
+        "net_profit_margin": 0,
+        "revenue_growth": 0,
+        "profit_growth": 0,
+        "market_cap": 17900000000.0,
+        "dividend_yield": 0.0
+      },
+      "qualitative_metrics": {
+        "sector_outlook": 60.0,
+        "market_cycle_position": 65.0,
+        "competitive_advantage": 60.0,
+        "management_quality": 60.0,
+        "esg_score": 65.0,
+        "news_sentiment": 50.0,
+        "analyst_consensus": 30.0,
+        "risk_level": "MEDIUM"
+      },
+      "comprehensive_score": {
+        "quantitative_score": 24.0,
+        "qualitative_score": 57.5,
+        "comprehensive_score": 34.05,
+        "grade": "D+",
+        "recommendation": "SELL",
+        "confidence": 0.2
+      },
+      "basic_analysis": {
+        "ultimate_score": 44.15951070185709,
+        "enhanced_score": 44.15951070185709,
+        "financial_score": 18.21428571428571
+      }
+    },
+    {
+      "symbol": "F70100010",
+      "name": "한투삼성그룹성장테마1호(A-e)",
+      "sector": 0,
+      "analysis_date": "2025-09-21T12:58:01.663493",
+      "quantitative_metrics": {
+        "per": 0.0,
+        "pbr": 0.0,
+        "roe": 0,
+        "roa": 0,
+        "debt_ratio": 0,
+        "current_ratio": 0,
+        "net_profit_margin": 0,
+        "revenue_growth": 0,
+        "profit_growth": 0,
+        "market_cap": 11200000000.0,
+        "dividend_yield": 0.0
+      },
+      "qualitative_metrics": {
+        "sector_outlook": 60.0,
+        "market_cycle_position": 65.0,
+        "competitive_advantage": 60.0,
+        "management_quality": 60.0,
+        "esg_score": 65.0,
+        "news_sentiment": 50.0,
+        "analyst_consensus": 60.0,
+        "risk_level": "MEDIUM"
+      },
+      "comprehensive_score": {
+        "quantitative_score": 24.0,
+        "qualitative_score": 60.5,
+        "comprehensive_score": 34.949999999999996,
+        "grade": "D+",
+        "recommendation": "SELL",
+        "confidence": 0.2
+      },
+      "basic_analysis": {
+        "ultimate_score": 54.27260473613879,
+        "enhanced_score": 54.27260473613879,
+        "financial_score": 18.21428571428571
+      }
+    },
+    {
+      "symbol": "F70100011",
+      "name": "한투삼성그룹성장테마2호(A)",
+      "sector": 0,
+      "analysis_date": "2025-09-21T12:58:01.901769",
+      "quantitative_metrics": {
+        "per": 0.0,
+        "pbr": 0.0,
+        "roe": 0,
+        "roa": 0,
+        "debt_ratio": 0,
+        "current_ratio": 0,
+        "net_profit_margin": 0,
+        "revenue_growth": 0,
+        "profit_growth": 0,
+        "market_cap": 8600000000.0,
+        "dividend_yield": 0.0
+      },
+      "qualitative_metrics": {
+        "sector_outlook": 60.0,
+        "market_cycle_position": 65.0,
+        "competitive_advantage": 60.0,
+        "management_quality": 60.0,
+        "esg_score": 65.0,
+        "news_sentiment": 50.0,
+        "analyst_consensus": 60.0,
+        "risk_level": "MEDIUM"
+      },
+      "comprehensive_score": {
+        "quantitative_score": 24.0,
+        "qualitative_score": 60.5,
+        "comprehensive_score": 34.949999999999996,
+        "grade": "D+",
+        "recommendation": "SELL",
+        "confidence": 0.2
+      },
+      "basic_analysis": {
+        "ultimate_score": 50.048639584792014,
+        "enhanced_score": 50.048639584792014,
+        "financial_score": 18.21428571428571
+      }
+    },
+    {
+      "symbol": "F70100012",
+      "name": "한투삼성그룹성장테마2호(A-e)",
+      "sector": 0,
+      "analysis_date": "2025-09-21T12:58:02.140517",
+      "quantitative_metrics": {
+        "per": 0.0,
+        "pbr": 0.0,
+        "roe": 0,
+        "roa": 0,
+        "debt_ratio": 0,
+        "current_ratio": 0,
+        "net_profit_margin": 0,
+        "revenue_growth": 0,
+        "profit_growth": 0,
+        "market_cap": 20300000000.0,
+        "dividend_yield": 0.0
+      },
+      "qualitative_metrics": {
+        "sector_outlook": 60.0,
+        "market_cycle_position": 65.0,
+        "competitive_advantage": 60.0,
+        "management_quality": 60.0,
+        "esg_score": 65.0,
+        "news_sentiment": 50.0,
+        "analyst_consensus": 60.0,
+        "risk_level": "MEDIUM"
+      },
+      "comprehensive_score": {
+        "quantitative_score": 24.0,
+        "qualitative_score": 60.5,
+        "comprehensive_score": 34.949999999999996,
+        "grade": "D+",
+        "recommendation": "SELL",
+        "confidence": 0.2
+      },
+      "basic_analysis": {
+        "ultimate_score": 58.630357916781676,
+        "enhanced_score": 58.630357916781676,
+        "financial_score": 18.21428571428571
+      }
+    },
+    {
+      "symbol": "F70100013",
+      "name": "한투삼성그룹&글로벌성장1(A)",
+      "sector": 0,
+      "analysis_date": "2025-09-21T12:58:02.383546",
+      "quantitative_metrics": {
+        "per": 0.0,
+        "pbr": 0.0,
+        "roe": 0,
+        "roa": 0,
+        "debt_ratio": 0,
+        "current_ratio": 0,
+        "net_profit_margin": 0,
+        "revenue_growth": 0,
+        "profit_growth": 0,
+        "market_cap": 300000000.0,
+        "dividend_yield": 0.0
+      },
+      "qualitative_metrics": {
+        "sector_outlook": 60.0,
+        "market_cycle_position": 65.0,
+        "competitive_advantage": 60.0,
+        "management_quality": 60.0,
+        "esg_score": 65.0,
+        "news_sentiment": 50.0,
+        "analyst_consensus": 30.0,
+        "risk_level": "MEDIUM"
+      },
+      "comprehensive_score": {
+        "quantitative_score": 24.0,
+        "qualitative_score": 57.5,
+        "comprehensive_score": 34.05,
+        "grade": "D+",
+        "recommendation": "SELL",
+        "confidence": 0.2
+      },
+      "basic_analysis": {
+        "ultimate_score": 43.351641579190996,
+        "enhanced_score": 43.351641579190996,
+        "financial_score": 18.21428571428571
+      }
+    }
+  ],
+  "undervalued_stocks": [
+    {
+      "symbol": "F70100009",
+      "name": "한투삼성그룹성장테마1호(A)",
+      "sector": 0,
+      "analysis_date": "2025-09-21T12:58:01.424871",
+      "quantitative_metrics": {
+        "per": 0.0,
+        "pbr": 0.0,
+        "roe": 0,
+        "roa": 0,
+        "debt_ratio": 0,
+        "current_ratio": 0,
+        "net_profit_margin": 0,
+        "revenue_growth": 0,
+        "profit_growth": 0,
+        "market_cap": 17900000000.0,
+        "dividend_yield": 0.0
+      },
+      "qualitative_metrics": {
+        "sector_outlook": 60.0,
+        "market_cycle_position": 65.0,
+        "competitive_advantage": 60.0,
+        "management_quality": 60.0,
+        "esg_score": 65.0,
+        "news_sentiment": 50.0,
+        "analyst_consensus": 30.0,
+        "risk_level": "MEDIUM"
+      },
+      "comprehensive_score": {
+        "quantitative_score": 24.0,
+        "qualitative_score": 57.5,
+        "comprehensive_score": 34.05,
+        "grade": "D+",
+        "recommendation": "SELL",
+        "confidence": 0.2
+      },
+      "basic_analysis": {
+        "ultimate_score": 44.15951070185709,
+        "enhanced_score": 44.15951070185709,
+        "financial_score": 18.21428571428571
+      }
+    },
+    {
+      "symbol": "F70100010",
+      "name": "한투삼성그룹성장테마1호(A-e)",
+      "sector": 0,
+      "analysis_date": "2025-09-21T12:58:01.663493",
+      "quantitative_metrics": {
+        "per": 0.0,
+        "pbr": 0.0,
+        "roe": 0,
+        "roa": 0,
+        "debt_ratio": 0,
+        "current_ratio": 0,
+        "net_profit_margin": 0,
+        "revenue_growth": 0,
+        "profit_growth": 0,
+        "market_cap": 11200000000.0,
+        "dividend_yield": 0.0
+      },
+      "qualitative_metrics": {
+        "sector_outlook": 60.0,
+        "market_cycle_position": 65.0,
+        "competitive_advantage": 60.0,
+        "management_quality": 60.0,
+        "esg_score": 65.0,
+        "news_sentiment": 50.0,
+        "analyst_consensus": 60.0,
+        "risk_level": "MEDIUM"
+      },
+      "comprehensive_score": {
+        "quantitative_score": 24.0,
+        "qualitative_score": 60.5,
+        "comprehensive_score": 34.949999999999996,
+        "grade": "D+",
+        "recommendation": "SELL",
+        "confidence": 0.2
+      },
+      "basic_analysis": {
+        "ultimate_score": 54.27260473613879,
+        "enhanced_score": 54.27260473613879,
+        "financial_score": 18.21428571428571
+      }
+    },
+    {
+      "symbol": "F70100011",
+      "name": "한투삼성그룹성장테마2호(A)",
+      "sector": 0,
+      "analysis_date": "2025-09-21T12:58:01.901769",
+      "quantitative_metrics": {
+        "per": 0.0,
+        "pbr": 0.0,
+        "roe": 0,
+        "roa": 0,
+        "debt_ratio": 0,
+        "current_ratio": 0,
+        "net_profit_margin": 0,
+        "revenue_growth": 0,
+        "profit_growth": 0,
+        "market_cap": 8600000000.0,
+        "dividend_yield": 0.0
+      },
+      "qualitative_metrics": {
+        "sector_outlook": 60.0,
+        "market_cycle_position": 65.0,
+        "competitive_advantage": 60.0,
+        "management_quality": 60.0,
+        "esg_score": 65.0,
+        "news_sentiment": 50.0,
+        "analyst_consensus": 60.0,
+        "risk_level": "MEDIUM"
+      },
+      "comprehensive_score": {
+        "quantitative_score": 24.0,
+        "qualitative_score": 60.5,
+        "comprehensive_score": 34.949999999999996,
+        "grade": "D+",
+        "recommendation": "SELL",
+        "confidence": 0.2
+      },
+      "basic_analysis": {
+        "ultimate_score": 50.048639584792014,
+        "enhanced_score": 50.048639584792014,
+        "financial_score": 18.21428571428571
+      }
+    },
+    {
+      "symbol": "F70100012",
+      "name": "한투삼성그룹성장테마2호(A-e)",
+      "sector": 0,
+      "analysis_date": "2025-09-21T12:58:02.140517",
+      "quantitative_metrics": {
+        "per": 0.0,
+        "pbr": 0.0,
+        "roe": 0,
+        "roa": 0,
+        "debt_ratio": 0,
+        "current_ratio": 0,
+        "net_profit_margin": 0,
+        "revenue_growth": 0,
+        "profit_growth": 0,
+        "market_cap": 20300000000.0,
+        "dividend_yield": 0.0
+      },
+      "qualitative_metrics": {
+        "sector_outlook": 60.0,
+        "market_cycle_position": 65.0,
+        "competitive_advantage": 60.0,
+        "management_quality": 60.0,
+        "esg_score": 65.0,
+        "news_sentiment": 50.0,
+        "analyst_consensus": 60.0,
+        "risk_level": "MEDIUM"
+      },
+      "comprehensive_score": {
+        "quantitative_score": 24.0,
+        "qualitative_score": 60.5,
+        "comprehensive_score": 34.949999999999996,
+        "grade": "D+",
+        "recommendation": "SELL",
+        "confidence": 0.2
+      },
+      "basic_analysis": {
+        "ultimate_score": 58.630357916781676,
+        "enhanced_score": 58.630357916781676,
+        "financial_score": 18.21428571428571
+      }
+    },
+    {
+      "symbol": "F70100013",
+      "name": "한투삼성그룹&글로벌성장1(A)",
+      "sector": 0,
+      "analysis_date": "2025-09-21T12:58:02.383546",
+      "quantitative_metrics": {
+        "per": 0.0,
+        "pbr": 0.0,
+        "roe": 0,
+        "roa": 0,
+        "debt_ratio": 0,
+        "current_ratio": 0,
+        "net_profit_margin": 0,
+        "revenue_growth": 0,
+        "profit_growth": 0,
+        "market_cap": 300000000.0,
+        "dividend_yield": 0.0
+      },
+      "qualitative_metrics": {
+        "sector_outlook": 60.0,
+        "market_cycle_position": 65.0,
+        "competitive_advantage": 60.0,
+        "management_quality": 60.0,
+        "esg_score": 65.0,
+        "news_sentiment": 50.0,
+        "analyst_consensus": 30.0,
+        "risk_level": "MEDIUM"
+      },
+      "comprehensive_score": {
+        "quantitative_score": 24.0,
+        "qualitative_score": 57.5,
+        "comprehensive_score": 34.05,
+        "grade": "D+",
+        "recommendation": "SELL",
+        "confidence": 0.2
+      },
+      "basic_analysis": {
+        "ultimate_score": 43.351641579190996,
+        "enhanced_score": 43.351641579190996,
+        "financial_score": 18.21428571428571
+      }
+    }
+  ],
+  "comprehensive_statistics": {
+    "comprehensive_score_statistics": {
+      "mean": 34.589999999999996,
+      "median": 34.949999999999996,
+      "std": 0.44090815370097136,
+      "min": 34.05,
+      "max": 34.949999999999996,
+      "q25": 34.05,
+      "q75": 34.949999999999996
+    },
+    "quantitative_score_statistics": {
+      "mean": 24.0,
+      "median": 24.0,
+      "std": 0.0
+    },
+    "qualitative_score_statistics": {
+      "mean": 59.3,
+      "median": 60.5,
+      "std": 1.4696938456699067
+    },
+    "grade_distribution": {
+      "D+": 5
+    },
+    "recommendation_distribution": {
+      "SELL": 5
+    },
+    "total_stocks": 5
+  },
+  "sector_analysis": {
+    "0": {
+      "stocks": [
+        {
+          "symbol": "F70100009",
+          "name": "한투삼성그룹성장테마1호(A)",
+          "sector": 0,
+          "analysis_date": "2025-09-21T12:58:01.424871",
+          "quantitative_metrics": {
+            "per": 0.0,
+            "pbr": 0.0,
+            "roe": 0,
+            "roa": 0,
+            "debt_ratio": 0,
+            "current_ratio": 0,
+            "net_profit_margin": 0,
+            "revenue_growth": 0,
+            "profit_growth": 0,
+            "market_cap": 17900000000.0,
+            "dividend_yield": 0.0
+          },
+          "qualitative_metrics": {
+            "sector_outlook": 60.0,
+            "market_cycle_position": 65.0,
+            "competitive_advantage": 60.0,
+            "management_quality": 60.0,
+            "esg_score": 65.0,
+            "news_sentiment": 50.0,
+            "analyst_consensus": 30.0,
+            "risk_level": "MEDIUM"
+          },
+          "comprehensive_score": {
+            "quantitative_score": 24.0,
+            "qualitative_score": 57.5,
+            "comprehensive_score": 34.05,
+            "grade": "D+",
+            "recommendation": "SELL",
+            "confidence": 0.2
+          },
+          "basic_analysis": {
+            "ultimate_score": 44.15951070185709,
+            "enhanced_score": 44.15951070185709,
+            "financial_score": 18.21428571428571
+          }
+        },
+        {
+          "symbol": "F70100010",
+          "name": "한투삼성그룹성장테마1호(A-e)",
+          "sector": 0,
+          "analysis_date": "2025-09-21T12:58:01.663493",
+          "quantitative_metrics": {
+            "per": 0.0,
+            "pbr": 0.0,
+            "roe": 0,
+            "roa": 0,
+            "debt_ratio": 0,
+            "current_ratio": 0,
+            "net_profit_margin": 0,
+            "revenue_growth": 0,
+            "profit_growth": 0,
+            "market_cap": 11200000000.0,
+            "dividend_yield": 0.0
+          },
+          "qualitative_metrics": {
+            "sector_outlook": 60.0,
+            "market_cycle_position": 65.0,
+            "competitive_advantage": 60.0,
+            "management_quality": 60.0,
+            "esg_score": 65.0,
+            "news_sentiment": 50.0,
+            "analyst_consensus": 60.0,
+            "risk_level": "MEDIUM"
+          },
+          "comprehensive_score": {
+            "quantitative_score": 24.0,
+            "qualitative_score": 60.5,
+            "comprehensive_score": 34.949999999999996,
+            "grade": "D+",
+            "recommendation": "SELL",
+            "confidence": 0.2
+          },
+          "basic_analysis": {
+            "ultimate_score": 54.27260473613879,
+            "enhanced_score": 54.27260473613879,
+            "financial_score": 18.21428571428571
+          }
+        },
+        {
+          "symbol": "F70100011",
+          "name": "한투삼성그룹성장테마2호(A)",
+          "sector": 0,
+          "analysis_date": "2025-09-21T12:58:01.901769",
+          "quantitative_metrics": {
+            "per": 0.0,
+            "pbr": 0.0,
+            "roe": 0,
+            "roa": 0,
+            "debt_ratio": 0,
+            "current_ratio": 0,
+            "net_profit_margin": 0,
+            "revenue_growth": 0,
+            "profit_growth": 0,
+            "market_cap": 8600000000.0,
+            "dividend_yield": 0.0
+          },
+          "qualitative_metrics": {
+            "sector_outlook": 60.0,
+            "market_cycle_position": 65.0,
+            "competitive_advantage": 60.0,
+            "management_quality": 60.0,
+            "esg_score": 65.0,
+            "news_sentiment": 50.0,
+            "analyst_consensus": 60.0,
+            "risk_level": "MEDIUM"
+          },
+          "comprehensive_score": {
+            "quantitative_score": 24.0,
+            "qualitative_score": 60.5,
+            "comprehensive_score": 34.949999999999996,
+            "grade": "D+",
+            "recommendation": "SELL",
+            "confidence": 0.2
+          },
+          "basic_analysis": {
+            "ultimate_score": 50.048639584792014,
+            "enhanced_score": 50.048639584792014,
+            "financial_score": 18.21428571428571
+          }
+        },
+        {
+          "symbol": "F70100012",
+          "name": "한투삼성그룹성장테마2호(A-e)",
+          "sector": 0,
+          "analysis_date": "2025-09-21T12:58:02.140517",
+          "quantitative_metrics": {
+            "per": 0.0,
+            "pbr": 0.0,
+            "roe": 0,
+            "roa": 0,
+            "debt_ratio": 0,
+            "current_ratio": 0,
+            "net_profit_margin": 0,
+            "revenue_growth": 0,
+            "profit_growth": 0,
+            "market_cap": 20300000000.0,
+            "dividend_yield": 0.0
+          },
+          "qualitative_metrics": {
+            "sector_outlook": 60.0,
+            "market_cycle_position": 65.0,
+            "competitive_advantage": 60.0,
+            "management_quality": 60.0,
+            "esg_score": 65.0,
+            "news_sentiment": 50.0,
+            "analyst_consensus": 60.0,
+            "risk_level": "MEDIUM"
+          },
+          "comprehensive_score": {
+            "quantitative_score": 24.0,
+            "qualitative_score": 60.5,
+            "comprehensive_score": 34.949999999999996,
+            "grade": "D+",
+            "recommendation": "SELL",
+            "confidence": 0.2
+          },
+          "basic_analysis": {
+            "ultimate_score": 58.630357916781676,
+            "enhanced_score": 58.630357916781676,
+            "financial_score": 18.21428571428571
+          }
+        },
+        {
+          "symbol": "F70100013",
+          "name": "한투삼성그룹&글로벌성장1(A)",
+          "sector": 0,
+          "analysis_date": "2025-09-21T12:58:02.383546",
+          "quantitative_metrics": {
+            "per": 0.0,
+            "pbr": 0.0,
+            "roe": 0,
+            "roa": 0,
+            "debt_ratio": 0,
+            "current_ratio": 0,
+            "net_profit_margin": 0,
+            "revenue_growth": 0,
+            "profit_growth": 0,
+            "market_cap": 300000000.0,
+            "dividend_yield": 0.0
+          },
+          "qualitative_metrics": {
+            "sector_outlook": 60.0,
+            "market_cycle_position": 65.0,
+            "competitive_advantage": 60.0,
+            "management_quality": 60.0,
+            "esg_score": 65.0,
+            "news_sentiment": 50.0,
+            "analyst_consensus": 30.0,
+            "risk_level": "MEDIUM"
+          },
+          "comprehensive_score": {
+            "quantitative_score": 24.0,
+            "qualitative_score": 57.5,
+            "comprehensive_score": 34.05,
+            "grade": "D+",
+            "recommendation": "SELL",
+            "confidence": 0.2
+          },
+          "basic_analysis": {
+            "ultimate_score": 43.351641579190996,
+            "enhanced_score": 43.351641579190996,
+            "financial_score": 18.21428571428571
+          }
+        }
+      ],
+      "avg_comprehensive_score": 34.589999999999996,
+      "avg_quantitative_score": 24.0,
+      "avg_qualitative_score": 59.3,
+      "recommendations": {
+        "SELL": 5
+      },
+      "top_stocks": [
+        {
+          "symbol": "F70100010",
+          "name": "한투삼성그룹성장테마1호(A-e)",
+          "sector": 0,
+          "analysis_date": "2025-09-21T12:58:01.663493",
+          "quantitative_metrics": {
+            "per": 0.0,
+            "pbr": 0.0,
+            "roe": 0,
+            "roa": 0,
+            "debt_ratio": 0,
+            "current_ratio": 0,
+            "net_profit_margin": 0,
+            "revenue_growth": 0,
+            "profit_growth": 0,
+            "market_cap": 11200000000.0,
+            "dividend_yield": 0.0
+          },
+          "qualitative_metrics": {
+            "sector_outlook": 60.0,
+            "market_cycle_position": 65.0,
+            "competitive_advantage": 60.0,
+            "management_quality": 60.0,
+            "esg_score": 65.0,
+            "news_sentiment": 50.0,
+            "analyst_consensus": 60.0,
+            "risk_level": "MEDIUM"
+          },
+          "comprehensive_score": {
+            "quantitative_score": 24.0,
+            "qualitative_score": 60.5,
+            "comprehensive_score": 34.949999999999996,
+            "grade": "D+",
+            "recommendation": "SELL",
+            "confidence": 0.2
+          },
+          "basic_analysis": {
+            "ultimate_score": 54.27260473613879,
+            "enhanced_score": 54.27260473613879,
+            "financial_score": 18.21428571428571
+          }
+        },
+        {
+          "symbol": "F70100011",
+          "name": "한투삼성그룹성장테마2호(A)",
+          "sector": 0,
+          "analysis_date": "2025-09-21T12:58:01.901769",
+          "quantitative_metrics": {
+            "per": 0.0,
+            "pbr": 0.0,
+            "roe": 0,
+            "roa": 0,
+            "debt_ratio": 0,
+            "current_ratio": 0,
+            "net_profit_margin": 0,
+            "revenue_growth": 0,
+            "profit_growth": 0,
+            "market_cap": 8600000000.0,
+            "dividend_yield": 0.0
+          },
+          "qualitative_metrics": {
+            "sector_outlook": 60.0,
+            "market_cycle_position": 65.0,
+            "competitive_advantage": 60.0,
+            "management_quality": 60.0,
+            "esg_score": 65.0,
+            "news_sentiment": 50.0,
+            "analyst_consensus": 60.0,
+            "risk_level": "MEDIUM"
+          },
+          "comprehensive_score": {
+            "quantitative_score": 24.0,
+            "qualitative_score": 60.5,
+            "comprehensive_score": 34.949999999999996,
+            "grade": "D+",
+            "recommendation": "SELL",
+            "confidence": 0.2
+          },
+          "basic_analysis": {
+            "ultimate_score": 50.048639584792014,
+            "enhanced_score": 50.048639584792014,
+            "financial_score": 18.21428571428571
+          }
+        },
+        {
+          "symbol": "F70100012",
+          "name": "한투삼성그룹성장테마2호(A-e)",
+          "sector": 0,
+          "analysis_date": "2025-09-21T12:58:02.140517",
+          "quantitative_metrics": {
+            "per": 0.0,
+            "pbr": 0.0,
+            "roe": 0,
+            "roa": 0,
+            "debt_ratio": 0,
+            "current_ratio": 0,
+            "net_profit_margin": 0,
+            "revenue_growth": 0,
+            "profit_growth": 0,
+            "market_cap": 20300000000.0,
+            "dividend_yield": 0.0
+          },
+          "qualitative_metrics": {
+            "sector_outlook": 60.0,
+            "market_cycle_position": 65.0,
+            "competitive_advantage": 60.0,
+            "management_quality": 60.0,
+            "esg_score": 65.0,
+            "news_sentiment": 50.0,
+            "analyst_consensus": 60.0,
+            "risk_level": "MEDIUM"
+          },
+          "comprehensive_score": {
+            "quantitative_score": 24.0,
+            "qualitative_score": 60.5,
+            "comprehensive_score": 34.949999999999996,
+            "grade": "D+",
+            "recommendation": "SELL",
+            "confidence": 0.2
+          },
+          "basic_analysis": {
+            "ultimate_score": 58.630357916781676,
+            "enhanced_score": 58.630357916781676,
+            "financial_score": 18.21428571428571
+          }
+        }
+      ],
+      "count": 5
+    }
+  },
+  "recommendations": {
+    "summary": "5개의 종합점수 기준 저평가 가치주를 발굴했습니다.",
+    "top_recommendations": [
+      {
+        "symbol": "F70100010",
+        "name": "한투삼성그룹성장테마1호(A-e)",
+        "sector": 0,
+        "analysis_date": "2025-09-21T12:58:01.663493",
+        "quantitative_metrics": {
+          "per": 0.0,
+          "pbr": 0.0,
+          "roe": 0,
+          "roa": 0,
+          "debt_ratio": 0,
+          "current_ratio": 0,
+          "net_profit_margin": 0,
+          "revenue_growth": 0,
+          "profit_growth": 0,
+          "market_cap": 11200000000.0,
+          "dividend_yield": 0.0
+        },
+        "qualitative_metrics": {
+          "sector_outlook": 60.0,
+          "market_cycle_position": 65.0,
+          "competitive_advantage": 60.0,
+          "management_quality": 60.0,
+          "esg_score": 65.0,
+          "news_sentiment": 50.0,
+          "analyst_consensus": 60.0,
+          "risk_level": "MEDIUM"
+        },
+        "comprehensive_score": {
+          "quantitative_score": 24.0,
+          "qualitative_score": 60.5,
+          "comprehensive_score": 34.949999999999996,
+          "grade": "D+",
+          "recommendation": "SELL",
+          "confidence": 0.2
+        },
+        "basic_analysis": {
+          "ultimate_score": 54.27260473613879,
+          "enhanced_score": 54.27260473613879,
+          "financial_score": 18.21428571428571
+        }
+      },
+      {
+        "symbol": "F70100011",
+        "name": "한투삼성그룹성장테마2호(A)",
+        "sector": 0,
+        "analysis_date": "2025-09-21T12:58:01.901769",
+        "quantitative_metrics": {
+          "per": 0.0,
+          "pbr": 0.0,
+          "roe": 0,
+          "roa": 0,
+          "debt_ratio": 0,
+          "current_ratio": 0,
+          "net_profit_margin": 0,
+          "revenue_growth": 0,
+          "profit_growth": 0,
+          "market_cap": 8600000000.0,
+          "dividend_yield": 0.0
+        },
+        "qualitative_metrics": {
+          "sector_outlook": 60.0,
+          "market_cycle_position": 65.0,
+          "competitive_advantage": 60.0,
+          "management_quality": 60.0,
+          "esg_score": 65.0,
+          "news_sentiment": 50.0,
+          "analyst_consensus": 60.0,
+          "risk_level": "MEDIUM"
+        },
+        "comprehensive_score": {
+          "quantitative_score": 24.0,
+          "qualitative_score": 60.5,
+          "comprehensive_score": 34.949999999999996,
+          "grade": "D+",
+          "recommendation": "SELL",
+          "confidence": 0.2
+        },
+        "basic_analysis": {
+          "ultimate_score": 50.048639584792014,
+          "enhanced_score": 50.048639584792014,
+          "financial_score": 18.21428571428571
+        }
+      },
+      {
+        "symbol": "F70100012",
+        "name": "한투삼성그룹성장테마2호(A-e)",
+        "sector": 0,
+        "analysis_date": "2025-09-21T12:58:02.140517",
+        "quantitative_metrics": {
+          "per": 0.0,
+          "pbr": 0.0,
+          "roe": 0,
+          "roa": 0,
+          "debt_ratio": 0,
+          "current_ratio": 0,
+          "net_profit_margin": 0,
+          "revenue_growth": 0,
+          "profit_growth": 0,
+          "market_cap": 20300000000.0,
+          "dividend_yield": 0.0
+        },
+        "qualitative_metrics": {
+          "sector_outlook": 60.0,
+          "market_cycle_position": 65.0,
+          "competitive_advantage": 60.0,
+          "management_quality": 60.0,
+          "esg_score": 65.0,
+          "news_sentiment": 50.0,
+          "analyst_consensus": 60.0,
+          "risk_level": "MEDIUM"
+        },
+        "comprehensive_score": {
+          "quantitative_score": 24.0,
+          "qualitative_score": 60.5,
+          "comprehensive_score": 34.949999999999996,
+          "grade": "D+",
+          "recommendation": "SELL",
+          "confidence": 0.2
+        },
+        "basic_analysis": {
+          "ultimate_score": 58.630357916781676,
+          "enhanced_score": 58.630357916781676,
+          "financial_score": 18.21428571428571
+        }
+      },
+      {
+        "symbol": "F70100009",
+        "name": "한투삼성그룹성장테마1호(A)",
+        "sector": 0,
+        "analysis_date": "2025-09-21T12:58:01.424871",
+        "quantitative_metrics": {
+          "per": 0.0,
+          "pbr": 0.0,
+          "roe": 0,
+          "roa": 0,
+          "debt_ratio": 0,
+          "current_ratio": 0,
+          "net_profit_margin": 0,
+          "revenue_growth": 0,
+          "profit_growth": 0,
+          "market_cap": 17900000000.0,
+          "dividend_yield": 0.0
+        },
+        "qualitative_metrics": {
+          "sector_outlook": 60.0,
+          "market_cycle_position": 65.0,
+          "competitive_advantage": 60.0,
+          "management_quality": 60.0,
+          "esg_score": 65.0,
+          "news_sentiment": 50.0,
+          "analyst_consensus": 30.0,
+          "risk_level": "MEDIUM"
+        },
+        "comprehensive_score": {
+          "quantitative_score": 24.0,
+          "qualitative_score": 57.5,
+          "comprehensive_score": 34.05,
+          "grade": "D+",
+          "recommendation": "SELL",
+          "confidence": 0.2
+        },
+        "basic_analysis": {
+          "ultimate_score": 44.15951070185709,
+          "enhanced_score": 44.15951070185709,
+          "financial_score": 18.21428571428571
+        }
+      },
+      {
+        "symbol": "F70100013",
+        "name": "한투삼성그룹&글로벌성장1(A)",
+        "sector": 0,
+        "analysis_date": "2025-09-21T12:58:02.383546",
+        "quantitative_metrics": {
+          "per": 0.0,
+          "pbr": 0.0,
+          "roe": 0,
+          "roa": 0,
+          "debt_ratio": 0,
+          "current_ratio": 0,
+          "net_profit_margin": 0,
+          "revenue_growth": 0,
+          "profit_growth": 0,
+          "market_cap": 300000000.0,
+          "dividend_yield": 0.0
+        },
+        "qualitative_metrics": {
+          "sector_outlook": 60.0,
+          "market_cycle_position": 65.0,
+          "competitive_advantage": 60.0,
+          "management_quality": 60.0,
+          "esg_score": 65.0,
+          "news_sentiment": 50.0,
+          "analyst_consensus": 30.0,
+          "risk_level": "MEDIUM"
+        },
+        "comprehensive_score": {
+          "quantitative_score": 24.0,
+          "qualitative_score": 57.5,
+          "comprehensive_score": 34.05,
+          "grade": "D+",
+          "recommendation": "SELL",
+          "confidence": 0.2
+        },
+        "basic_analysis": {
+          "ultimate_score": 43.351641579190996,
+          "enhanced_score": 43.351641579190996,
+          "financial_score": 18.21428571428571
+        }
+      }
+    ],
+    "top_sectors": [
+      {
+        "sector": 0,
+        "avg_comprehensive_score": 34.589999999999996
+      }
+    ],
+    "investment_strategy": "신중한 투자: 종합점수 기준을 통과하는 제한된 투자 기회",
+    "comprehensive_analysis": "정량적 지표(70%) + 정성적 지표(30%)를 통합한 종합점수 분석 결과입니다."
+  }
+}

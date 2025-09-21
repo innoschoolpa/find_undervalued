@@ -1,0 +1,28 @@
+[
+  {
+    "symbol": "005930",
+    "name": "삼성전자",
+    "sector": "반도체",
+    "analysis_date": "2025-09-21T12:53:46.551039",
+    "quantitative_metrics": {
+      "per": 16.1,
+      "pbr": 1.38,
+      "roe": 0,
+      "roa": 0,
+      "debt_ratio": 0,
+      "current_ratio": 0,
+      "net_profit_margin": 0,
+      "revenue_growth": 0,
+      "profit_growth": 0,
+      "market_cap": 471795100000000.0,
+      "dividend_yield": 0.0
+    },
+    "qualitative_metrics": {
+      "sector_outlook": 75.0,
+      "market_cycle_position": 65.0,
+      "competitive_advantage": 80.0,
+      "management_quality": 75.0,
+      "esg_score": 80.0,
+      "news_sentiment": 50.0,
+      "analyst_consensus": 60.0,
+      "risk_level": 

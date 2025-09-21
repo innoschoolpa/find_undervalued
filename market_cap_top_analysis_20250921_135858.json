@@ -1,0 +1,1464 @@
+{
+  "metadata": {
+    "analysis_version": "2.0_enhanced",
+    "analysis_date": "2025-09-21T13:58:58.050406",
+    "analysis_time_seconds": 6.694925,
+    "total_analyzed": 10,
+    "undervalued_count": 7,
+    "features_enabled": {
+      "realtime_data": true,
+      "external_data": true,
+      "enhanced_sector_classification": true,
+      "company_specific_analysis": true
+    }
+  },
+  "market_cap_analysis": {
+    "total_market_cap": 0,
+    "average_weighted_score": 0,
+    "market_cap_distribution": {},
+    "total_stocks": 10
+  },
+  "sector_analysis": {},
+  "top_recommendations": [
+    {
+      "symbol": "000050",
+      "name": "경방",
+      "enhanced_score": 65.6547533623635,
+      "basic_score": 65.6547533623635,
+      "investment_recommendation": "BUY",
+      "confidence_level": "MEDIUM",
+      "sector_classification": [],
+      "realtime_sentiment": "neutral",
+      "external_score": 50,
+      "analysis_timestamp": ""
+    },
+    {
+      "symbol": "000140",
+      "name": "하이트진로홀딩스",
+      "enhanced_score": 58.98946390185486,
+      "basic_score": 58.98946390185486,
+      "investment_recommendation": "HOLD",
+      "confidence_level": "MEDIUM",
+      "sector_classification": [],
+      "realtime_sentiment": "neutral",
+      "external_score": 50,
+      "analysis_timestamp": ""
+    },
+    {
+      "symbol": "000120",
+      "name": "CJ대한통운",
+      "enhanced_score": 56.64422609052245,
+      "basic_score": 56.64422609052245,
+      "investment_recommendation": "HOLD",
+      "confidence_level": "MEDIUM",
+      "sector_classification": [],
+      "realtime_sentiment": "neutral",
+      "external_score": 50,
+      "analysis_timestamp": ""
+    },
+    {
+      "symbol": "000070",
+      "name": "삼양홀딩스",
+      "enhanced_score": 54.703167592837104,
+      "basic_score": 54.703167592837104,
+      "investment_recommendation": "HOLD",
+      "confidence_level": "LOW",
+      "sector_classification": [],
+      "realtime_sentiment": "neutral",
+      "external_score": 50,
+      "analysis_timestamp": ""
+    },
+    {
+      "symbol": "000040",
+      "name": "KR모터스",
+      "enhanced_score": 53.04034829763895,
+      "basic_score": 53.04034829763895,
+      "investment_recommendation": "HOLD",
+      "confidence_level": "LOW",
+      "sector_classification": [],
+      "realtime_sentiment": "neutral",
+      "external_score": 50,
+      "analysis_timestamp": ""
+    },
+    {
+      "symbol": "000080",
+      "name": "하이트진로",
+      "enhanced_score": 50.926939393240765,
+      "basic_score": 50.926939393240765,
+      "investment_recommendation": "HOLD",
+      "confidence_level": "LOW",
+      "sector_classification": [],
+      "realtime_sentiment": "neutral",
+      "external_score": 50,
+      "analysis_timestamp": ""
+    },
+    {
+      "symbol": "000180",
+      "name": "성창기업지주",
+      "enhanced_score": 46.05672384199271,
+      "basic_score": 46.05672384199271,
+      "investment_recommendation": "HOLD",
+      "confidence_level": "LOW",
+      "sector_classification": [],
+      "realtime_sentiment": "neutral",
+      "external_score": 50,
+      "analysis_timestamp": ""
+    }
+  ],
+  "realtime_insights": {
+    "000020": {
+      "market_sentiment": 0.020000000000000004,
+      "sentiment_level": "neutral",
+      "confidence": 0.9
+    },
+    "000040": {
+      "market_sentiment": 0.020000000000000004,
+      "sentiment_level": "neutral",
+      "confidence": 0.9
+    },
+    "000050": {
+      "market_sentiment": 0.020000000000000004,
+      "sentiment_level": "neutral",
+      "confidence": 0.9
+    },
+    "000070": {
+      "market_sentiment": 0.020000000000000004,
+      "sentiment_level": "neutral",
+      "confidence": 0.9
+    },
+    "000080": {
+      "market_sentiment": 0.020000000000000004,
+      "sentiment_level": "neutral",
+      "confidence": 0.9
+    },
+    "000100": {
+      "market_sentiment": 0.020000000000000004,
+      "sentiment_level": "neutral",
+      "confidence": 0.9
+    },
+    "000120": {
+      "market_sentiment": 0.020000000000000004,
+      "sentiment_level": "neutral",
+      "confidence": 0.9
+    },
+    "000140": {
+      "market_sentiment": 0.020000000000000004,
+      "sentiment_level": "neutral",
+      "confidence": 0.9
+    },
+    "000150": {
+      "market_sentiment": 0.020000000000000004,
+      "sentiment_level": "neutral",
+      "confidence": 0.9
+    },
+    "000180": {
+      "market_sentiment": 0.020000000000000004,
+      "sentiment_level": "neutral",
+      "confidence": 0.9
+    }
+  },
+  "external_insights": {
+    "000020": {
+      "esg_score": 78.33333333333333,
+      "credit_rating": "BBB+",
+      "overall_external_score": 70.0
+    },
+    "000040": {
+      "esg_score": 80.33333333333333,
+      "credit_rating": "BBB",
+      "overall_external_score": 70.0
+    },
+    "000050": {
+      "esg_score": 80.0,
+      "credit_rating": "BBB+",
+      "overall_external_score": 70.0
+    },
+    "000070": {
+      "esg_score": 76.0,
+      "credit_rating": "BBB",
+      "overall_external_score": 70.0
+    },
+    "000080": {
+      "esg_score": 82.66666666666667,
+      "credit_rating": "A",
+      "overall_external_score": 70.0
+    },
+    "000100": {
+      "esg_score": 79.33333333333333,
+      "credit_rating": "BBB",
+      "overall_external_score": 70.0
+    },
+    "000120": {
+      "esg_score": 78.33333333333333,
+      "credit_rating": "A-",
+      "overall_external_score": 70.0
+    },
+    "000140": {
+      "esg_score": 79.66666666666667,
+      "credit_rating": "BBB-",
+      "overall_external_score": 70.0
+    },
+    "000150": {
+      "esg_score": 79.0,
+      "credit_rating": "A",
+      "overall_external_score": 70.0
+    },
+    "000180": {
+      "esg_score": 80.0,
+      "credit_rating": "A-",
+      "overall_external_score": 70.0
+    }
+  },
+  "analysis_results": [
+    {
+      "symbol": "000020",
+      "name": "동화약품",
+      "basic_result": {
+        "symbol": "000020",
+        "name": "동화약품",
+        "sector": 27,
+        "analysis_date": "2025-09-21T13:58:55.881431",
+        "ultimate_score": 44.80587084822287,
+        "ultimate_grade": "D+",
+        "investment_recommendation": "SELL",
+        "confidence_level": "LOW",
+        "enhanced_score": 44.80587084822287,
+        "enhanced_grade": "D+",
+        "score_breakdown": {
+          "투자의견": 13.997203662062745,
+          "추정실적": 11.165810043302974,
+          "재무비율": 17.142857142857142,
+          "성장성": 0.0,
+          "규모": 2.5,
+          "가격위치_페널티": 0.0
+        },
+        "financial_score": 17.142857142857142,
+        "price_position_penalty": 0.0,
+        "news_analysis": {
+          "sentiment_trend": "neutral",
+          "avg_sentiment": 0.5,
+          "news_count": 0,
+          "positive_count": 0,
+          "negative_count": 0,
+          "neutral_count": 0
+        },
+        "qualitative_risk_analysis": {
+          "comprehensive_risk_score": 40.9375,
+          "comprehensive_risk_level": "보통",
+          "risk_adjustment_factor": 1.0,
+          "individual_risks": {
+            "정책_리스크": {
+              "risk_type": {},
+              "risk_level": {},
+              "score": 30.0,
+              "description": "정책 변화로 인한 낮은 리스크 최근 관련 뉴스 2건 발견",
+              "confidence": 0.8,
+              "sources": [
+                "정책_뉴스_2건"
+              ],
+              "last_updated": "2025-09-21T13:58:55.880747"
+            },
+            "ESG_리스크": {
+              "risk_type": {},
+              "risk_level": {},
+              "score": 40.0,
+              "description": "ESG 관련 보통 수준의 리스크",
+              "confidence": 0.7,
+              "sources": [
+                "ESG_뉴스_1건"
+              ],
+              "last_updated": "2025-09-21T13:58:55.880766"
+            },
+            "시장_감정_리스크": {
+              "risk_type": {},
+              "risk_level": {},
+              "score": 55.0,
+              "description": "시장 감정이 중립적이며 보통 수준의 리스크",
+              "confidence": 0.6,
+              "sources": [
+                "감정_분석_5건"
+              ],
+              "last_updated": "2025-09-21T13:58:55.880778"
+            }
+          },
+          "analysis_timestamp": "20250921_135855",
+          "status": "success"
+        },
+        "sector_analysis": {
+          "total_score": 75.0,
+          "sector_grade": "B+",
+          "breakdown": {
+            "재무_건전성": 80.0,
+            "성장성": 70.0,
+            "안정성": 75.0
+          }
+        },
+        "ml_prediction": null,
+        "financial_data": {
+          "symbol": "000020",
+          "name": "제약",
+          "current_price": 6370.0,
+          "volume": 65387.0,
+          "market_cap": 177900000000.0,
+          "per": 32.01,
+          "pbr": 0.47,
+          "eps": 199.0,
+          "bps": 13427.0,
+          "dividend_yield": 0.0,
+          "open_price": 6410.0,
+          "high_price": 6450.0,
+          "low_price": 6320.0,
+          "prev_close": 6400.0,
+          "change_price": -30.0,
+          "change_rate": -0.47,
+          "trading_value": 417816100.0,
+          "listed_shares": 27931470.0,
+          "foreign_holdings": 887805.0,
+          "foreign_net_buy": 6233.0,
+          "program_net_buy": 6185.0,
+          "w52_high": 8130.0,
+          "w52_low": 5600.0,
+          "d250_high": 8130.0,
+          "d250_low": 5600.0,
+          "vol_turnover": 0.23,
+          "sector": "제약",
+          "market_status": "55",
+          "margin_rate": "50.00",
+          "credit_available": "Y",
+          "short_selling": "Y",
+          "investment_caution": "N",
+          "market_warning": "00",
+          "short_overheating": "N",
+          "management_stock": "N"
+        }
+      },
+      "enhanced_score": 44.80587084822287,
+      "error": "'int' object has no attribute 'lower'"
+    },
+    {
+      "symbol": "000040",
+      "name": "KR모터스",
+      "basic_result": {
+        "symbol": "000040",
+        "name": "KR모터스",
+        "sector": 27,
+        "analysis_date": "2025-09-21T13:58:56.126158",
+        "ultimate_score": 53.04034829763895,
+        "ultimate_grade": "C",
+        "investment_recommendation": "HOLD",
+        "confidence_level": "LOW",
+        "enhanced_score": 53.04034829763895,
+        "enhanced_grade": "C",
+        "score_breakdown": {
+          "투자의견": 14.619671520754814,
+          "추정실적": 19.849248205455567,
+          "재무비율": 16.07142857142857,
+          "성장성": 0.0,
+          "규모": 2.5,
+          "가격위치_페널티": 0.0
+        },
+        "financial_score": 16.07142857142857,
+        "price_position_penalty": 0.0,
+        "news_analysis": {
+          "sentiment_trend": "neutral",
+          "avg_sentiment": 0.5,
+          "news_count": 0,
+          "positive_count": 0,
+          "negative_count": 0,
+          "neutral_count": 0
+        },
+        "qualitative_risk_analysis": {
+          "comprehensive_risk_score": 40.9375,
+          "comprehensive_risk_level": "보통",
+          "risk_adjustment_factor": 1.0,
+          "individual_risks": {
+            "정책_리스크": {
+              "risk_type": {},
+              "risk_level": {},
+              "score": 30.0,
+              "description": "정책 변화로 인한 낮은 리스크 최근 관련 뉴스 2건 발견",
+              "confidence": 0.8,
+              "sources": [
+                "정책_뉴스_2건"
+              ],
+              "last_updated": "2025-09-21T13:58:56.125362"
+            },
+            "ESG_리스크": {
+              "risk_type": {},
+              "risk_level": {},
+              "score": 40.0,
+              "description": "ESG 관련 보통 수준의 리스크",
+              "confidence": 0.7,
+              "sources": [
+                "ESG_뉴스_1건"
+              ],
+              "last_updated": "2025-09-21T13:58:56.125384"
+            },
+            "시장_감정_리스크": {
+              "risk_type": {},
+              "risk_level": {},
+              "score": 55.0,
+              "description": "시장 감정이 중립적이며 보통 수준의 리스크",
+              "confidence": 0.6,
+              "sources": [
+                "감정_분석_5건"
+              ],
+              "last_updated": "2025-09-21T13:58:56.125398"
+            }
+          },
+          "analysis_timestamp": "20250921_135856",
+          "status": "success"
+        },
+        "sector_analysis": {
+          "total_score": 75.0,
+          "sector_grade": "B+",
+          "breakdown": {
+            "재무_건전성": 80.0,
+            "성장성": 70.0,
+            "안정성": 75.0
+          }
+        },
+        "ml_prediction": null,
+        "financial_data": {
+          "symbol": "000040",
+          "name": "운송장비·부품",
+          "current_price": 524.0,
+          "volume": 213984.0,
+          "market_cap": 45300000000.0,
+          "per": -2.34,
+          "pbr": 0.97,
+          "eps": -224.0,
+          "bps": 543.0,
+          "dividend_yield": 0.0,
+          "open_price": 519.0,
+          "high_price": 530.0,
+          "low_price": 519.0,
+          "prev_close": 517.0,
+          "change_price": 7.0,
+          "change_rate": 1.35,
+          "trading_value": 111706651.0,
+          "listed_shares": 86375184.0,
+          "foreign_holdings": 25273509.0,
+          "foreign_net_buy": 13537.0,
+          "program_net_buy": 13863.0,
+          "w52_high": 841.0,
+          "w52_low": 350.0,
+          "d250_high": 841.0,
+          "d250_low": 350.0,
+          "vol_turnover": 0.25,
+          "sector": "운송장비·부품",
+          "market_status": "57",
+          "margin_rate": "100.00",
+          "credit_available": "N",
+          "short_selling": "Y",
+          "investment_caution": "N",
+          "market_warning": "00",
+          "short_overheating": "N",
+          "management_stock": "N"
+        }
+      },
+      "enhanced_score": 53.04034829763895,
+      "error": "'int' object has no attribute 'lower'"
+    },
+    {
+      "symbol": "000050",
+      "name": "경방",
+      "basic_result": {
+        "symbol": "000050",
+        "name": "경방",
+        "sector": 16,
+        "analysis_date": "2025-09-21T13:58:56.362496",
+        "ultimate_score": 65.6547533623635,
+        "ultimate_grade": "B",
+        "investment_recommendation": "BUY",
+        "confidence_level": "MEDIUM",
+        "enhanced_score": 65.6547533623635,
+        "enhanced_grade": "B",
+        "score_breakdown": {
+          "투자의견": 16.831395437982398,
+          "추정실적": 20.609072210095384,
+          "재무비율": 25.71428571428571,
+          "성장성": 0.0,
+          "규모": 2.5,
+          "가격위치_페널티": 0.0
+        },
+        "financial_score": 25.71428571428571,
+        "price_position_penalty": 0.0,
+        "news_analysis": {
+          "sentiment_trend": "neutral",
+          "avg_sentiment": 0.5,
+          "news_count": 0,
+          "positive_count": 0,
+          "negative_count": 0,
+          "neutral_count": 0
+        },
+        "qualitative_risk_analysis": {
+          "comprehensive_risk_score": 40.9375,
+          "comprehensive_risk_level": "보통",
+          "risk_adjustment_factor": 1.0,
+          "individual_risks": {
+            "정책_리스크": {
+              "risk_type": {},
+              "risk_level": {},
+              "score": 30.0,
+              "description": "정책 변화로 인한 낮은 리스크 최근 관련 뉴스 2건 발견",
+              "confidence": 0.8,
+              "sources": [
+                "정책_뉴스_2건"
+              ],
+              "last_updated": "2025-09-21T13:58:56.361700"
+            },
+            "ESG_리스크": {
+              "risk_type": {},
+              "risk_level": {},
+              "score": 40.0,
+              "description": "ESG 관련 보통 수준의 리스크",
+              "confidence": 0.7,
+              "sources": [
+                "ESG_뉴스_1건"
+              ],
+              "last_updated": "2025-09-21T13:58:56.361716"
+            },
+            "시장_감정_리스크": {
+              "risk_type": {},
+              "risk_level": {},
+              "score": 55.0,
+              "description": "시장 감정이 중립적이며 보통 수준의 리스크",
+              "confidence": 0.6,
+              "sources": [
+                "감정_분석_5건"
+              ],
+              "last_updated": "2025-09-21T13:58:56.361725"
+            }
+          },
+          "analysis_timestamp": "20250921_135856",
+          "status": "success"
+        },
+        "sector_analysis": {
+          "total_score": 75.0,
+          "sector_grade": "B+",
+          "breakdown": {
+            "재무_건전성": 80.0,
+            "성장성": 70.0,
+            "안정성": 75.0
+          }
+        },
+        "ml_prediction": null,
+        "financial_data": {
+          "symbol": "000050",
+          "name": "유통",
+          "current_price": 7110.0,
+          "volume": 43502.0,
+          "market_cap": 194900000000.0,
+          "per": 8.26,
+          "pbr": 0.25,
+          "eps": 861.0,
+          "bps": 28806.0,
+          "dividend_yield": 0.0,
+          "open_price": 7240.0,
+          "high_price": 7270.0,
+          "low_price": 7110.0,
+          "prev_close": 7240.0,
+          "change_price": -130.0,
+          "change_rate": -1.8,
+          "trading_value": 313110680.0,
+          "listed_shares": 27415270.0,
+          "foreign_holdings": 312368.0,
+          "foreign_net_buy": 3872.0,
+          "program_net_buy": -3222.0,
+          "w52_high": 10920.0,
+          "w52_low": 5680.0,
+          "d250_high": 10920.0,
+          "d250_low": 5680.0,
+          "vol_turnover": 0.16,
+          "sector": "유통",
+          "market_status": "57",
+          "margin_rate": "100.00",
+          "credit_available": "N",
+          "short_selling": "Y",
+          "investment_caution": "N",
+          "market_warning": "00",
+          "short_overheating": "N",
+          "management_stock": "N"
+        }
+      },
+      "enhanced_score": 65.6547533623635,
+      "error": "'int' object has no attribute 'lower'"
+    },
+    {
+      "symbol": "000070",
+      "name": "삼양홀딩스",
+      "basic_result": {
+        "symbol": "000070",
+        "name": "삼양홀딩스",
+        "sector": 21,
+        "analysis_date": "2025-09-21T13:58:56.604153",
+        "ultimate_score": 54.703167592837104,
+        "ultimate_grade": "C",
+        "investment_recommendation": "HOLD",
+        "confidence_level": "LOW",
+        "enhanced_score": 54.703167592837104,
+        "enhanced_grade": "C",
+        "score_breakdown": {
+          "투자의견": 13.851259489519048,
+          "추정실적": 21.20905096046091,
+          "재무비율": 17.142857142857142,
+          "성장성": 0.0,
+          "규모": 2.5,
+          "가격위치_페널티": 0.0
+        },
+        "financial_score": 17.142857142857142,
+        "price_position_penalty": 0.0,
+        "news_analysis": {
+          "sentiment_trend": "neutral",
+          "avg_sentiment": 0.5,
+          "news_count": 0,
+          "positive_count": 0,
+          "negative_count": 0,
+          "neutral_count": 0
+        },
+        "qualitative_risk_analysis": {
+          "comprehensive_risk_score": 40.9375,
+          "comprehensive_risk_level": "보통",
+          "risk_adjustment_factor": 1.0,
+          "individual_risks": {
+            "정책_리스크": {
+              "risk_type": {},
+              "risk_level": {},
+              "score": 30.0,
+              "description": "정책 변화로 인한 낮은 리스크 최근 관련 뉴스 2건 발견",
+              "confidence": 0.8,
+              "sources": [
+                "정책_뉴스_2건"
+              ],
+              "last_updated": "2025-09-21T13:58:56.603520"
+            },
+            "ESG_리스크": {
+              "risk_type": {},
+              "risk_level": {},
+              "score": 40.0,
+              "description": "ESG 관련 보통 수준의 리스크",
+              "confidence": 0.7,
+              "sources": [
+                "ESG_뉴스_1건"
+              ],
+              "last_updated": "2025-09-21T13:58:56.603538"
+            },
+            "시장_감정_리스크": {
+              "risk_type": {},
+              "risk_level": {},
+              "score": 55.0,
+              "description": "시장 감정이 중립적이며 보통 수준의 리스크",
+              "confidence": 0.6,
+              "sources": [
+                "감정_분석_5건"
+              ],
+              "last_updated": "2025-09-21T13:58:56.603549"
+            }
+          },
+          "analysis_timestamp": "20250921_135856",
+          "status": "success"
+        },
+        "sector_analysis": {
+          "total_score": 75.0,
+          "sector_grade": "B+",
+          "breakdown": {
+            "재무_건전성": 80.0,
+            "성장성": 70.0,
+            "안정성": 75.0
+          }
+        },
+        "ml_prediction": null,
+        "financial_data": {
+          "symbol": "000070",
+          "name": "금융",
+          "current_price": 92500.0,
+          "volume": 23229.0,
+          "market_cap": 794400000000.0,
+          "per": 29.02,
+          "pbr": 0.39,
+          "eps": 3188.0,
+          "bps": 238712.0,
+          "dividend_yield": 0.0,
+          "open_price": 91900.0,
+          "high_price": 92900.0,
+          "low_price": 90300.0,
+          "prev_close": 91200.0,
+          "change_price": 1300.0,
+          "change_rate": 1.43,
+          "trading_value": 2133682750.0,
+          "listed_shares": 8588329.0,
+          "foreign_holdings": 681560.0,
+          "foreign_net_buy": 5993.0,
+          "program_net_buy": 4553.0,
+          "w52_high": 101800.0,
+          "w52_low": 53600.0,
+          "d250_high": 101800.0,
+          "d250_low": 53600.0,
+          "vol_turnover": 0.27,
+          "sector": "금융",
+          "market_status": "55",
+          "margin_rate": "40.00",
+          "credit_available": "Y",
+          "short_selling": "Y",
+          "investment_caution": "N",
+          "market_warning": "00",
+          "short_overheating": "N",
+          "management_stock": "N"
+        }
+      },
+      "enhanced_score": 54.703167592837104,
+      "error": "'int' object has no attribute 'lower'"
+    },
+    {
+      "symbol": "000080",
+      "name": "하이트진로",
+      "basic_result": {
+        "symbol": "000080",
+        "name": "하이트진로",
+        "sector": 27,
+        "analysis_date": "2025-09-21T13:58:56.843774",
+        "ultimate_score": 50.926939393240765,
+        "ultimate_grade": "C",
+        "investment_recommendation": "HOLD",
+        "confidence_level": "LOW",
+        "enhanced_score": 50.926939393240765,
+        "enhanced_grade": "C",
+        "score_breakdown": {
+          "투자의견": 10.218006340394036,
+          "추정실적": 22.137504481418162,
+          "재무비율": 16.07142857142857,
+          "성장성": 0.0,
+          "규모": 2.5,
+          "가격위치_페널티": 0.0
+        },
+        "financial_score": 16.07142857142857,
+        "price_position_penalty": 0.0,
+        "news_analysis": {
+          "sentiment_trend": "neutral",
+          "avg_sentiment": 0.5,
+          "news_count": 0,
+          "positive_count": 0,
+          "negative_count": 0,
+          "neutral_count": 0
+        },
+        "qualitative_risk_analysis": {
+          "comprehensive_risk_score": 40.9375,
+          "comprehensive_risk_level": "보통",
+          "risk_adjustment_factor": 1.0,
+          "individual_risks": {
+            "정책_리스크": {
+              "risk_type": {},
+              "risk_level": {},
+              "score": 30.0,
+              "description": "정책 변화로 인한 낮은 리스크 최근 관련 뉴스 2건 발견",
+              "confidence": 0.8,
+              "sources": [
+                "정책_뉴스_2건"
+              ],
+              "last_updated": "2025-09-21T13:58:56.842868"
+            },
+            "ESG_리스크": {
+              "risk_type": {},
+              "risk_level": {},
+              "score": 40.0,
+              "description": "ESG 관련 보통 수준의 리스크",
+              "confidence": 0.7,
+              "sources": [
+                "ESG_뉴스_1건"
+              ],
+              "last_updated": "2025-09-21T13:58:56.842885"
+            },
+            "시장_감정_리스크": {
+              "risk_type": {},
+              "risk_level": {},
+              "score": 55.0,
+              "description": "시장 감정이 중립적이며 보통 수준의 리스크",
+              "confidence": 0.6,
+              "sources": [
+                "감정_분석_5건"
+              ],
+              "last_updated": "2025-09-21T13:58:56.842896"
+            }
+          },
+          "analysis_timestamp": "20250921_135856",
+          "status": "success"
+        },
+        "sector_analysis": {
+          "total_score": 75.0,
+          "sector_grade": "B+",
+          "breakdown": {
+            "재무_건전성": 80.0,
+            "성장성": 70.0,
+            "안정성": 75.0
+          }
+        },
+        "ml_prediction": null,
+        "financial_data": {
+          "symbol": "000080",
+          "name": "음식료·담배",
+          "current_price": 19160.0,
+          "volume": 164607.0,
+          "market_cap": 1343800000000.0,
+          "per": 14.25,
+          "pbr": 1.13,
+          "eps": 1345.0,
+          "bps": 16889.0,
+          "dividend_yield": 0.0,
+          "open_price": 19170.0,
+          "high_price": 19180.0,
+          "low_price": 19110.0,
+          "prev_close": 19180.0,
+          "change_price": -20.0,
+          "change_rate": -0.1,
+          "trading_value": 3151539425.0,
+          "listed_shares": 70133611.0,
+          "foreign_holdings": 5313280.0,
+          "foreign_net_buy": -17687.0,
+          "program_net_buy": -23952.0,
+          "w52_high": 22200.0,
+          "w52_low": 18680.0,
+          "d250_high": 22200.0,
+          "d250_low": 18680.0,
+          "vol_turnover": 0.23,
+          "sector": "음식료·담배",
+          "market_status": "55",
+          "margin_rate": "40.00",
+          "credit_available": "Y",
+          "short_selling": "Y",
+          "investment_caution": "N",
+          "market_warning": "00",
+          "short_overheating": "N",
+          "management_stock": "N"
+        }
+      },
+      "enhanced_score": 50.926939393240765,
+      "error": "'int' object has no attribute 'lower'"
+    },
+    {
+      "symbol": "000100",
+      "name": "유한양행",
+      "basic_result": {
+        "symbol": "000100",
+        "name": "유한양행",
+        "sector": 27,
+        "analysis_date": "2025-09-21T13:58:57.086142",
+        "ultimate_score": 43.3638181825245,
+        "ultimate_grade": "D+",
+        "investment_recommendation": "SELL",
+        "confidence_level": "LOW",
+        "enhanced_score": 43.3638181825245,
+        "enhanced_grade": "D+",
+        "score_breakdown": {
+          "투자의견": 16.822240972042426,
+          "추정실적": 17.613005781910637,
+          "재무비율": 6.428571428571428,
+          "성장성": 0.0,
+          "규모": 2.5,
+          "가격위치_페널티": 0.0
+        },
+        "financial_score": 6.428571428571428,
+        "price_position_penalty": 0.0,
+        "news_analysis": {
+          "sentiment_trend": "neutral",
+          "avg_sentiment": 0.5,
+          "news_count": 0,
+          "positive_count": 0,
+          "negative_count": 0,
+          "neutral_count": 0
+        },
+        "qualitative_risk_analysis": {
+          "comprehensive_risk_score": 40.9375,
+          "comprehensive_risk_level": "보통",
+          "risk_adjustment_factor": 1.0,
+          "individual_risks": {
+            "정책_리스크": {
+              "risk_type": {},
+              "risk_level": {},
+              "score": 30.0,
+              "description": "정책 변화로 인한 낮은 리스크 최근 관련 뉴스 2건 발견",
+              "confidence": 0.8,
+              "sources": [
+                "정책_뉴스_2건"
+              ],
+              "last_updated": "2025-09-21T13:58:57.085594"
+            },
+            "ESG_리스크": {
+              "risk_type": {},
+              "risk_level": {},
+              "score": 40.0,
+              "description": "ESG 관련 보통 수준의 리스크",
+              "confidence": 0.7,
+              "sources": [
+                "ESG_뉴스_1건"
+              ],
+              "last_updated": "2025-09-21T13:58:57.085607"
+            },
+            "시장_감정_리스크": {
+              "risk_type": {},
+              "risk_level": {},
+              "score": 55.0,
+              "description": "시장 감정이 중립적이며 보통 수준의 리스크",
+              "confidence": 0.6,
+              "sources": [
+                "감정_분석_5건"
+              ],
+              "last_updated": "2025-09-21T13:58:57.085616"
+            }
+          },
+          "analysis_timestamp": "20250921_135857",
+          "status": "success"
+        },
+        "sector_analysis": {
+          "total_score": 75.0,
+          "sector_grade": "B+",
+          "breakdown": {
+            "재무_건전성": 80.0,
+            "성장성": 70.0,
+            "안정성": 75.0
+          }
+        },
+        "ml_prediction": null,
+        "financial_data": {
+          "symbol": "000100",
+          "name": "제약",
+          "current_price": 118600.0,
+          "volume": 379882.0,
+          "market_cap": 9484300000000.0,
+          "per": 136.48,
+          "pbr": 4.16,
+          "eps": 869.0,
+          "bps": 28505.0,
+          "dividend_yield": 0.0,
+          "open_price": 116500.0,
+          "high_price": 119700.0,
+          "low_price": 116300.0,
+          "prev_close": 117000.0,
+          "change_price": 1600.0,
+          "change_rate": 1.37,
+          "trading_value": 44948597200.0,
+          "listed_shares": 79968437.0,
+          "foreign_holdings": 12881388.0,
+          "foreign_net_buy": 62337.0,
+          "program_net_buy": 51000.0,
+          "w52_high": 166900.0,
+          "w52_low": 100400.0,
+          "d250_high": 166900.0,
+          "d250_low": 100400.0,
+          "vol_turnover": 0.48,
+          "sector": "제약",
+          "market_status": "55",
+          "margin_rate": "20.00",
+          "credit_available": "Y",
+          "short_selling": "Y",
+          "investment_caution": "N",
+          "market_warning": "00",
+          "short_overheating": "N",
+          "management_stock": "N"
+        }
+      },
+      "enhanced_score": 43.3638181825245,
+      "error": "'int' object has no attribute 'lower'"
+    },
+    {
+      "symbol": "000120",
+      "name": "CJ대한통운",
+      "basic_result": {
+        "symbol": "000120",
+        "name": "CJ대한통운",
+        "sector": 19,
+        "analysis_date": "2025-09-21T13:58:57.328743",
+        "ultimate_score": 56.64422609052245,
+        "ultimate_grade": "C+",
+        "investment_recommendation": "HOLD",
+        "confidence_level": "MEDIUM",
+        "enhanced_score": 56.64422609052245,
+        "enhanced_grade": "C+",
+        "score_breakdown": {
+          "투자의견": 14.089359271819939,
+          "추정실적": 14.340581104416804,
+          "재무비율": 25.71428571428571,
+          "성장성": 0.0,
+          "규모": 2.5,
+          "가격위치_페널티": 0.0
+        },
+        "financial_score": 25.71428571428571,
+        "price_position_penalty": 0.0,
+        "news_analysis": {
+          "sentiment_trend": "neutral",
+          "avg_sentiment": 0.5,
+          "news_count": 0,
+          "positive_count": 0,
+          "negative_count": 0,
+          "neutral_count": 0
+        },
+        "qualitative_risk_analysis": {
+          "comprehensive_risk_score": 40.9375,
+          "comprehensive_risk_level": "보통",
+          "risk_adjustment_factor": 1.0,
+          "individual_risks": {
+            "정책_리스크": {
+              "risk_type": {},
+              "risk_level": {},
+              "score": 30.0,
+              "description": "정책 변화로 인한 낮은 리스크 최근 관련 뉴스 2건 발견",
+              "confidence": 0.8,
+              "sources": [
+                "정책_뉴스_2건"
+              ],
+              "last_updated": "2025-09-21T13:58:57.326746"
+            },
+            "ESG_리스크": {
+              "risk_type": {},
+              "risk_level": {},
+              "score": 40.0,
+              "description": "ESG 관련 보통 수준의 리스크",
+              "confidence": 0.7,
+              "sources": [
+                "ESG_뉴스_1건"
+              ],
+              "last_updated": "2025-09-21T13:58:57.326772"
+            },
+            "시장_감정_리스크": {
+              "risk_type": {},
+              "risk_level": {},
+              "score": 55.0,
+              "description": "시장 감정이 중립적이며 보통 수준의 리스크",
+              "confidence": 0.6,
+              "sources": [
+                "감정_분석_5건"
+              ],
+              "last_updated": "2025-09-21T13:58:57.326789"
+            }
+          },
+          "analysis_timestamp": "20250921_135857",
+          "status": "success"
+        },
+        "sector_analysis": {
+          "total_score": 75.0,
+          "sector_grade": "B+",
+          "breakdown": {
+            "재무_건전성": 80.0,
+            "성장성": 70.0,
+            "안정성": 75.0
+          }
+        },
+        "ml_prediction": null,
+        "financial_data": {
+          "symbol": "000120",
+          "name": "운송·창고",
+          "current_price": 84400.0,
+          "volume": 35332.0,
+          "market_cap": 1925400000000.0,
+          "per": 7.75,
+          "pbr": 0.46,
+          "eps": 10893.0,
+          "bps": 185424.0,
+          "dividend_yield": 0.0,
+          "open_price": 85100.0,
+          "high_price": 85500.0,
+          "low_price": 84000.0,
+          "prev_close": 85500.0,
+          "change_price": -1100.0,
+          "change_rate": -1.29,
+          "trading_value": 2983887950.0,
+          "listed_shares": 22812344.0,
+          "foreign_holdings": 3176303.0,
+          "foreign_net_buy": -8157.0,
+          "program_net_buy": -8130.0,
+          "w52_high": 102300.0,
+          "w52_low": 76800.0,
+          "d250_high": 105400.0,
+          "d250_low": 76800.0,
+          "vol_turnover": 0.15,
+          "sector": "운송·창고",
+          "market_status": "55",
+          "margin_rate": "30.00",
+          "credit_available": "Y",
+          "short_selling": "Y",
+          "investment_caution": "N",
+          "market_warning": "00",
+          "short_overheating": "N",
+          "management_stock": "N"
+        }
+      },
+      "enhanced_score": 56.64422609052245,
+      "error": "'int' object has no attribute 'lower'"
+    },
+    {
+      "symbol": "000140",
+      "name": "하이트진로홀딩스",
+      "basic_result": {
+        "symbol": "000140",
+        "name": "하이트진로홀딩스",
+        "sector": 21,
+        "analysis_date": "2025-09-21T13:58:57.567590",
+        "ultimate_score": 58.98946390185486,
+        "ultimate_grade": "C+",
+        "investment_recommendation": "HOLD",
+        "confidence_level": "MEDIUM",
+        "enhanced_score": 58.98946390185486,
+        "enhanced_grade": "C+",
+        "score_breakdown": {
+          "투자의견": 15.202312373150349,
+          "추정실적": 14.501437242990228,
+          "재무비율": 26.78571428571429,
+          "성장성": 0.0,
+          "규모": 2.5,
+          "가격위치_페널티": 0.0
+        },
+        "financial_score": 26.78571428571429,
+        "price_position_penalty": 0.0,
+        "news_analysis": {
+          "sentiment_trend": "neutral",
+          "avg_sentiment": 0.5,
+          "news_count": 0,
+          "positive_count": 0,
+          "negative_count": 0,
+          "neutral_count": 0
+        },
+        "qualitative_risk_analysis": {
+          "comprehensive_risk_score": 40.9375,
+          "comprehensive_risk_level": "보통",
+          "risk_adjustment_factor": 1.0,
+          "individual_risks": {
+            "정책_리스크": {
+              "risk_type": {},
+              "risk_level": {},
+              "score": 30.0,
+              "description": "정책 변화로 인한 낮은 리스크 최근 관련 뉴스 2건 발견",
+              "confidence": 0.8,
+              "sources": [
+                "정책_뉴스_2건"
+              ],
+              "last_updated": "2025-09-21T13:58:57.566921"
+            },
+            "ESG_리스크": {
+              "risk_type": {},
+              "risk_level": {},
+              "score": 40.0,
+              "description": "ESG 관련 보통 수준의 리스크",
+              "confidence": 0.7,
+              "sources": [
+                "ESG_뉴스_1건"
+              ],
+              "last_updated": "2025-09-21T13:58:57.566986"
+            },
+            "시장_감정_리스크": {
+              "risk_type": {},
+              "risk_level": {},
+              "score": 55.0,
+              "description": "시장 감정이 중립적이며 보통 수준의 리스크",
+              "confidence": 0.6,
+              "sources": [
+                "감정_분석_5건"
+              ],
+              "last_updated": "2025-09-21T13:58:57.567005"
+            }
+          },
+          "analysis_timestamp": "20250921_135857",
+          "status": "success"
+        },
+        "sector_analysis": {
+          "total_score": 75.0,
+          "sector_grade": "B+",
+          "breakdown": {
+            "재무_건전성": 80.0,
+            "성장성": 70.0,
+            "안정성": 75.0
+          }
+        },
+        "ml_prediction": null,
+        "financial_data": {
+          "symbol": "000140",
+          "name": "금융",
+          "current_price": 10120.0,
+          "volume": 17288.0,
+          "market_cap": 234900000000.0,
+          "per": 5.39,
+          "pbr": 0.36,
+          "eps": 1877.0,
+          "bps": 28155.0,
+          "dividend_yield": 0.0,
+          "open_price": 10170.0,
+          "high_price": 10170.0,
+          "low_price": 10060.0,
+          "prev_close": 10170.0,
+          "change_price": -50.0,
+          "change_rate": -0.49,
+          "trading_value": 174611715.0,
+          "listed_shares": 23206765.0,
+          "foreign_holdings": 1769529.0,
+          "foreign_net_buy": -4117.0,
+          "program_net_buy": -4227.0,
+          "w52_high": 12850.0,
+          "w52_low": 8150.0,
+          "d250_high": 12850.0,
+          "d250_low": 8150.0,
+          "vol_turnover": 0.07,
+          "sector": "금융",
+          "market_status": "57",
+          "margin_rate": "100.00",
+          "credit_available": "N",
+          "short_selling": "Y",
+          "investment_caution": "N",
+          "market_warning": "00",
+          "short_overheating": "N",
+          "management_stock": "N"
+        }
+      },
+      "enhanced_score": 58.98946390185486,
+      "error": "'int' object has no attribute 'lower'"
+    },
+    {
+      "symbol": "000150",
+      "name": "두산",
+      "basic_result": {
+        "symbol": "000150",
+        "name": "두산",
+        "sector": 21,
+        "analysis_date": "2025-09-21T13:58:57.809357",
+        "ultimate_score": 43.71807761999705,
+        "ultimate_grade": "D+",
+        "investment_recommendation": "SELL",
+        "confidence_level": "LOW",
+        "enhanced_score": 43.71807761999705,
+        "enhanced_grade": "D+",
+        "score_breakdown": {
+          "투자의견": 12.222924918671021,
+          "추정실적": 19.352295558468878,
+          "재무비율": 9.642857142857144,
+          "성장성": 0.0,
+          "규모": 2.5,
+          "가격위치_페널티": 0.0
+        },
+        "financial_score": 9.642857142857144,
+        "price_position_penalty": 0.0,
+        "news_analysis": {
+          "sentiment_trend": "neutral",
+          "avg_sentiment": 0.5,
+          "news_count": 0,
+          "positive_count": 0,
+          "negative_count": 0,
+          "neutral_count": 0
+        },
+        "qualitative_risk_analysis": {
+          "comprehensive_risk_score": 40.9375,
+          "comprehensive_risk_level": "보통",
+          "risk_adjustment_factor": 1.0,
+          "individual_risks": {
+            "정책_리스크": {
+              "risk_type": {},
+              "risk_level": {},
+              "score": 30.0,
+              "description": "정책 변화로 인한 낮은 리스크 최근 관련 뉴스 2건 발견",
+              "confidence": 0.8,
+              "sources": [
+                "정책_뉴스_2건"
+              ],
+              "last_updated": "2025-09-21T13:58:57.808065"
+            },
+            "ESG_리스크": {
+              "risk_type": {},
+              "risk_level": {},
+              "score": 40.0,
+              "description": "ESG 관련 보통 수준의 리스크",
+              "confidence": 0.7,
+              "sources": [
+                "ESG_뉴스_1건"
+              ],
+              "last_updated": "2025-09-21T13:58:57.808083"
+            },
+            "시장_감정_리스크": {
+              "risk_type": {},
+              "risk_level": {},
+              "score": 55.0,
+              "description": "시장 감정이 중립적이며 보통 수준의 리스크",
+              "confidence": 0.6,
+              "sources": [
+                "감정_분석_5건"
+              ],
+              "last_updated": "2025-09-21T13:58:57.808094"
+            }
+          },
+          "analysis_timestamp": "20250921_135857",
+          "status": "success"
+        },
+        "sector_analysis": {
+          "total_score": 75.0,
+          "sector_grade": "B+",
+          "breakdown": {
+            "재무_건전성": 80.0,
+            "성장성": 70.0,
+            "안정성": 75.0
+          }
+        },
+        "ml_prediction": null,
+        "financial_data": {
+          "symbol": "000150",
+          "name": "금융",
+          "current_price": 596000.0,
+          "volume": 197698.0,
+          "market_cap": 9848200000000.0,
+          "per": -56.43,
+          "pbr": 7.66,
+          "eps": -10562.0,
+          "bps": 77764.0,
+          "dividend_yield": 0.0,
+          "open_price": 606000.0,
+          "high_price": 617000.0,
+          "low_price": 594000.0,
+          "prev_close": 596000.0,
+          "change_price": 0.0,
+          "change_rate": 0.0,
+          "trading_value": 118320109000.0,
+          "listed_shares": 16523835.0,
+          "foreign_holdings": 2742034.0,
+          "foreign_net_buy": 4319.0,
+          "program_net_buy": 8526.0,
+          "w52_high": 699500.0,
+          "w52_low": 159100.0,
+          "d250_high": 699500.0,
+          "d250_low": 131400.0,
+          "vol_turnover": 1.2,
+          "sector": "금융",
+          "market_status": "55",
+          "margin_rate": "60.00",
+          "credit_available": "Y",
+          "short_selling": "Y",
+          "investment_caution": "N",
+          "market_warning": "00",
+          "short_overheating": "N",
+          "management_stock": "N"
+        }
+      },
+      "enhanced_score": 43.71807761999705,
+      "error": "'int' object has no attribute 'lower'"
+    },
+    {
+      "symbol": "000180",
+      "name": "성창기업지주",
+      "basic_result": {
+        "symbol": "000180",
+        "name": "성창기업지주",
+        "sector": 26,
+        "analysis_date": "2025-09-21T13:58:58.049339",
+        "ultimate_score": 46.05672384199271,
+        "ultimate_grade": "C",
+        "investment_recommendation": "HOLD",
+        "confidence_level": "LOW",
+        "enhanced_score": 46.05672384199271,
+        "enhanced_grade": "C",
+        "score_breakdown": {
+          "투자의견": 13.05784316476967,
+          "추정실적": 12.284594962937327,
+          "재무비율": 18.21428571428571,
+          "성장성": 0.0,
+          "규모": 2.5,
+          "가격위치_페널티": 0.0
+        },
+        "financial_score": 18.21428571428571,
+        "price_position_penalty": 0.0,
+        "news_analysis": {
+          "sentiment_trend": "neutral",
+          "avg_sentiment": 0.5,
+          "news_count": 0,
+          "positive_count": 0,
+          "negative_count": 0,
+          "neutral_count": 0
+        },
+        "qualitative_risk_analysis": {
+          "comprehensive_risk_score": 40.9375,
+          "comprehensive_risk_level": "보통",
+          "risk_adjustment_factor": 1.0,
+          "individual_risks": {
+            "정책_리스크": {
+              "risk_type": {},
+              "risk_level": {},
+              "score": 30.0,
+              "description": "정책 변화로 인한 낮은 리스크 최근 관련 뉴스 2건 발견",
+              "confidence": 0.8,
+              "sources": [
+                "정책_뉴스_2건"
+              ],
+              "last_updated": "2025-09-21T13:58:58.048802"
+            },
+            "ESG_리스크": {
+              "risk_type": {},
+              "risk_level": {},
+              "score": 40.0,
+              "description": "ESG 관련 보통 수준의 리스크",
+              "confidence": 0.7,
+              "sources": [
+                "ESG_뉴스_1건"
+              ],
+              "last_updated": "2025-09-21T13:58:58.048814"
+            },
+            "시장_감정_리스크": {
+              "risk_type": {},
+              "risk_level": {},
+              "score": 55.0,
+              "description": "시장 감정이 중립적이며 보통 수준의 리스크",
+              "confidence": 0.6,
+              "sources": [
+                "감정_분석_5건"
+              ],
+              "last_updated": "2025-09-21T13:58:58.048822"
+            }
+          },
+          "analysis_timestamp": "20250921_135858",
+          "status": "success"
+        },
+        "sector_analysis": {
+          "total_score": 75.0,
+          "sector_grade": "B+",
+          "breakdown": {
+            "재무_건전성": 80.0,
+            "성장성": 70.0,
+            "안정성": 75.0
+          }
+        },
+        "ml_prediction": null,
+        "financial_data": {
+          "symbol": "000180",
+          "name": "일반서비스",
+          "current_price": 1710.0,
+          "volume": 54574.0,
+          "market_cap": 119300000000.0,
+          "per": -33.53,
+          "pbr": 0.21,
+          "eps": -51.0,
+          "bps": 8292.0,
+          "dividend_yield": 0.0,
+          "open_price": 1693.0,
+          "high_price": 1715.0,
+          "low_price": 1691.0,
+          "prev_close": 1692.0,
+          "change_price": 18.0,
+          "change_rate": 1.06,
+          "trading_value": 92971289.0,
+          "listed_shares": 69751600.0,
+          "foreign_holdings": 1000928.0,
+          "foreign_net_buy": 11161.0,
+          "program_net_buy": 10899.0,
+          "w52_high": 1866.0,
+          "w52_low": 1121.0,
+          "d250_high": 1866.0,
+          "d250_low": 1121.0,
+          "vol_turnover": 0.08,
+          "sector": "일반서비스",
+          "market_status": "57",
+          "margin_rate": "100.00",
+          "credit_available": "N",
+          "short_selling": "Y",
+          "investment_caution": "N",
+          "market_warning": "00",
+          "short_overheating": "N",
+          "management_stock": "N"
+        }
+      },
+      "enhanced_score": 46.05672384199271,
+      "error": "'int' object has no attribute 'lower'"
+    }
+  ]
+}

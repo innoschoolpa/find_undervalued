@@ -95,6 +95,28 @@ class KISDataProvider:
                 else:
                     logger.error(f"❌ API 타임아웃 ({tr_id}): {e}")
                     return None
+            except requests.exceptions.HTTPError as e:
+                if e.response.status_code == 500:
+                    if attempt < max_retries:
+                        backoff = 0.3 * (2 ** attempt) + random.uniform(0, 0.2)
+                        logger.warning(f"⚠️ 서버 내부 오류 (500) - {backoff:.1f}초 후 재시도 ({attempt + 1}/{max_retries}) ({tr_id}): {e}")
+                        time.sleep(backoff)
+                        continue
+                    else:
+                        logger.error(f"❌ 서버 내부 오류 (500) - 최대 재시도 횟수 초과 ({tr_id}): {e}")
+                        return None
+                elif e.response.status_code == 429:
+                    if attempt < max_retries:
+                        backoff = 5 * (attempt + 1)  # 5초, 10초, 15초
+                        logger.warning(f"⚠️ API 호출 한도 초과 (429) - {backoff}초 후 재시도 ({attempt + 1}/{max_retries}) ({tr_id}): {e}")
+                        time.sleep(backoff)
+                        continue
+                    else:
+                        logger.error(f"❌ API 호출 한도 초과 (429) - 최대 재시도 횟수 초과 ({tr_id}): {e}")
+                        return None
+                else:
+                    logger.error(f"❌ HTTP 오류 ({e.response.status_code}) ({tr_id}): {e}")
+                    return None
             except requests.RequestException as e:
                 logger.error(f"❌ API 호출 실패 ({tr_id}): {e}")
                 return None

@@ -35,117 +35,164 @@ class EstimatePerformanceClient:
             time.sleep(self.request_interval - elapsed_time)
         self.last_request_time = time.time()
 
-    def _send_request(self, request_data: EstimatePerformanceRequest) -> Optional[EstimatePerformanceResponse]:
-        """추정실적 API 요청을 전송합니다."""
-        self._rate_limit()
+    def _send_request(self, request_data: EstimatePerformanceRequest, max_retries: int = 3) -> Optional[EstimatePerformanceResponse]:
+        """추정실적 API 요청을 전송합니다 (재시도 로직 포함)."""
         
-        # 헤더 구성
-        token = self.token_manager.get_valid_token()
-        headers = {
-            "content-type": request_data.content_type,
-            "authorization": f"Bearer {token}",
-            "appkey": request_data.appkey,
-            "appsecret": request_data.appsecret,
-            "tr_id": request_data.tr_id,
-            "custtype": request_data.custtype
-        }
-        
-        # 선택적 헤더 추가
-        if request_data.personalseckey:
-            headers["personalseckey"] = request_data.personalseckey
-        if request_data.tr_cont:
-            headers["tr_cont"] = request_data.tr_cont
-        if request_data.seq_no:
-            headers["seq_no"] = request_data.seq_no
-        if request_data.mac_address:
-            headers["mac_address"] = request_data.mac_address
-        if request_data.phone_number:
-            headers["phone_number"] = request_data.phone_number
-        if request_data.ip_addr:
-            headers["ip_addr"] = request_data.ip_addr
-        if request_data.gt_uid:
-            headers["gt_uid"] = request_data.gt_uid
+        for attempt in range(max_retries + 1):
+            try:
+                self._rate_limit()
+                
+                # 헤더 구성
+                token = self.token_manager.get_valid_token()
+                headers = {
+                    "content-type": request_data.content_type,
+                    "authorization": f"Bearer {token}",
+                    "appkey": request_data.appkey,
+                    "appsecret": request_data.appsecret,
+                    "tr_id": request_data.tr_id,
+                    "custtype": request_data.custtype
+                }
+                
+                # 선택적 헤더 추가
+                if request_data.personalseckey:
+                    headers["personalseckey"] = request_data.personalseckey
+                if request_data.tr_cont:
+                    headers["tr_cont"] = request_data.tr_cont
+                if request_data.seq_no:
+                    headers["seq_no"] = request_data.seq_no
+                if request_data.mac_address:
+                    headers["mac_address"] = request_data.mac_address
+                if request_data.phone_number:
+                    headers["phone_number"] = request_data.phone_number
+                if request_data.ip_addr:
+                    headers["ip_addr"] = request_data.ip_addr
+                if request_data.gt_uid:
+                    headers["gt_uid"] = request_data.gt_uid
 
-        # 쿼리 파라미터 구성
-        params = {
-            "SHT_CD": request_data.SHT_CD
-        }
+                # 쿼리 파라미터 구성
+                params = {
+                    "SHT_CD": request_data.SHT_CD
+                }
 
-        url = f"{self.base_url}/uapi/domestic-stock/v1/quotations/estimate-perform"
-        
-        try:
-            logger.info(f"🔍 추정실적 API 요청: {request_data.SHT_CD}")
-            
-            response = self.session.get(url, headers=headers, params=params, timeout=30)
-            response.raise_for_status()
-            data = response.json()
-            
-            # API 응답 검증
-            if data.get('rt_cd') != '0':
-                logger.warning(f"⚠️ API 오류 ({request_data.tr_id}|{request_data.SHT_CD}): {data.get('msg1', '알 수 없는 오류')}")
+                url = f"{self.base_url}/uapi/domestic-stock/v1/quotations/estimate-perform"
+                
+                if attempt == 0:
+                    logger.info(f"🔍 추정실적 API 요청: {request_data.SHT_CD}")
+                else:
+                    logger.info(f"🔄 추정실적 API 재시도 ({attempt + 1}/{max_retries + 1}): {request_data.SHT_CD}")
+                
+                response = self.session.get(url, headers=headers, params=params, timeout=30)
+                response.raise_for_status()
+                data = response.json()
+                
+                # API 응답 검증
+                if data.get('rt_cd') != '0':
+                    logger.warning(f"⚠️ API 오류 ({request_data.tr_id}|{request_data.SHT_CD}): {data.get('msg1', '알 수 없는 오류')}")
+                    return None
+                
+                # 응답 데이터 파싱
+                output1_data = data.get('output1', {})
+                stock_basic_info = StockBasicInfo(
+                    sht_cd=output1_data.get('sht_cd', ''),
+                    item_kor_nm=output1_data.get('item_kor_nm', ''),
+                    name1=output1_data.get('name1', ''),
+                    name2=output1_data.get('name2', ''),
+                    estdate=output1_data.get('estdate', ''),
+                    rcmd_name=output1_data.get('rcmd_name', ''),
+                    capital=output1_data.get('capital', ''),
+                    forn_item_lmtrt=output1_data.get('forn_item_lmtrt', '')
+                )
+                
+                # 추정손익계산서 데이터 (output2 - 6개월)
+                output2_data = data.get('output2', [])
+                financial_data_list = []
+                for item in output2_data:
+                    financial_data_list.append(FinancialData(
+                        data1=item.get('data1', ''),
+                        data2=item.get('data2', ''),
+                        data3=item.get('data3', ''),
+                        data4=item.get('data4', ''),
+                        data5=item.get('data5', '')
+                    ))
+                
+                # 투자지표 데이터 (output3 - 8개월)
+                output3_data = data.get('output3', [])
+                investment_indicator_list = []
+                for item in output3_data:
+                    investment_indicator_list.append(InvestmentIndicator(
+                        data1=item.get('data1', ''),
+                        data2=item.get('data2', ''),
+                        data3=item.get('data3', ''),
+                        data4=item.get('data4', ''),
+                        data5=item.get('data5', '')
+                    ))
+                
+                # 결산년월 정보 (output4)
+                output4_data = data.get('output4', [])
+                settlement_info_list = []
+                for item in output4_data:
+                    settlement_info_list.append(SettlementInfo(
+                        dt=item.get('dt', '')
+                    ))
+                
+                return EstimatePerformanceResponse(
+                    rt_cd=data.get('rt_cd', ''),
+                    msg_cd=data.get('msg_cd', ''),
+                    msg1=data.get('msg1', ''),
+                    output1=stock_basic_info,
+                    output2=financial_data_list,
+                    output3=investment_indicator_list,
+                    output4=settlement_info_list
+                )
+                
+            except requests.exceptions.HTTPError as e:
+                if e.response.status_code == 500:
+                    if attempt < max_retries:
+                        wait_time = 2 ** attempt  # 지수 백오프: 1초, 2초, 4초
+                        logger.warning(f"⚠️ 서버 내부 오류 (500) - {wait_time}초 후 재시도 ({attempt + 1}/{max_retries + 1}) ({request_data.SHT_CD}): {e}")
+                        time.sleep(wait_time)
+                        continue
+                    else:
+                        logger.error(f"❌ 서버 내부 오류 (500) - 최대 재시도 횟수 초과 ({request_data.SHT_CD}): {e}")
+                        return None
+                elif e.response.status_code == 429:
+                    if attempt < max_retries:
+                        wait_time = 5 * (attempt + 1)  # 5초, 10초, 15초
+                        logger.warning(f"⚠️ API 호출 한도 초과 (429) - {wait_time}초 후 재시도 ({attempt + 1}/{max_retries + 1}) ({request_data.SHT_CD}): {e}")
+                        time.sleep(wait_time)
+                        continue
+                    else:
+                        logger.error(f"❌ API 호출 한도 초과 (429) - 최대 재시도 횟수 초과 ({request_data.SHT_CD}): {e}")
+                        return None
+                else:
+                    logger.error(f"❌ HTTP 오류 ({e.response.status_code}) ({request_data.SHT_CD}): {e}")
+                    return None
+            except requests.exceptions.ConnectionError as e:
+                if attempt < max_retries:
+                    wait_time = 2 ** attempt
+                    logger.warning(f"⚠️ 연결 오류 - {wait_time}초 후 재시도 ({attempt + 1}/{max_retries + 1}) ({request_data.SHT_CD}): {e}")
+                    time.sleep(wait_time)
+                    continue
+                else:
+                    logger.error(f"❌ 연결 오류 - 최대 재시도 횟수 초과 ({request_data.SHT_CD}): {e}")
+                    return None
+            except requests.exceptions.Timeout as e:
+                if attempt < max_retries:
+                    wait_time = 2 ** attempt
+                    logger.warning(f"⚠️ 요청 시간 초과 - {wait_time}초 후 재시도 ({attempt + 1}/{max_retries + 1}) ({request_data.SHT_CD}): {e}")
+                    time.sleep(wait_time)
+                    continue
+                else:
+                    logger.error(f"❌ 요청 시간 초과 - 최대 재시도 횟수 초과 ({request_data.SHT_CD}): {e}")
+                    return None
+            except requests.RequestException as e:
+                logger.error(f"❌ API 호출 실패 ({request_data.tr_id}|{request_data.SHT_CD}): {e}")
                 return None
-            
-            # 응답 데이터 파싱
-            output1_data = data.get('output1', {})
-            stock_basic_info = StockBasicInfo(
-                sht_cd=output1_data.get('sht_cd', ''),
-                item_kor_nm=output1_data.get('item_kor_nm', ''),
-                name1=output1_data.get('name1', ''),
-                name2=output1_data.get('name2', ''),
-                estdate=output1_data.get('estdate', ''),
-                rcmd_name=output1_data.get('rcmd_name', ''),
-                capital=output1_data.get('capital', ''),
-                forn_item_lmtrt=output1_data.get('forn_item_lmtrt', '')
-            )
-            
-            # 추정손익계산서 데이터 (output2 - 6개월)
-            output2_data = data.get('output2', [])
-            financial_data_list = []
-            for item in output2_data:
-                financial_data_list.append(FinancialData(
-                    data1=item.get('data1', ''),
-                    data2=item.get('data2', ''),
-                    data3=item.get('data3', ''),
-                    data4=item.get('data4', ''),
-                    data5=item.get('data5', '')
-                ))
-            
-            # 투자지표 데이터 (output3 - 8개월)
-            output3_data = data.get('output3', [])
-            investment_indicator_list = []
-            for item in output3_data:
-                investment_indicator_list.append(InvestmentIndicator(
-                    data1=item.get('data1', ''),
-                    data2=item.get('data2', ''),
-                    data3=item.get('data3', ''),
-                    data4=item.get('data4', ''),
-                    data5=item.get('data5', '')
-                ))
-            
-            # 결산년월 정보 (output4)
-            output4_data = data.get('output4', [])
-            settlement_info_list = []
-            for item in output4_data:
-                settlement_info_list.append(SettlementInfo(
-                    dt=item.get('dt', '')
-                ))
-            
-            return EstimatePerformanceResponse(
-                rt_cd=data.get('rt_cd', ''),
-                msg_cd=data.get('msg_cd', ''),
-                msg1=data.get('msg1', ''),
-                output1=stock_basic_info,
-                output2=financial_data_list,
-                output3=investment_indicator_list,
-                output4=settlement_info_list
-            )
-            
-        except requests.RequestException as e:
-            logger.error(f"❌ API 호출 실패 ({request_data.tr_id}): {e}")
-            return None
-        except Exception as e:
-            logger.error(f"❌ 데이터 파싱 오류: {e}")
-            return None
+            except Exception as e:
+                logger.error(f"❌ 데이터 파싱 오류 ({request_data.SHT_CD}): {e}")
+                return None
+        
+        return None
 
     def get_estimate_performance(self, symbol: str) -> Optional[ProcessedEstimatePerformance]:
         """

@@ -112,11 +112,25 @@ class InvestmentOpinionClient:
                 output=output_data
             )
             
+        except requests.exceptions.HTTPError as e:
+            if e.response.status_code == 500:
+                logger.warning(f"⚠️ 서버 내부 오류 (500) - 일시적 문제일 수 있습니다 ({request_data.FID_INPUT_ISCD}): {e}")
+            elif e.response.status_code == 429:
+                logger.warning(f"⚠️ API 호출 한도 초과 (429) - 잠시 대기 후 재시도하세요 ({request_data.FID_INPUT_ISCD}): {e}")
+            else:
+                logger.error(f"❌ HTTP 오류 ({e.response.status_code}) ({request_data.FID_INPUT_ISCD}): {e}")
+            return None
+        except requests.exceptions.ConnectionError as e:
+            logger.error(f"❌ 연결 오류 ({request_data.FID_INPUT_ISCD}): {e}")
+            return None
+        except requests.exceptions.Timeout as e:
+            logger.error(f"❌ 요청 시간 초과 ({request_data.FID_INPUT_ISCD}): {e}")
+            return None
         except requests.RequestException as e:
-            logger.error(f"❌ API 호출 실패 ({request_data.tr_id}): {e}")
+            logger.error(f"❌ API 호출 실패 ({request_data.tr_id}|{request_data.FID_INPUT_ISCD}): {e}")
             return None
         except Exception as e:
-            logger.error(f"❌ 데이터 파싱 오류: {e}")
+            logger.error(f"❌ 데이터 파싱 오류 ({request_data.FID_INPUT_ISCD}): {e}")
             return None
 
     def get_investment_opinions(

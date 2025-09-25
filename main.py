@@ -11,8 +11,9 @@ import os
 import json
 import time
 from datetime import datetime
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional, Union
 from concurrent.futures import ThreadPoolExecutor, TimeoutError as FutureTimeout
+from decimal import Decimal
 
 import typer
 from rich.console import Console
@@ -28,24 +29,63 @@ console = Console()
 
 # --- Constants ---
 PREFERRED_STOCK_SUFFIXES = {"우", "우B", "우(전환)", "우선", "1우", "2우"}
-ANALYSIS_TIMEOUT_SECONDS = 30
+ANALYSIS_TIMEOUT_SECONDS_DEFAULT = 30
+MAX_RETRY_PER_STOCK = 1  # 경량 재시도 1회
 
 # --- Helper Functions ---
 
 def serialize_for_json(obj):
-    """Convert objects to JSON-serializable format"""
-    if hasattr(obj, '__dict__'):
-        # Convert objects with __dict__ to dictionary
-        return {key: serialize_for_json(value) for key, value in obj.__dict__.items()}
-    elif isinstance(obj, dict):
-        return {key: serialize_for_json(value) for key, value in obj.items()}
-    elif isinstance(obj, list):
-        return [serialize_for_json(item) for item in obj]
-    elif isinstance(obj, (str, int, float, bool, type(None))):
+    """
+    Convert various Python/NumPy/Decimal/Datetime containers to JSON-serializable.
+    - Handles: dict/list/tuple/set, numpy scalars/arrays (flatten basic), Decimal, datetime/date, objects with __dict__
+    """
+    import numpy as np
+    from datetime import date, datetime
+
+    if obj is None or isinstance(obj, (str, int, float, bool)):
         return obj
-    else:
-        # For other types, try to convert to string
-        return str(obj)
+    if isinstance(obj, Decimal):
+        return float(obj)
+    if isinstance(obj, (datetime, date)):
+        return obj.isoformat()
+    if hasattr(obj, "tolist"):  # numpy arrays
+        try:
+            return obj.tolist()
+        except Exception:
+            pass
+    # numpy scalars
+    np_types = ("int_", "int8", "int16", "int32", "int64",
+                "float_", "float16", "float32", "float64", "bool_")
+    if obj.__class__.__name__ in np_types:
+        try:
+            return obj.item()
+        except Exception:
+            return float(obj)
+    if isinstance(obj, dict):
+        return {serialize_for_json(k): serialize_for_json(v) for k, v in obj.items()}
+    if isinstance(obj, (list, tuple, set)):
+        return [serialize_for_json(x) for x in obj]
+    if hasattr(obj, "__dict__"):
+        return {k: serialize_for_json(v) for k, v in obj.__dict__.items()}
+    return str(obj)
+
+def _safe_str(x: Any) -> str:
+    try:
+        return str(x) if x is not None else ""
+    except Exception:
+        return ""
+
+def _is_preferred_stock_name(name: Optional[str]) -> bool:
+    """
+    우선주 식별: 접미형('우','1우','2우','우B','우선'), 괄호 표기('우(전환)') 등 정규식 기반.
+    - 부분 포함이 아닌 '정규 패턴'으로만 판정하여 오검출 축소
+    """
+    if not name:
+        return False
+    import re
+    # 공백/괄호/숫자 변형 포함, 예: 삼성전자우, 삼성전자 1우, 삼성전자우B, 삼성전자우(전환)
+    pattern = r"(우|[12]우|우B|우선)(?:$|\)|\s)"
+    return bool(re.search(pattern, name))
 
 def _update_kospi_master_data() -> bool:
     """
@@ -87,19 +127,38 @@ def _get_stock_name(analyzer: EnhancedIntegratedAnalyzer, symbol: str) -> str:
         The stock name or the symbol itself as a fallback.
     """
     # Ensure symbol is string and properly formatted
-    symbol_str = str(symbol).zfill(6)  # Pad with zeros to 6 digits
+    symbol_str = _safe_str(symbol).zfill(6)  # Pad with zeros to 6 digits
     
-    # Try to get from KOSPI index first
-    if hasattr(analyzer, '_kospi_index') and analyzer._kospi_index:
+    # Try to get from KOSPI index first (dict / DataFrame / Series 모두 대응)
+    if hasattr(analyzer, '_kospi_index') and analyzer._kospi_index is not None:
         try:
-            # Try both original symbol and zero-padded symbol
-            for test_symbol in [symbol_str, str(symbol)]:
-                if test_symbol in analyzer._kospi_index:
-                    row = analyzer._kospi_index[test_symbol]
-                    if hasattr(row, '한글명'):
-                        return str(row.한글명)
-                    elif hasattr(row, 'name'):
-                        return str(row.name)
+            idx = analyzer._kospi_index
+            for test_symbol in (symbol_str, _safe_str(symbol)):
+                # dict-like
+                if isinstance(idx, dict) and test_symbol in idx:
+                    row = idx[test_symbol]
+                    name = None
+                    if isinstance(row, dict):
+                        name = row.get("한글명") or row.get("name")
+                    else:
+                        # pandas Series / namedtuple / object
+                        name = getattr(row, "한글명", None) or getattr(row, "name", None)
+                    if name:
+                        return _safe_str(name)
+                # pandas DataFrame
+                try:
+                    import pandas as pd
+                    if "DataFrame" in type(idx).__name__:
+                        if test_symbol in getattr(idx, "index", []):
+                            row = idx.loc[test_symbol]
+                            name = None
+                            if hasattr(row, "to_dict"):
+                                rd = row.to_dict()
+                                name = rd.get("한글명") or rd.get("name")
+                            if name:
+                                return _safe_str(name)
+                except Exception:
+                    pass
         except Exception as e:
             console.print(f"[yellow]⚠️ Error getting stock name for {symbol}: {e}[/yellow]")
     
@@ -111,9 +170,10 @@ def _get_stock_name(analyzer: EnhancedIntegratedAnalyzer, symbol: str) -> str:
             pass  # Fallback to the next method
     
     # If all else fails, return the symbol
-    return symbol
+    return symbol_str
 
-def _run_analysis_on_symbols(analyzer: EnhancedIntegratedAnalyzer, symbols: List[str]) -> List[Dict[str, Any]]:
+def _run_analysis_on_symbols(analyzer: EnhancedIntegratedAnalyzer, symbols: List[str],
+                             analysis_timeout_sec: int) -> List[Dict[str, Any]]:
     """
     Runs the enhanced analysis for a list of stock symbols with a progress bar and timeout.
 
@@ -134,14 +194,29 @@ def _run_analysis_on_symbols(analyzer: EnhancedIntegratedAnalyzer, symbols: List
             
             result_data = None
             try:
-                with ThreadPoolExecutor(max_workers=1) as executor:
-                    start_time = time.time()
-                    future = executor.submit(analyzer.analyze_single_stock_enhanced, symbol, stock_name)
-                    result_data = future.result(timeout=ANALYSIS_TIMEOUT_SECONDS)
-                    elapsed = time.time() - start_time
-                    console.print(f"✅ Analysis for {symbol} complete ({elapsed:.1f}s)")
+                attempts = 0
+                last_err: Optional[Exception] = None
+                while attempts <= MAX_RETRY_PER_STOCK:
+                    attempts += 1
+                    with ThreadPoolExecutor(max_workers=1) as executor:
+                        start_time = time.time()
+                        future = executor.submit(analyzer.analyze_single_stock_enhanced, symbol, stock_name)
+                        try:
+                            result_data = future.result(timeout=analysis_timeout_sec)
+                            elapsed = time.time() - start_time
+                            console.print(f"✅ Analysis for {symbol} complete ({elapsed:.1f}s){' (retry)' if attempts>1 else ''}")
+                            break
+                        except FutureTimeout as te:
+                            last_err = te
+                            console.print(f"[red]⏱️ Analysis for {symbol} timed out (>{analysis_timeout_sec}s){' - retrying' if attempts<=MAX_RETRY_PER_STOCK else ''}[/red]")
+                        except Exception as e:
+                            last_err = e
+                            console.print(f"[red]❌ Error analyzing {symbol}: {e}{' - retrying' if attempts<=MAX_RETRY_PER_STOCK else ''}[/red]")
+                if result_data is None and last_err:
+                    console.print(f"[yellow]↪ Skipped {symbol} after retries: {last_err}[/yellow]")
             except FutureTimeout:
-                console.print(f"[red]⏱️ Analysis for {symbol} timed out (>{ANALYSIS_TIMEOUT_SECONDS}s)[/red]")
+                # 이 블록은 이론상 도달하지 않음(상단에서 처리)
+                console.print(f"[red]⏱️ Analysis for {symbol} timed out[/red]")
             except Exception as e:
                 console.print(f"[red]❌ Error analyzing {symbol}: {e}[/red]")
 
@@ -165,14 +240,15 @@ def calculate_valuation_score(stock_info: Dict[str, Any]) -> float:
     """
     score = 0.0
     
-    # Scoring tiers: (metric_value, [(threshold, points), ...])
+    # 단위 주의:
+    # - market_cap: 100M KRW(=억) 기준으로 들어온다고 가정 (표시 로직과 일치)
+    # - per/pbr/roe/volume: analyzer 출력 형식을 그대로 사용
     scoring_map = {
         'per': (stock_info.get('per', 0), [(10, 30), (15, 25), (20, 20), (30, 15)]),
         'pbr': (stock_info.get('pbr', 0), [(1, 25), (1.5, 20), (2, 15), (3, 10)]),
         'roe': (stock_info.get('roe', 0), [(-float('inf'), 0), (5, 5), (10, 10), (15, 15), (20, 20)]), # Reversed for increasing score
-        'market_cap': (stock_info.get('market_cap', 0), [
-            (500, 10), (1000, 15), (50000, 10), (100000, 5) # Score for ranges
-        ]),
+        # market_cap tiers는 아래의 범위 가점 로직으로만 사용(중복 가중 제거)
+        'market_cap': (stock_info.get('market_cap', 0), []),
         'volume': (stock_info.get('volume', 0), [(-float('inf'), 0), (500000, 5), (1000000, 10)]) # Reversed for increasing score
     }
 
@@ -199,7 +275,8 @@ def calculate_valuation_score(stock_info: Dict[str, Any]) -> float:
         score += points_to_add
 
     # Market Cap (specific ranges are better)
-    market_cap, tiers = scoring_map['market_cap']
+    market_cap, _ = scoring_map['market_cap']
+    # 1000억~5조 구간 가점 (중형~대형의 유동성·안정성 균형)
     if 1000 <= market_cap <= 50000:
         score += 15
     elif 500 <= market_cap < 1000 or 50000 < market_cap <= 100000:
@@ -216,6 +293,7 @@ def find_undervalued_stocks(
     symbols_str: str = typer.Option(None, "--symbols", "-s", help="Comma-separated stock symbols. Fetches top market cap stocks if empty."),
     count: int = typer.Option(15, "--count", "-c", help="Number of stocks to fetch if symbols are not provided."),
     min_market_cap: float = typer.Option(500, "--min-market-cap", help="Minimum market cap in 100M KRW (e.g., 500 for 50B KRW)."),
+    analysis_timeout_sec: int = typer.Option(ANALYSIS_TIMEOUT_SECONDS_DEFAULT, "--analysis-timeout", help="Per-stock analysis timeout seconds."),
 ):
     """Analyzes and ranks specified stocks by a custom valuation score."""
     analyzer = EnhancedIntegratedAnalyzer()
@@ -239,7 +317,7 @@ def find_undervalued_stocks(
         console.print("[red]No stocks to analyze.[/red]")
         return
         
-    analysis_results = _run_analysis_on_symbols(analyzer, symbols)
+    analysis_results = _run_analysis_on_symbols(analyzer, symbols, analysis_timeout_sec)
     
     if not analysis_results:
         console.print("[red]❌ No analysis results were generated.[/red]")
@@ -303,12 +381,15 @@ def find_optimized_undervalued_stocks(
     symbols_str: str = typer.Option(None, "--symbols", "-s", help="Comma-separated stock symbols. Fetches top stocks if empty."),
     count: int = typer.Option(50, "--count", "-c", help="Number of top stocks to analyze if symbols are not provided."),
     min_market_cap: float = typer.Option(1000, "--min-market-cap", help="Minimum market cap in 100M KRW."),
-    exclude_preferred: bool = typer.Option(True, "--exclude-preferred", help="Exclude preferred stocks from analysis.")
+    exclude_preferred: bool = typer.Option(True, "--exclude-preferred", help="Exclude preferred stocks from analysis."),
+    skip_kospi_update: bool = typer.Option(False, "--skip-kospi-update", help="Skip KOSPI master data auto-update step."),
+    analysis_timeout_sec: int = typer.Option(ANALYSIS_TIMEOUT_SECONDS_DEFAULT, "--analysis-timeout", help="Per-stock analysis timeout seconds."),
 ):
     """Recommends optimized undervalued stocks based on a comprehensive analysis score."""
     console.print("🚀 [bold green]Optimized Undervalued Stock Recommendation System[/bold green]")
     
-    _update_kospi_master_data()
+    if not skip_kospi_update:
+        _update_kospi_master_data()
     
     analyzer = EnhancedIntegratedAnalyzer()
     symbols = []
@@ -326,10 +407,12 @@ def find_optimized_undervalued_stocks(
 
             if exclude_preferred:
                 initial_count = len(top_stocks)
-                top_stocks = [
-                    stock for stock in top_stocks
-                    if not any(suffix in (_get_stock_name(analyzer, stock['symbol'])) for suffix in PREFERRED_STOCK_SUFFIXES)
-                ]
+                filtered = []
+                for stock in top_stocks:
+                    nm = _get_stock_name(analyzer, stock['symbol'])
+                    if not _is_preferred_stock_name(nm):
+                        filtered.append(stock)
+                top_stocks = filtered
                 console.print(f"🚫 Excluded {initial_count - len(top_stocks)} preferred stocks.")
             
             symbols = [stock['symbol'] for stock in top_stocks]
@@ -343,7 +426,7 @@ def find_optimized_undervalued_stocks(
         return
     
     console.print("\n📊 [bold yellow]Step 2: Executing Detailed Analysis[/bold yellow]")
-    analysis_results = _run_analysis_on_symbols(analyzer, symbols)
+    analysis_results = _run_analysis_on_symbols(analyzer, symbols, analysis_timeout_sec)
     
     if not analysis_results:
         console.print("[red]❌ No analysis results were generated.[/red]")
@@ -355,20 +438,23 @@ def find_optimized_undervalued_stocks(
 
     console.print(f"\n📈 [bold green]TOP {len(top_picks)} Optimized Undervalued Stock Recommendations[/bold green]")
     rec_table = Table(title="Optimized Stock Recommendations")
-    headers = ["Rank", "Symbol", "Name", "Overall Score", "Grade", "Price", "Market Cap", "PER", "PBR", "ROE"]
-    styles = ["cyan", "cyan", "white", "bold green", "blue", "magenta", "cyan", "yellow", "yellow", "yellow"]
-    justifies = ["center", "left", "left", "right", "center", "right", "right", "right", "right", "right"]
+    headers = ["Rank", "Symbol", "Name", "Overall Score", "Grade", "Price", "Market Cap", "PER", "PBR", "ROE", "52W Position"]
+    styles = ["cyan", "cyan", "white", "bold green", "blue", "magenta", "cyan", "yellow", "yellow", "yellow", "magenta"]
+    justifies = ["center", "left", "left", "right", "center", "right", "right", "right", "right", "right", "right"]
 
     for header, style, justify in zip(headers, styles, justifies):
         rec_table.add_column(header, style=style, justify=justify)
 
     for i, stock in enumerate(top_picks, 1):
         fin_data = stock.get('financial_data', {})
+        price_position = stock.get('price_position')
+        position_text = f"{price_position:.1f}%" if price_position is not None else "N/A"
         rec_table.add_row(
             str(i), stock['symbol'], stock.get('name', 'N/A')[:10],
             f"{stock.get('enhanced_score', 0):.1f}", stock.get('enhanced_grade', 'F'),
             f"{stock.get('current_price', 0):,} KRW", f"{stock.get('market_cap', 0):,}억",
-            f"{fin_data.get('per', 0):.2f}", f"{fin_data.get('pbr', 0):.2f}", f"{fin_data.get('roe', 0):.2f}%"
+            f"{fin_data.get('per', 0):.2f}", f"{fin_data.get('pbr', 0):.2f}", f"{fin_data.get('roe', 0):.2f}%",
+            position_text
         )
     console.print(rec_table)
 

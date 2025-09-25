@@ -1,0 +1,833 @@
+{
+  "metadata": {
+    "analysis_version": "2.0_enhanced",
+    "analysis_date": "2025-09-25T16:02:24.615249",
+    "analysis_time_seconds": 20.06622569996398,
+    "total_analyzed": 49,
+    "total_stocks_analyzed": 49,
+    "undervalued_count": 49,
+    "features_enabled": {
+      "realtime_data": true,
+      "external_data": false,
+      "enhanced_scoring": true
+    }
+  },
+  "top_recommendations": [
+    {
+      "symbol": "011200",
+      "name": "HMM",
+      "enhanced_score": 75.8288250797614,
+      "enhanced_grade": "A",
+      "market_cap": 218333.0,
+      "current_price": 21050.0,
+      "price_position": 51.31086142322098,
+      "w52_high": 26250.0,
+      "w52_low": 15570.0,
+      "per": 4.903331003959935,
+      "pbr": 0.6658231851969002,
+      "score_breakdown": {
+        "투자의견": 7.4074074074074066,
+        "추정실적": 9.25925925925926,
+        "재무비율": 44.44444444444444,
+        "성장성": 3.7037037037037033,
+        "규모": 7.4074074074074066,
+        "가격위치": 3.606602857539187,
+        "opinion_raw": 50.0,
+        "estimate_raw": 50.0,
+        "financial_raw": 100.0,
+        "growth_raw": 50.0,
+        "scale_raw": 100.0,
+        "price_position_raw": 48.68913857677902
+      },
+      "financial_data": {
+        "net_profit_margin": 22.11,
+        "gross_profit_margin": 20.19,
+        "profitability_grade": null,
+        "current_ratio": 718.47
+      },
+      "sector_analysis": {
+        "grade": "C+",
+        "total_score": 62.5,
+        "breakdown": {
+          "재무_건전성": 67.5,
+          "성장성": 50.0,
+          "안정성": 70.0
+        },
+        "is_leader": false
+      }
+    },
+    {
+      "symbol": "259960",
+      "name": "크래프톤",
+      "enhanced_score": 74.67364532019704,
+      "enhanced_grade": "B+",
+      "market_cap": 143365.0,
+      "current_price": 299500.0,
+      "price_position": 16.517857142857142,
+      "w52_high": 393000.0,
+      "w52_low": 281000.0,
+      "per": 11.026433988660628,
+      "pbr": 2.0771204660517375,
+      "score_breakdown": {
+        "투자의견": 6.896551724137931,
+        "추정실적": 8.620689655172415,
+        "재무비율": 35.4679802955665,
+        "성장성": 11.03448275862069,
+        "규모": 6.896551724137931,
+        "가격위치": 5.7573891625615765,
+        "opinion_raw": 50.0,
+        "estimate_raw": 50.0,
+        "financial_raw": 85.71428571428571,
+        "growth_raw": 80.0,
+        "scale_raw": 100.0,
+        "price_position_raw": 83.48214285714286
+      },
+      "financial_data": {
+        "roe": 11.33,
+        "roa": 10.084557187360927,
+        "debt_ratio": 12.35,
+        "equity_ratio": 87.65,
+        "revenue_growth_rate": 11.89,
+        "operating_income_growth_rate": 9.45,
+        "net_income_growth_rate": -43.92,
+        "net_profit_margin": 25.19,
+        "gross_profit_margin": 100.0,
+        "profitability_grade": null,
+        "current_ratio": 859.56
+      },
+      "sector_analysis": {
+        "grade": "C",
+        "total_score": 58.815054171983775,
+        "breakdown": {
+          "재무_건전성": 58.39516251595134,
+          "성장성": 48.05,
+          "안정성": 70.0
+        },
+        "is_leader": false
+      }
+    },
+    {
+      "symbol": "000660",
+      "name": "SK하이닉스",
+      "enhanced_score": 73.78754725627219,
+      "enhanced_grade": "B+",
+      "market_cap": 2602608.0,
+      "current_price": 356500.0,
+      "price_position": 96.36627906976744,
+      "w52_high": 364000.0,
+      "w52_low": 157600.0,
+      "per": 13.115296887646236,
+      "pbr": 3.4092973882773725,
+      "score_breakdown": {
+        "투자의견": 6.896551724137931,
+        "추정실적": 8.620689655172415,
+        "재무비율": 37.330049261083744,
+        "성장성": 13.793103448275861,
+        "규모": 6.896551724137931,
+        "가격위치": 0.25060144346431423,
+        "opinion_raw": 50.0,
+        "estimate_raw": 50.0,
+        "financial_raw": 90.21428571428572,
+        "growth_raw": 100.0,
+        "scale_raw": 100.0,
+        "price_position_raw": 3.633720930232556
+      },
+      "financial_data": {
+        "roe": 37.52,
+        "roa": 25.32910281509485,
+        "debt_ratio": 48.13,
+        "equity_ratio": 51.87,
+        "revenue_growth_rate": 38.19,
+        "operating_income_growth_rate": 99.33,
+        "net_income_growth_rate": 150.2,
+        "net_profit_margin": 37.88,
+        "gross_profit_margin": 55.39,
+        "profitability_grade": null,
+        "current_ratio": 178.5
+      },
+      "sector_analysis": {
+        "grade": "C+",
+        "total_score": 60.62823437078458,
+        "breakdown": {
+          "재무_건전성": 49.38470311235376,
+          "성장성": 62.5,
+          "안정성": 70.0
+        },
+        "is_leader": true
+      }
+    },
+    {
+      "symbol": "068270",
+      "name": "셀트리온",
+      "enhanced_score": 72.58897418585849,
+      "enhanced_grade": "B+",
+      "market_cap": 408531.0,
+      "current_price": 177900.0,
+      "price_position": 46.53130287648054,
+      "w52_high": 209500.0,
+      "w52_low": 150400.0,
+      "per": 99.44102850754612,
+      "pbr": 2.1480059405223315,
+      "score_breakdown": {
+        "투자의견": 6.896551724137931,
+        "추정실적": 8.620689655172415,
+        "재무비율": 35.45320197044335,
+        "성장성": 11.03448275862069,
+        "규모": 6.896551724137931,
+        "가격위치": 3.6874963533461695,
+        "opinion_raw": 50.0,
+        "estimate_raw": 50.0,
+        "financial_raw": 85.67857142857143,
+        "growth_raw": 80.0,
+        "scale_raw": 100.0,
+        "price_position_raw": 53.46869712351946
+      },
+      "financial_data": {
+        "roe": 200.0,
+        "roa": 162.12710765239947,
+        "debt_ratio": 23.36,
+        "equity_ratio": 76.64,
+        "revenue_growth_rate": 11.89,
+        "operating_income_growth_rate": 345.71,
+        "net_income_growth_rate": 72.98,
+        "net_profit_margin": 9.52,
+        "gross_profit_margin": 54.74,
+        "profitability_grade": null,
+        "current_ratio": 143.21
+      },
+      "sector_analysis": {
+        "grade": "C",
+        "total_score": 57.129985148694175,
+        "breakdown": {
+          "재무_건전성": 38.88995544608251,
+          "성장성": 62.5,
+          "안정성": 70.0
+        },
+        "is_leader": false
+      }
+    },
+    {
+      "symbol": "352820",
+      "name": "하이브",
+      "enhanced_score": 71.63176586212926,
+      "enhanced_grade": "B+",
+      "market_cap": 114959.0,
+      "current_price": 271500.0,
+      "price_position": 68.48225214198287,
+      "w52_high": 323000.0,
+      "w52_low": 159600.0,
+      "per": 500.0,
+      "pbr": 3.492545377362131,
+      "score_breakdown": {
+        "투자의견": 6.896551724137931,
+        "추정실적": 8.620689655172415,
+        "재무비율": 33.251231527093594,
+        "성장성": 13.793103448275861,
+        "규모": 6.896551724137931,
+        "가격위치": 2.173637783311526,
+        "opinion_raw": 50.0,
+        "estimate_raw": 50.0,
+        "financial_raw": 80.35714285714286,
+        "growth_raw": 100.0,
+        "scale_raw": 100.0,
+        "price_position_raw": 31.51774785801713
+      },
+      "financial_data": {
+        "roe": 490.00000000000006,
+        "roa": 304.40454743119835,
+        "debt_ratio": 60.97,
+        "equity_ratio": 39.03,
+        "revenue_growth_rate": 20.46,
+        "operating_income_growth_rate": 34.08,
+        "net_income_growth_rate": 229.5,
+        "net_profit_margin": 5.79,
+        "gross_profit_margin": 41.66,
+        "profitability_grade": null,
+        "current_ratio": 298.08
+      },
+      "sector_analysis": {
+        "grade": "C",
+        "total_score": 55.0,
+        "breakdown": {
+          "재무_건전성": 32.5,
+          "성장성": 62.5,
+          "안정성": 70.0
+        },
+        "is_leader": false
+      }
+    },
+    {
+      "symbol": "207940",
+      "name": "삼성바이오로직스",
+      "enhanced_score": 67.83195772028839,
+      "enhanced_grade": "B+",
+      "market_cap": 744480.0,
+      "current_price": 1022000.0,
+      "price_position": 38.079470198675494,
+      "w52_high": 1209000.0,
+      "w52_low": 907000.0,
+      "per": 67.14407726167795,
+      "pbr": 6.6704957836200816,
+      "score_breakdown": {
+        "투자의견": 6.896551724137931,
+        "추정실적": 8.620689655172415,
+        "재무비율": 27.354679802955665,
+        "성장성": 13.793103448275861,
+        "규모": 6.896551724137931,
+        "가격위치": 4.2703813656085865,
+        "opinion_raw": 50.0,
+        "estimate_raw": 50.0,
+        "financial_raw": 66.10714285714286,
+        "growth_raw": 100.0,
+        "scale_raw": 100.0,
+        "price_position_raw": 61.920529801324506
+      },
+      "financial_data": {
+        "roe": 12.44,
+        "roa": 8.121164642903773,
+        "debt_ratio": 53.18,
+        "equity_ratio": 46.82,
+        "revenue_growth_rate": 23.02,
+        "operating_income_growth_rate": 46.73,
+        "net_income_growth_rate": 40.73,
+        "net_profit_margin": 27.04,
+        "gross_profit_margin": 56.09,
+        "profitability_grade": null,
+        "current_ratio": 156.67
+      },
+      "sector_analysis": {
+        "grade": "D",
+        "total_score": 50.800000000000004,
+        "breakdown": {
+          "재무_건전성": 32.5,
+          "성장성": 49.9,
+          "안정성": 70.0
+        },
+        "is_leader": true
+      }
+    },
+    {
+      "symbol": "402340",
+      "name": "SK스퀘어",
+      "enhanced_score": 65.80264697938237,
+      "enhanced_grade": "B+",
+      "market_cap": 288276.0,
+      "current_price": 211000.0,
+      "price_position": 90.86161879895562,
+      "w52_high": 225000.0,
+      "w52_low": 71800.0,
+      "per": 7.715936517223725,
+      "pbr": 1.4847130844738416,
+      "score_breakdown": {
+        "투자의견": 6.896551724137931,
+        "추정실적": 8.620689655172415,
+        "재무비율": 41.37931034482759,
+        "성장성": 1.3793103448275863,
+        "규모": 6.896551724137931,
+        "가격위치": 0.6302331862789229,
+        "opinion_raw": 50.0,
+        "estimate_raw": 50.0,
+        "financial_raw": 100.0,
+        "growth_raw": 10.0,
+        "scale_raw": 100.0,
+        "price_position_raw": 9.138381201044382
+      },
+      "financial_data": {
+        "roe": 29.91,
+        "roa": 27.230517115804805,
+        "debt_ratio": 9.84,
+        "equity_ratio": 90.16,
+        "revenue_growth_rate": -16.28,
+        "operating_income_growth_rate": 0.0,
+        "net_income_growth_rate": 188.05,
+        "net_profit_margin": 377.98,
+        "gross_profit_margin": 100.0,
+        "profitability_grade": null,
+        "current_ratio": 233.61
+      },
+      "sector_analysis": {
+        "grade": "B",
+        "total_score": 65.45488395548206,
+        "breakdown": {
+          "재무_건전성": 63.86465186644619,
+          "성장성": 62.5,
+          "안정성": 70.0
+        },
+        "is_leader": false
+      }
+    },
+    {
+      "symbol": "034020",
+      "name": "두산에너빌리티",
+      "enhanced_score": 65.29375607522182,
+      "enhanced_grade": "B+",
+      "market_cap": 422129.0,
+      "current_price": 64000.0,
+      "price_position": 85.16910833785495,
+      "w52_high": 72200.0,
+      "w52_low": 16910.0,
+      "per": 367.81609195402297,
+      "pbr": 5.467281735861951,
+      "score_breakdown": {
+        "투자의견": 6.896551724137931,
+        "추정실적": 8.620689655172415,
+        "재무비율": 28.064039408866993,
+        "성장성": 13.793103448275861,
+        "규모": 6.896551724137931,
+        "가격위치": 1.022820114630693,
+        "opinion_raw": 50.0,
+        "estimate_raw": 50.0,
+        "financial_raw": 67.82142857142857,
+        "growth_raw": 100.0,
+        "scale_raw": 100.0,
+        "price_position_raw": 14.83089166214505
+      },
+      "financial_data": {
+        "roe": 165.0,
+        "roa": 72.93784811245689,
+        "debt_ratio": 126.22,
+        "equity_ratio": -26.22,
+        "revenue_growth_rate": 84.0,
+        "operating_income_growth_rate": -38.07,
+        "net_income_growth_rate": -63.34,
+        "net_profit_margin": 212.0,
+        "gross_profit_margin": 16.16,
+        "profitability_grade": null,
+        "current_ratio": 113.09
+      },
+      "sector_analysis": {
+        "grade": "C",
+        "total_score": 55.0,
+        "breakdown": {
+          "재무_건전성": 32.5,
+          "성장성": 62.5,
+          "안정성": 70.0
+        },
+        "is_leader": false
+      }
+    },
+    {
+      "symbol": "064350",
+      "name": "현대로템",
+      "enhanced_score": 63.33799823817351,
+      "enhanced_grade": "B",
+      "market_cap": 248844.0,
+      "current_price": 218500.0,
+      "price_position": 92.09902554648407,
+      "w52_high": 233500.0,
+      "w52_low": 43650.0,
+      "per": 58.61051502145923,
+      "pbr": 11.661418583551262,
+      "score_breakdown": {
+        "투자의견": 6.896551724137931,
+        "추정실적": 8.620689655172415,
+        "재무비율": 26.586206896551722,
+        "성장성": 13.793103448275861,
+        "규모": 6.896551724137931,
+        "가격위치": 0.5448947898976503,
+        "opinion_raw": 50.0,
+        "estimate_raw": 50.0,
+        "financial_raw": 64.25,
+        "growth_raw": 100.0,
+        "scale_raw": 100.0,
+        "price_position_raw": 7.9009744535159285
+      },
+      "financial_data": {
+        "roe": 29.41,
+        "roa": 12.591514321188509,
+        "debt_ratio": 133.57,
+        "equity_ratio": -33.56999999999999,
+        "revenue_growth_rate": 40.79,
+        "operating_income_growth_rate": 192.44,
+        "net_income_growth_rate": 121.58,
+        "net_profit_margin": 13.37,
+        "gross_profit_margin": 24.86,
+        "profitability_grade": null,
+        "current_ratio": 131.49
+      },
+      "sector_analysis": {
+        "grade": "C",
+        "total_score": 55.0,
+        "breakdown": {
+          "재무_건전성": 32.5,
+          "성장성": 62.5,
+          "안정성": 70.0
+        },
+        "is_leader": false
+      }
+    },
+    {
+      "symbol": "005490",
+      "name": "POSCO홀딩스",
+      "enhanced_score": 63.237274220032845,
+      "enhanced_grade": "B",
+      "market_cap": 223779.0,
+      "current_price": 281000.0,
+      "price_position": 31.845238095238095,
+      "w52_high": 395500.0,
+      "w52_low": 227500.0,
+      "per": 21.494683699227416,
+      "pbr": 0.4077161367082363,
+      "score_breakdown": {
+        "투자의견": 6.896551724137931,
+        "추정실적": 8.620689655172415,
+        "재무비율": 34.74384236453202,
+        "성장성": 1.3793103448275863,
+        "규모": 6.896551724137931,
+        "가격위치": 4.7003284072249585,
+        "opinion_raw": 50.0,
+        "estimate_raw": 50.0,
+        "financial_raw": 83.96428571428572,
+        "growth_raw": 10.0,
+        "scale_raw": 100.0,
+        "price_position_raw": 68.1547619047619
+      },
+      "financial_data": {
+        "roe": 168.0,
+        "roa": 100.62893081761007,
+        "debt_ratio": 66.95,
+        "equity_ratio": 33.05,
+        "revenue_growth_rate": -429.0,
+        "operating_income_growth_rate": -11.94,
+        "net_income_growth_rate": -62.91,
+        "net_profit_margin": 122.0,
+        "gross_profit_margin": 7.78,
+        "profitability_grade": null,
+        "current_ratio": 196.45
+      },
+      "sector_analysis": {
+        "grade": "C+",
+        "total_score": 62.83510543359086,
+        "breakdown": {
+          "재무_건전성": 56.005316300772584,
+          "성장성": 62.5,
+          "안정성": 70.0
+        },
+        "is_leader": false
+      }
+    },
+    {
+      "symbol": "267260",
+      "name": "HD현대일렉트릭",
+      "enhanced_score": 62.22211336215461,
+      "enhanced_grade": "B",
+      "market_cap": 211957.0,
+      "current_price": 587000.0,
+      "price_position": 89.70792767732962,
+      "w52_high": 624000.0,
+      "w52_low": 264500.0,
+      "per": 42.18772459393417,
+      "pbr": 13.947962456932398,
+      "score_breakdown": {
+        "투자의견": 6.896551724137931,
+        "추정실적": 8.620689655172415,
+        "재무비율": 28.064039408866993,
+        "성장성": 11.03448275862069,
+        "규모": 6.896551724137931,
+        "가격위치": 0.7097980912186468,
+        "opinion_raw": 50.0,
+        "estimate_raw": 50.0,
+        "financial_raw": 67.82142857142857,
+        "growth_raw": 80.0,
+        "scale_raw": 100.0,
+        "price_position_raw": 10.292072322670379
+      },
+      "financial_data": {
+        "roe": 37.77,
+        "roa": 15.111022204440891,
+        "debt_ratio": 149.95,
+        "equity_ratio": -49.94999999999999,
+        "revenue_growth_rate": 11.82,
+        "operating_income_growth_rate": 26.11,
+        "net_income_growth_rate": 15.98,
+        "net_profit_margin": 15.37,
+        "gross_profit_margin": 32.78,
+        "profitability_grade": null,
+        "current_ratio": 132.58
+      },
+      "sector_analysis": {
+        "grade": "C",
+        "total_score": 55.0,
+        "breakdown": {
+          "재무_건전성": 32.5,
+          "성장성": 62.5,
+          "안정성": 70.0
+        },
+        "is_leader": false
+      }
+    },
+    {
+      "symbol": "010130",
+      "name": "고려아연",
+      "enhanced_score": 60.75815153647666,
+      "enhanced_grade": "B",
+      "market_cap": 187217.0,
+      "current_price": 943000.0,
+      "price_position": 17.006802721088434,
+      "w52_high": 2407000.0,
+      "w52_low": 643000.0,
+      "per": 102.61153427638737,
+      "pbr": 2.074428652193329,
+      "score_breakdown": {
+        "투자의견": 6.896551724137931,
+        "추정실적": 8.620689655172415,
+        "재무비율": 18.82758620689655,
+        "성장성": 13.793103448275861,
+        "규모": 6.896551724137931,
+        "가격위치": 5.72366877785597,
+        "opinion_raw": 50.0,
+        "estimate_raw": 50.0,
+        "financial_raw": 45.5,
+        "growth_raw": 100.0,
+        "scale_raw": 100.0,
+        "price_position_raw": 82.99319727891157
+      },
+      "financial_data": {
+        "roe": 13.22,
+        "roa": 6.998411858125993,
+        "debt_ratio": 88.9,
+        "equity_ratio": 11.099999999999994,
+        "revenue_growth_rate": 40.94,
+        "operating_income_growth_rate": 16.93,
+        "net_income_growth_rate": 70.97,
+        "net_profit_margin": 6.43,
+        "gross_profit_margin": 10.39,
+        "profitability_grade": null,
+        "current_ratio": 146.54
+      },
+      "sector_analysis": {
+        "grade": "D",
+        "total_score": 53.547261702850015,
+        "breakdown": {
+          "재무_건전성": 39.441785108550036,
+          "성장성": 51.2,
+          "안정성": 70.0
+        },
+        "is_leader": false
+      }
+    },
+    {
+      "symbol": "000270",
+      "name": "기아",
+      "enhanced_score": 60.56421699584601,
+      "enhanced_grade": "B",
+      "market_cap": 405602.0,
+      "current_price": 102000.0,
+      "price_position": 64.89028213166145,
+      "w52_high": 113200.0,
+      "w52_low": 81300.0,
+      "per": 4.178101830991685,
+      "pbr": 0.7220165497518953,
+      "score_breakdown": {
+        "투자의견": 6.896551724137931,
+        "추정실적": 8.620689655172415,
+        "재무비율": 28.832512315270936,
+        "성장성": 6.896551724137931,
+        "규모": 6.896551724137931,
+        "가격위치": 2.4213598529888656,
+        "opinion_raw": 50.0,
+        "estimate_raw": 50.0,
+        "financial_raw": 69.67857142857143,
+        "growth_raw": 50.0,
+        "scale_raw": 100.0,
+        "price_position_raw": 35.10971786833855
+      },
+      "financial_data": {
+        "roe": 16.54,
+        "roa": 10.049823793899623,
+        "debt_ratio": 64.58,
+        "equity_ratio": 35.42,
+        "revenue_growth_rate": 6.67,
+        "operating_income_growth_rate": -18.33,
+        "net_income_growth_rate": -19.16,
+        "net_profit_margin": 8.12,
+        "gross_profit_margin": 20.84,
+        "profitability_grade": null,
+        "current_ratio": 150.22
+      },
+      "sector_analysis": {
+        "grade": "C+",
+        "total_score": 64.74444444444445,
+        "breakdown": {
+          "재무_건전성": 67.5,
+          "성장성": 56.733333333333334,
+          "안정성": 70.0
+        },
+        "is_leader": true
+      }
+    },
+    {
+      "symbol": "066570",
+      "name": "LG전자",
+      "enhanced_score": 60.3816939456539,
+      "enhanced_grade": "B",
+      "market_cap": 127051.0,
+      "current_price": 77900.0,
+      "price_position": 27.82258064516129,
+      "w52_high": 113700.0,
+      "w52_low": 64100.0,
+      "per": 38.33661417322835,
+      "pbr": 0.6695430948533709,
+      "score_breakdown": {
+        "투자의견": 6.896551724137931,
+        "추정실적": 8.620689655172415,
+        "재무비율": 19.197044334975367,
+        "성장성": 13.793103448275861,
+        "규모": 6.896551724137931,
+        "가격위치": 4.977753058954394,
+        "opinion_raw": 50.0,
+        "estimate_raw": 50.0,
+        "financial_raw": 46.39285714285714,
+        "growth_raw": 100.0,
+        "scale_raw": 100.0,
+        "price_position_raw": 72.17741935483872
+      },
+      "financial_data": {
+        "roe": 13.15,
+        "roa": 5.455073425703144,
+        "debt_ratio": 141.06,
+        "equity_ratio": -41.06,
+        "revenue_growth_rate": 160.0,
+        "operating_income_growth_rate": -25.03,
+        "net_income_growth_rate": 22.26,
+        "net_profit_margin": 342.0,
+        "gross_profit_margin": 24.77,
+        "profitability_grade": null,
+        "current_ratio": 129.86
+      },
+      "sector_analysis": {
+        "grade": "C",
+        "total_score": 56.19444444444445,
+        "breakdown": {
+          "재무_건전성": 47.5,
+          "성장성": 51.083333333333336,
+          "안정성": 70.0
+        },
+        "is_leader": false
+      }
+    },
+    {
+      "symbol": "035420",
+      "name": "NAVER",
+      "enhanced_score": 59.62501659101165,
+      "enhanced_grade": "B",
+      "market_cap": 357624.0,
+      "current_price": 254000.0,
+      "price_position": 68.43725943033103,
+      "w52_high": 295000.0,
+      "w52_low": 165100.0,
+      "per": 21.321245697976998,
+      "pbr": 1.5280861022373828,
+      "score_breakdown": {
+        "투자의견": 6.896551724137931,
+        "추정실적": 8.620689655172415,
+        "재무비율": 23.999999999999996,
+        "성장성": 11.03448275862069,
+        "규모": 6.896551724137931,
+        "가격위치": 2.176740728942688,
+        "opinion_raw": 50.0,
+        "estimate_raw": 50.0,
+        "financial_raw": 57.99999999999999,
+        "growth_raw": 80.0,
+        "scale_raw": 100.0,
+        "price_position_raw": 31.562740569668975
+      },
+      "financial_data": {
+        "roe": 7.05,
+        "roa": 5.004969473235836,
+        "debt_ratio": 40.86,
+        "equity_ratio": 59.14,
+        "revenue_growth_rate": 11.01,
+        "operating_income_growth_rate": 12.6,
+        "net_income_growth_rate": 373.0,
+        "net_profit_margin": 16.15,
+        "gross_profit_margin": 100.0,
+        "profitability_grade": null,
+        "current_ratio": 129.96
+      },
+      "sector_analysis": {
+        "grade": "D",
+        "total_score": 54.37825840063643,
+        "breakdown": {
+          "재무_건전성": 52.21810853524263,
+          "성장성": 40.916666666666664,
+          "안정성": 70.0
+        },
+        "is_leader": true
+      }
+    }
+  ],
+  "sector_analysis": {
+    "기술업": {
+      "count": 4,
+      "total_score": 234.95448068506363,
+      "avg_score": 58.73862017126591,
+      "recommendations": {
+        "BUY": 0,
+        "HOLD": 4,
+        "SELL": 0
+      }
+    },
+    "바이오/제약": {
+      "count": 1,
+      "total_score": 67.83195772028839,
+      "avg_score": 67.83195772028839,
+      "recommendations": {
+        "BUY": 0,
+        "HOLD": 1,
+        "SELL": 0
+      }
+    },
+    "기타": {
+      "count": 39,
+      "total_score": 2114.933026328501,
+      "avg_score": 54.22905195714105,
+      "recommendations": {
+        "BUY": 0,
+        "HOLD": 39,
+        "SELL": 0
+      }
+    },
+    "제조업": {
+      "count": 4,
+      "total_score": 217.7217306003154,
+      "avg_score": 54.43043265007885,
+      "recommendations": {
+        "BUY": 0,
+        "HOLD": 4,
+        "SELL": 0
+      }
+    },
+    "금융업": {
+      "count": 1,
+      "total_score": 55.4212983261548,
+      "avg_score": 55.4212983261548,
+      "recommendations": {
+        "BUY": 0,
+        "HOLD": 1,
+        "SELL": 0
+      }
+    }
+  },
+  "market_statistics": {
+    "total_analyzed": 49,
+    "avg_score": 54.915561095108636,
+    "max_score": 75.8288250797614,
+    "min_score": 28.37708953010126,
+    "score_distribution": {
+      "A+": 0,
+      "A": 5,
+      "B+": 9,
+      "B": 24,
+      "C": 6,
+      "D": 5,
+      "F": 0
+    },
+    "market_cap_stats": {
+      "total_market_cap": 20065397.0,
+      "avg_market_cap": 409497.89795918367,
+      "max_market_cap": 5055370.0,
+      "min_market_cap": 114959.0
+    }
+  }
+}

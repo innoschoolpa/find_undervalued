@@ -24,3 +24,10 @@ python main.py optimized-valuation --count 30 --iterations 10 --period 12
 python main.py optimized-valuation --count 3 --period 3
 
 python main.py optimized-valuation --count 50 --min-market-cap 1000 --exclude-preferred
+
+python enhanced_integrated_analyzer_refactored.py test-enhanced-analysis --count 1 --min-score 1
+
+python enhanced_integrated_analyzer_refactored.py analyze-top-market-cap --count 70 --min-score 20 --export top_stocks_updated.json
+
+ python enhanced_integrated_analyzer_refactored.py full-market --max-stocks 100
+ 

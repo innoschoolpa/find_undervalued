@@ -36,8 +36,7 @@
       "net_profit_margin": 8.68,
       "gross_profit_margin": 34.89,
       "profitability_grade": null,
-      "current_ratio": 251.37,
-      "_percent_canonicalized": true
+      "current_ratio": 251.37
     },
     "sector_analysis": {
       "grade": "D",
@@ -122,8 +121,7 @@
       "net_profit_margin": 37.88,
       "gross_profit_margin": 55.39,
       "profitability_grade": null,
-      "current_ratio": 178.5,
-      "_percent_canonicalized": true
+      "current_ratio": 178.5
     },
     "sector_analysis": {
       "grade": "C+",
@@ -169,6 +167,91 @@
       "eps_trend": "상승",
       "data_quality_score": 1.0,
       "latest_update_date": "2022.12"
+    }
+  },
+  {
+    "symbol": "373220",
+    "name": "LG에너지솔루션",
+    "enhanced_score": 41.983510871151324,
+    "enhanced_grade": "C",
+    "market_cap": 814320.0,
+    "current_price": 349000.0,
+    "price_position": 46.62921348314607,
+    "w52_high": 444000.0,
+    "w52_low": 266000.0,
+    "per": null,
+    "pbr": 3.8674645390070923,
+    "score_breakdown": {
+      "투자의견": 16.12121212121212,
+      "추정실적": 7.575757575757576,
+      "재무비율": 7.779220779220779,
+      "성장성": 1.2121212121212122,
+      "규모": 6.0606060606060606,
+      "가격위치": 3.234593122233572,
+      "opinion_raw": 66.5,
+      "estimate_raw": 50.0,
+      "financial_raw": 21.392857142857142,
+      "growth_raw": 10.0,
+      "scale_raw": 100.0,
+      "price_position_raw": 53.37078651685393
+    },
+    "financial_data": {
+      "roe": -434.99999999999994,
+      "roa": 0.0,
+      "debt_ratio": 122.55,
+      "equity_ratio": -22.549999999999997,
+      "revenue_growth_rate": -374.0,
+      "operating_income_growth_rate": 0.0,
+      "net_income_growth_rate": 68.43,
+      "net_profit_margin": 268.0,
+      "gross_profit_margin": 17.03,
+      "profitability_grade": null,
+      "current_ratio": 121.04
+    },
+    "sector_analysis": {
+      "grade": "C",
+      "total_score": 56.666666666666664,
+      "breakdown": {
+        "재무_건전성": 50.0,
+        "성장성": 50.0,
+        "안정성": 70.0
+      },
+      "is_leader": false
+    },
+    "sector_valuation": "C(56.7)",
+    "opinion_summary": {
+      "symbol": "373220",
+      "total_opinions": 3,
+      "buy_opinions": 1,
+      "hold_opinions": 2,
+      "sell_opinions": 0,
+      "avg_target_price": 344000.0,
+      "max_target_price": 430000.0,
+      "min_target_price": 300000.0,
+      "avg_upside": -0.27,
+      "most_recent_date": "20250909",
+      "opinion_trend": "상향"
+    },
+    "estimate_summary": {
+      "symbol": "A373220",
+      "name": "LG에너지솔루션",
+      "current_price": 0.0,
+      "change_rate": 0.0,
+      "latest_revenue": 0,
+      "latest_revenue_growth": 0,
+      "latest_operating_profit": 0,
+      "latest_operating_profit_growth": 0,
+      "latest_net_profit": 0,
+      "latest_net_profit_growth": 0,
+      "latest_eps": 0,
+      "latest_per": 0,
+      "latest_roe": 0,
+      "latest_ev_ebitda": 0,
+      "revenue_trend": "데이터부족",
+      "profit_trend": "데이터부족",
+      "eps_trend": "데이터부족",
+      "data_quality_score": 0.3,
+      "latest_update_date": ""
     }
   }
 ]

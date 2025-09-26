@@ -1,0 +1,270 @@
+{
+  "metadata": {
+    "analysis_version": "2.0_enhanced",
+    "analysis_date": "2025-09-25T16:25:04.587665",
+    "analysis_time_seconds": 6.110526700038463,
+    "total_analyzed": 4,
+    "total_stocks_analyzed": 4,
+    "undervalued_count": 4,
+    "features_enabled": {
+      "realtime_data": true,
+      "external_data": false,
+      "enhanced_scoring": true
+    }
+  },
+  "top_recommendations": [
+    {
+      "symbol": "000660",
+      "name": "SK하이닉스",
+      "enhanced_score": 73.78754725627219,
+      "enhanced_grade": "B+",
+      "market_cap": 2602608.0,
+      "current_price": 356500.0,
+      "price_position": 96.36627906976744,
+      "w52_high": 364000.0,
+      "w52_low": 157600.0,
+      "per": 13.115296887646236,
+      "pbr": 3.4092973882773725,
+      "score_breakdown": {
+        "투자의견": 6.896551724137931,
+        "추정실적": 8.620689655172415,
+        "재무비율": 37.330049261083744,
+        "성장성": 13.793103448275861,
+        "규모": 6.896551724137931,
+        "가격위치": 0.25060144346431423,
+        "opinion_raw": 50.0,
+        "estimate_raw": 50.0,
+        "financial_raw": 90.21428571428572,
+        "growth_raw": 100.0,
+        "scale_raw": 100.0,
+        "price_position_raw": 3.633720930232556
+      },
+      "financial_data": {
+        "roe": 37.52,
+        "roa": 25.32910281509485,
+        "debt_ratio": 48.13,
+        "equity_ratio": 51.87,
+        "revenue_growth_rate": 38.19,
+        "operating_income_growth_rate": 99.33,
+        "net_income_growth_rate": 150.2,
+        "net_profit_margin": 37.88,
+        "gross_profit_margin": 55.39,
+        "profitability_grade": null,
+        "current_ratio": 178.5
+      },
+      "sector_analysis": {
+        "grade": "C+",
+        "total_score": 60.62823437078458,
+        "breakdown": {
+          "재무_건전성": 49.38470311235376,
+          "성장성": 62.5,
+          "안정성": 70.0
+        },
+        "is_leader": true
+      }
+    },
+    {
+      "symbol": "207940",
+      "name": "삼성바이오로직스",
+      "enhanced_score": 67.83195772028839,
+      "enhanced_grade": "B+",
+      "market_cap": 744480.0,
+      "current_price": 1022000.0,
+      "price_position": 38.079470198675494,
+      "w52_high": 1209000.0,
+      "w52_low": 907000.0,
+      "per": 67.14407726167795,
+      "pbr": 6.6704957836200816,
+      "score_breakdown": {
+        "투자의견": 6.896551724137931,
+        "추정실적": 8.620689655172415,
+        "재무비율": 27.354679802955665,
+        "성장성": 13.793103448275861,
+        "규모": 6.896551724137931,
+        "가격위치": 4.2703813656085865,
+        "opinion_raw": 50.0,
+        "estimate_raw": 50.0,
+        "financial_raw": 66.10714285714286,
+        "growth_raw": 100.0,
+        "scale_raw": 100.0,
+        "price_position_raw": 61.920529801324506
+      },
+      "financial_data": {
+        "roe": 12.44,
+        "roa": 8.121164642903773,
+        "debt_ratio": 53.18,
+        "equity_ratio": 46.82,
+        "revenue_growth_rate": 23.02,
+        "operating_income_growth_rate": 46.73,
+        "net_income_growth_rate": 40.73,
+        "net_profit_margin": 27.04,
+        "gross_profit_margin": 56.09,
+        "profitability_grade": null,
+        "current_ratio": 156.67
+      },
+      "sector_analysis": {
+        "grade": "D",
+        "total_score": 50.800000000000004,
+        "breakdown": {
+          "재무_건전성": 32.5,
+          "성장성": 49.9,
+          "안정성": 70.0
+        },
+        "is_leader": true
+      }
+    },
+    {
+      "symbol": "005930",
+      "name": "삼성전자",
+      "enhanced_score": 55.93032881434136,
+      "enhanced_grade": "B",
+      "market_cap": 5055370.0,
+      "current_price": 86100.0,
+      "price_position": 99.72451790633609,
+      "w52_high": 86200.0,
+      "w52_low": 49900.0,
+      "per": 17.393939393939394,
+      "pbr": 1.4862765406525116,
+      "score_breakdown": {
+        "투자의견": 6.896551724137931,
+        "추정실적": 8.620689655172415,
+        "재무비율": 26.60098522167488,
+        "성장성": 6.896551724137931,
+        "규모": 6.896551724137931,
+        "가격위치": 0.018998765080269698,
+        "opinion_raw": 50.0,
+        "estimate_raw": 50.0,
+        "financial_raw": 64.28571428571429,
+        "growth_raw": 50.0,
+        "scale_raw": 100.0,
+        "price_position_raw": 0.27548209366391063
+      },
+      "financial_data": {
+        "roe": 6.64,
+        "roa": 5.254827477049699,
+        "debt_ratio": 26.36,
+        "equity_ratio": 73.64,
+        "revenue_growth_rate": 5.29,
+        "operating_income_growth_rate": -33.36,
+        "net_income_growth_rate": -19.62,
+        "net_profit_margin": 8.68,
+        "gross_profit_margin": 34.89,
+        "profitability_grade": null,
+        "current_ratio": 251.37
+      },
+      "sector_analysis": {
+        "grade": "C",
+        "total_score": 55.564106628166705,
+        "breakdown": {
+          "재무_건전성": 56.45898655116677,
+          "성장성": 40.233333333333334,
+          "안정성": 70.0
+        },
+        "is_leader": true
+      }
+    },
+    {
+      "symbol": "373220",
+      "name": "LG에너지솔루션",
+      "enhanced_score": 35.841755687164444,
+      "enhanced_grade": "C",
+      "market_cap": 814320.0,
+      "current_price": 361500.0,
+      "price_position": 53.65168539325843,
+      "w52_high": 444000.0,
+      "w52_low": 266000.0,
+      "per": null,
+      "pbr": 4.005984042553192,
+      "score_breakdown": {
+        "투자의견": 6.896551724137931,
+        "추정실적": 8.620689655172415,
+        "재무비율": 8.852216748768473,
+        "성장성": 1.3793103448275863,
+        "규모": 6.896551724137931,
+        "가격위치": 3.196435490120108,
+        "opinion_raw": 50.0,
+        "estimate_raw": 50.0,
+        "financial_raw": 21.392857142857142,
+        "growth_raw": 10.0,
+        "scale_raw": 100.0,
+        "price_position_raw": 46.34831460674157
+      },
+      "financial_data": {
+        "roe": -434.99999999999994,
+        "roa": 0.0,
+        "debt_ratio": 122.55,
+        "equity_ratio": -22.549999999999997,
+        "revenue_growth_rate": -374.0,
+        "operating_income_growth_rate": 0.0,
+        "net_income_growth_rate": 68.43,
+        "net_profit_margin": 268.0,
+        "gross_profit_margin": 17.03,
+        "profitability_grade": null,
+        "current_ratio": 121.04
+      },
+      "sector_analysis": {
+        "grade": "D",
+        "total_score": 54.166666666666664,
+        "breakdown": {
+          "재무_건전성": 42.5,
+          "성장성": 50.0,
+          "안정성": 70.0
+        },
+        "is_leader": false
+      }
+    }
+  ],
+  "sector_analysis": {
+    "기술업": {
+      "count": 2,
+      "total_score": 129.71787607061356,
+      "avg_score": 64.85893803530678,
+      "recommendations": {
+        "BUY": 0,
+        "HOLD": 2,
+        "SELL": 0
+      }
+    },
+    "기타": {
+      "count": 1,
+      "total_score": 35.841755687164444,
+      "avg_score": 35.841755687164444,
+      "recommendations": {
+        "BUY": 0,
+        "HOLD": 1,
+        "SELL": 0
+      }
+    },
+    "바이오/제약": {
+      "count": 1,
+      "total_score": 67.83195772028839,
+      "avg_score": 67.83195772028839,
+      "recommendations": {
+        "BUY": 0,
+        "HOLD": 1,
+        "SELL": 0
+      }
+    }
+  },
+  "market_statistics": {
+    "total_analyzed": 4,
+    "avg_score": 58.347897369516595,
+    "max_score": 73.78754725627219,
+    "min_score": 35.841755687164444,
+    "score_distribution": {
+      "A+": 0,
+      "A": 1,
+      "B+": 1,
+      "B": 1,
+      "C": 0,
+      "D": 1,
+      "F": 0
+    },
+    "market_cap_stats": {
+      "total_market_cap": 9216778.0,
+      "avg_market_cap": 2304194.5,
+      "max_market_cap": 5055370.0,
+      "min_market_cap": 744480.0
+    }
+  }
+}

@@ -1,12 +1,38 @@
 # enhanced_integrated_analyzer_refactored.py
-# mypy: ignore-errors
+# mypy: ignore-errors  # TODO: 핵심 공용 함수들부터 타입을 엄격히 하여 드리프트 방지
 """
 리팩토링된 향상된 통합 분석 시스템
 - 단일 책임 원칙 적용
 - 클래스 분리 및 모듈화
 - 성능 최적화
 - 에러 처리 개선
+"""
 
+# Public API surface
+__all__ = [
+    # Main classes
+    'EnhancedIntegratedAnalyzer',
+    'AnalysisResult',
+    'AnalysisStatus',
+    'AnalysisConfig',
+    
+    # Data classes
+    'PriceData',
+    'FinancialData',
+    'ErrorType',
+    
+    # Utilities
+    'normalize_market_cap_ekwon',
+    'serialize_for_json',
+    'fmt',
+    'fmt_pct',
+    
+    # Configuration
+    'ConfigManager',
+    'MetricsCollector',
+]
+
+"""
 스레드 안전성 (Thread Safety):
 - 내부 캐시 및 메트릭 수집은 RLock으로 보호됨
 - 외부 데이터 프로바이더(KISDataProvider, EnhancedPriceProvider)는 
@@ -26,9 +52,11 @@
 - PREFERRED_STOCK_INCLUDE_WOORI: "우리" 시작 종목 우선주 간주 (기본값: false)
 - PER_MAX_DEFAULT: PER 상한 클램프 (기본값: 500.0, 단위: 배)
 - PBR_MAX_DEFAULT: PBR 상한 클램프 (기본값: 100.0, 단위: 배)
-- SECTOR_TARGET_GOOD: 섹터 피어 목표 샘플 수 (기본값: 80, 단위: 개)
+- SECTOR_TARGET_GOOD: 섹터 피어 목표 샘플 수 (기본값: 60, 단위: 개)
 - RATE_LIMITER_DEFAULT_TIMEOUT: 레이트리미터 타임아웃 (기본값: 2.0, 단위: 초)
 - RATE_LIMITER_NOTIFY_ALL: 레이트리미터 공정한 웨이크업 (기본값: false)
+- MARKET_CAP_STRICT_MODE: 시총 단위 추정 엄격 모드 (기본값: true; true=애매 값 무시, false=완화 변환 허용)
+- ENABLE_FAKE_PROVIDERS: 외부 모듈 실패 시 더미 구현 사용 (기본값: false; true=운영 중 일시 장애 시 진단 계속)
 """
 
 import typer
@@ -44,13 +72,84 @@ import random
 import signal
 import atexit
 from datetime import datetime
-from typing import Dict, Any, List, Optional, Tuple, Union, TypedDict
+from typing import Dict, Any, List, Optional, Tuple, Union, TypedDict, Set
 from decimal import Decimal
 from threading import Lock, RLock, Condition
 from collections import deque, OrderedDict
+from rich.console import Console
+from rich.table import Table
+from rich.box import ROUNDED
 
 # monotonic time 별칭 (시스템 시간 변경에 안전)
 _monotonic = time.monotonic
+
+# ✅ 모듈 레벨 환경변수 캐시 (핫패스 최적화)
+_ENV_CACHE = {
+    'current_ratio_ambiguous_strategy': os.getenv("CURRENT_RATIO_AMBIGUOUS_STRATEGY", "as_is"),
+    'current_ratio_force_percent': os.getenv("CURRENT_RATIO_FORCE_PERCENT", "false"),
+    'market_cap_strict_mode': os.getenv("MARKET_CAP_STRICT_MODE", "true"),
+}
+
+def _refresh_env_cache():
+    """환경변수 캐시 hot-reload (런타임 설정 변경 지원)"""
+    _ENV_CACHE['current_ratio_ambiguous_strategy'] = os.getenv("CURRENT_RATIO_AMBIGUOUS_STRATEGY", "as_is")
+    _ENV_CACHE['current_ratio_force_percent'] = os.getenv("CURRENT_RATIO_FORCE_PERCENT", "false")
+    _ENV_CACHE['market_cap_strict_mode'] = os.getenv("MARKET_CAP_STRICT_MODE", "true")
+
+# --- 환경변수 캐시 핫리로드: SIGHUP 지원 ------------------------------------
+def _handle_sighup(signum, frame):
+    try:
+        _refresh_env_cache()
+        logging.info("[env] SIGHUP received → environment cache reloaded")
+    except Exception as e:
+        logging.debug(f"[env] SIGHUP handler error: {e}")
+
+try:
+    signal.signal(signal.SIGHUP, _handle_sighup)
+except Exception:
+    # 일부 플랫폼(Windows 등)에서는 SIGHUP 미지원
+    pass
+
+# =============================================================================
+# 유틸리티 함수
+# =============================================================================
+
+def normalize_market_cap_ekwon(x: Optional[float]) -> Optional[float]:
+    """
+    Normalize market cap to 억원 (eokwon).
+    Heuristics:
+      - If value looks like 억원 (<= 20,000,000 = 2,000조), keep as-is.
+      - If value looks like 원 (>= 1e11 = 1,000억), convert to 억원 by /1e8.
+      - Otherwise treat as ambiguous → optional non-strict conversion via env.
+    """
+    v = DataValidator.safe_float_optional(x)
+    if v is None or not math.isfinite(v) or v <= 0:
+        return None
+
+    # If already reasonable in 억원 (up to 2,000조), assume eokwon
+    if v <= 20_000_000:  # 20,000,000 억 = 2,000조
+        logging.debug(f"[unit] market_cap assumed eokwon: {x} -> {v}")
+        return v
+
+    # If looks like KRW (원): anything ≥ 1e11 (1,000억 원) convert to 억원
+    if v >= 1e11:
+        converted = v / 1e8
+        logging.debug(f"[unit] market_cap converted from won→eokwon: {x} -> {converted}")
+        return converted
+
+    # Ambiguous band (1e7 ~ 1e11): gate via env for safety (캐시된 값 사용)
+    non_strict = _ENV_CACHE['market_cap_strict_mode'].lower() != "true"
+    if non_strict and v >= 1e7:
+        converted = v / 1e8
+        logging.debug(f"[unit] market_cap non-strict (ambiguous) won→eokwon: {x} -> {converted} (천단위 구분 해석 결과)")
+        return converted
+
+    # Confidence logging when discarding ambiguous values
+    if v >= 1e7:  # Only warn for values in ambiguous range
+        logging.warning(f"[unit] market_cap ambiguous range dropped in strict mode: {x} -> None (1e7 ≤ v < 1e11)")
+    else:
+        logging.debug(f"[unit] market_cap too small (dropped): {x} -> None (천단위 구분 해석 결과)")
+    return None
 
 # 타입 정의
 JSONValue = Union[None, bool, int, float, str, List["JSONValue"], Dict[str, "JSONValue"]]
@@ -68,6 +167,8 @@ class PriceData(TypedDict, total=False):
     bps: Optional[float]
     volume: Optional[int]
     market_cap: Optional[float]
+    price_change: Optional[float]
+    price_change_rate: Optional[float]
 
 class FinancialData(TypedDict, total=False):
     """재무 데이터 구조"""
@@ -83,6 +184,16 @@ class FinancialData(TypedDict, total=False):
     current_ratio: Optional[float]
     profitability_grade: Optional[str]
 
+class SectorAnalysis(TypedDict, total=False):
+    """섹터 분석 결과 구조"""
+    grade: str
+    total_score: Optional[float]
+    breakdown: Dict[str, float]
+    is_leader: bool
+    base_score: Optional[float]
+    leader_bonus: float
+    notes: List[str]
+
 # =============================================================================
 # 로깅 상수 및 유틸리티
 # =============================================================================
@@ -93,18 +204,22 @@ _LOG_FMT = os.getenv(
     "LOG_FORMAT",
     "[%(asctime)s] %(levelname)s %(message)s"
 )
-# ✅ 로그 초기화 중복 방지: 한 번만 호출
-if not logging.getLogger().handlers:
-    try:
-        logging.basicConfig(
-            level=getattr(logging, _LOG_LEVEL, logging.INFO),
-            format=_LOG_FMT,
-            datefmt="%H:%M:%S",
-        )
-    except Exception:
-        # 실패 시 최소한의 설정만 적용
-        logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
-        logging.warning("로그 설정 초기화 실패, 기본 레벨로 진행합니다.")
+# ✅ 로그 초기화 패턴 개선: 모듈 import 시점에는 설정하지 않고, 엔트리포인트에서만 기본 로깅 설정
+def _setup_logging_if_needed():
+    """엔트리포인트에서만 호출하여 기본 로깅 설정"""
+    root = logging.getLogger()
+    if not root.handlers:
+        try:
+            logging.basicConfig(
+                level=getattr(logging, _LOG_LEVEL, logging.INFO),
+                format=_LOG_FMT,
+                datefmt="%H:%M:%S",
+            )
+        except Exception:
+            # 이미 다른 환경에서 핸들러가 있을 수 있으므로, 새 핸들러 추가는 건너뜀
+            if not root.handlers:
+                logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
+            logging.warning("로그 설정 초기화 실패, 기존 설정으로 진행합니다.")
 # ---------------------------------------------------------------------------
 
 class LogLevel:
@@ -128,7 +243,34 @@ class ErrorType:
     OPINION = "opinion_analysis_error"
     ESTIMATE = "estimate_analysis_error"
     EMPTY_PRICE_PAYLOAD = "empty_price_payload"
+    INVALID_52W_BAND = "invalid_52w_band"  # 52주 밴드 빈약/퇴화
+    HTTP_4XX = "http_4xx"
+    HTTP_5XX = "http_5xx"
     UNKNOWN = "unknown_error"
+    
+    # 상위 카테고리 매핑 (SRE 대시보드용)
+    CATEGORY_MAP = {
+        API_TIMEOUT: "네트워크",
+        API_CONNECTION: "네트워크", 
+        API_RATE_LIMIT: "HTTP",
+        HTTP_4XX: "HTTP",
+        HTTP_5XX: "HTTP",
+        DATA_PARSE: "데이터",
+        FINANCIAL_DATA: "데이터",
+        PRICE_DATA: "데이터",
+        EMPTY_PRICE_PAYLOAD: "데이터",
+        INVALID_52W_BAND: "데이터",
+        SECTOR_PEER_DATA: "분석",
+        STABILITY_RATIO: "분석",
+        OPINION: "분석",
+        ESTIMATE: "분석",
+        UNKNOWN: "기타"
+    }
+    
+    @classmethod
+    def get_category(cls, error_type: str) -> str:
+        """에러 타입을 상위 카테고리로 매핑"""
+        return cls.CATEGORY_MAP.get(error_type, "기타")
 
 def log_error(operation: str, symbol: str = None, error: Exception = None, level: str = LogLevel.WARNING):
     """일관된 에러 로깅 포맷 (운영 로그 grep 친화적)"""
@@ -157,13 +299,15 @@ def log_success(operation: str, symbol: str = None, details: str = None):
     
     logging.info(message)
 
-def safe_env_int(key: str, default: int, min_val: int = 1) -> int:
-    """안전한 환경변수 정수 파싱 (음수/0 방어)"""
+def safe_env_int(key: str, default: int, min_val: Optional[int] = None) -> int:
+    """안전한 환경변수 정수 파싱 (0=auto 설정 허용)"""
     try:
         value = int(os.getenv(key, str(default)))
-        return max(min_val, value)  # 최소값 보장
     except (ValueError, TypeError):
-        return max(min_val, default)
+        value = default
+    if min_val is None:
+        return value
+    return max(min_val, value)
 
 def safe_env_float(key: str, default: float, min_val: float = 0.0) -> float:
     """안전한 환경변수 실수 파싱 (음수 방어)"""
@@ -179,6 +323,18 @@ def safe_env_bool(key: str, default: bool = False) -> bool:
     if v is None:
         return default
     return str(v).strip().lower() in {"1", "true", "t", "yes", "y", "on"}
+
+def safe_env_ms_to_seconds(key: str, default_ms: float, min_ms: float = 0.0) -> float:
+    """
+    밀리초(ms) 환경변수를 초(second)로 변환하여 반환.
+    RATE_LIMITER_MIN_SLEEP_MS 같은 키를 초 단위로 잘못 사용하는 버그 방지.
+    """
+    try:
+        ms = float(os.getenv(key, str(default_ms)))
+        ms = max(min_ms, ms)
+    except (ValueError, TypeError):
+        ms = max(min_ms, default_ms)
+    return ms / 1000.0
 
 # =============================================================================
 # 메트릭 수집 클래스
@@ -200,6 +356,10 @@ class MetricsCollector:
             'sector_sample_insufficient': 0,
             # ✅ 메트릭 개선: missing 필드 카운터 추가
             'missing_financial_fields': 0,
+            # ✅ API 재시도 중간 실패 카운터 추가 (이중 집계 방지)
+            'api_retry_attempt_errors': 0,
+            # ✅ PER/PBR 스킵 메트릭 추가
+            'valuation_skips': {'per_epsmin': 0, 'pbr_bpsmin': 0},
             'start_time': _monotonic()
         }
         # Histogram buckets for duration analysis (seconds)
@@ -211,7 +371,7 @@ class MetricsCollector:
         self.lock = RLock()
     
     def record_api_call(self, success: bool, error_type: str = None):
-        """API 호출 기록"""
+        """API 호출 기록 (최종 결과만)"""
         with self.lock:
             self.metrics['api_calls']['total'] += 1
             if success:
@@ -220,6 +380,13 @@ class MetricsCollector:
                 self.metrics['api_calls']['error'] += 1
                 if error_type:
                     self.metrics['errors_by_type'][error_type] = self.metrics['errors_by_type'].get(error_type, 0) + 1
+
+    def record_api_attempt_error(self, error_type: str = None):
+        """API 재시도 중간 실패 기록 (이중 집계 방지)"""
+        with self.lock:
+            self.metrics['api_retry_attempt_errors'] += 1
+            if error_type:
+                self.metrics['errors_by_type'][error_type] = self.metrics['errors_by_type'].get(error_type, 0) + 1
     
     def record_cache_hit(self, cache_type: str):
         """캐시 히트 기록"""
@@ -322,8 +489,17 @@ class MetricsCollector:
         with self.lock:
             # SLO 경고 체크
             p90 = self.get_percentiles(self.analysis_histogram, self.duration_buckets, 90)
+            p95 = self.get_percentiles(self.analysis_histogram, self.duration_buckets, 95)
             if p90 > 5.0:
                 logging.warning(f"[SLO] 분석 p90 {p90:.1f}s > 5s")
+            if p95 > 10.0:
+                logging.warning(f"[SLO] 분석 p95 {p95:.1f}s > 10s")
+            
+            # 상위 카테고리별 에러 집계 (SRE 대시보드용)
+            errors_by_category = {}
+            for error_type, count in self.metrics['errors_by_type'].items():
+                category = ErrorType.get_category(error_type)
+                errors_by_category[category] = errors_by_category.get(category, 0) + count
             
             return {
                 'runtime_seconds': _monotonic() - self.metrics['start_time'],
@@ -338,12 +514,15 @@ class MetricsCollector:
                 'avg_analysis_duration': self.metrics['analysis_duration']['avg'],
                 'avg_sector_evaluation': self.metrics['sector_evaluation']['avg'],
                 'errors_by_type': self.metrics['errors_by_type'].copy(),
+                'errors_by_category': errors_by_category,  # SRE 대시보드용 상위 카테고리
                 'sector_sample_insufficient': self.metrics['sector_sample_insufficient'],
                 'sector_sample_insufficient_by_sector': self.metrics.get('sector_sample_insufficient_by_sector', {}),
                 'analysis_p50': self.get_percentiles(self.analysis_histogram, self.duration_buckets, 50),
                 'analysis_p90': p90,
+                'analysis_p95': p95,
                 'sector_p50': self.get_percentiles(self.sector_histogram, self.duration_buckets, 50),
-                'sector_p90': self.get_percentiles(self.sector_histogram, self.duration_buckets, 90)
+                'sector_p90': self.get_percentiles(self.sector_histogram, self.duration_buckets, 90),
+                'sector_p95': self.get_percentiles(self.sector_histogram, self.duration_buckets, 95)
             }
 
 # Safer price/52w checks
@@ -370,15 +549,41 @@ def fmt_pct(x, nd=1):
 
 # API 재시도 유틸 (백오프+지터) - expanded transient error handling
 try:
-    from requests.exceptions import Timeout, ConnectionError as ReqConnErr
-except ImportError:  # fall back when requests isn't installed
-    class Timeout(Exception): ...
+    from requests.exceptions import Timeout as ReqTimeout, ReadTimeout, ConnectTimeout, ConnectionError as ReqConnErr, HTTPError
+except ImportError:
+    class ReqTimeout(Exception): ...
+    class ReadTimeout(Exception): ...
+    class ConnectTimeout(Exception): ...
     class ReqConnErr(Exception): ...
+    class HTTPError(Exception): ...
 
 import socket
 
-TRANSIENT_ERRORS = (TimeoutError, Timeout, ReqConnErr, socket.timeout)
-def _with_retries(call, tries=3, base=0.2, jitter=0.15, retry_on=TRANSIENT_ERRORS, max_total_sleep=6.0, metrics_attempt=None, metrics_final=None):
+def _classify_http_error(e: Exception) -> Tuple[bool, str, Optional[int]]:
+    """HTTPError를 재시도 여부/에러타입/상태코드로 분류"""
+    status = None
+    if isinstance(e, HTTPError) and getattr(e, "response", None) is not None:
+        try:
+            status = e.response.status_code
+        except Exception:
+            status = None
+    # 429: 레이트리밋 → 재시도
+    if status == 429:
+        return True, ErrorType.API_RATE_LIMIT, status
+    # 게이트웨이/서버 계열 → 재시도
+    if status in (500, 502, 503, 504):
+        return True, ErrorType.HTTP_5XX, status
+    # 나머지 4xx는 클라이언트 오류 → 재시도 금지
+    if status is not None and 400 <= status < 500:
+        return False, ErrorType.HTTP_4XX, status
+    # 상태코드 불명: 재시도 비결정 → 일반 네트워크 분류에 위임
+    # 로깅에 상태코드가 없다는 점을 명확히 남기면 운영 분석이 편함
+    if status is None:
+        logging.debug(f"[retry] HTTPError with status=None, treating as UNKNOWN for retry decision")
+    return True, ErrorType.UNKNOWN, status
+
+TRANSIENT_ERRORS = (TimeoutError, ReqTimeout, ReadTimeout, ConnectTimeout, ReqConnErr, socket.timeout, HTTPError)
+def _with_retries(call, tries=5, base=0.5, jitter=0.3, retry_on=TRANSIENT_ERRORS, max_total_sleep=15.0, metrics_attempt=None, metrics_final=None):
     """API 호출 재시도 래퍼 (선별적 재시도 + 총 소요 상한)"""
     slept = 0.0
     for i in range(tries):
@@ -392,19 +597,32 @@ def _with_retries(call, tries=3, base=0.2, jitter=0.15, retry_on=TRANSIENT_ERROR
                     pass
             return result
         except Exception as e:
-            et = (ErrorType.API_TIMEOUT if isinstance(e, (Timeout, TimeoutError, socket.timeout))
-                  else ErrorType.API_CONNECTION if isinstance(e, ReqConnErr)
-                  else ErrorType.UNKNOWN)
+            # HTTP 오류 정교 분류
+            et = ErrorType.UNKNOWN
+            if isinstance(e, (ReqTimeout, ReadTimeout, ConnectTimeout, TimeoutError, socket.timeout)):
+                et = ErrorType.API_TIMEOUT
+            elif isinstance(e, ReqConnErr):
+                et = ErrorType.API_CONNECTION
+            elif isinstance(e, HTTPError):
+                should_retry, et_http, status = _classify_http_error(e)
+                et = et_http
+                if not should_retry:
+                    # HTTP 4xx 등 재시도 금지 오류는 즉시 final 기록 후 종료
+                    if metrics_final:
+                        try: metrics_final(success=False, error_type=et)
+                        except Exception: pass
+                    raise  # ← 여기서 바로 탈출하므로 retry_on 경로와 격리됨
+                # HTTP 5xx/429 등 재시도 가능한 오류는 아래 retry_on 경로로 계속
             
-            # 실패했으나 재시도할 경우에만 attempt 기록
+            # 실패했으나 재시도할 경우에만 attempt 기록 (HTTP 4xx는 위에서 이미 처리됨)
             if i < tries - 1 and isinstance(e, retry_on):
                 if metrics_attempt:
                     try:
-                        metrics_attempt(success=False, error_type=et)
+                        metrics_attempt(error_type=et)  # ← record_api_attempt_error만 호출
                     except Exception:
                         pass
             else:
-                # 최종 실패 기록(단 한 번)
+                # 최종 실패는 final만 기록 (attempt 미기록 보장)
                 if metrics_final:
                     try:
                         metrics_final(success=False, error_type=et)
@@ -421,9 +639,7 @@ def _with_retries(call, tries=3, base=0.2, jitter=0.15, retry_on=TRANSIENT_ERROR
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 # 로깅 설정은 메인 실행부에서 초기화
-from rich.console import Console
-from rich.table import Table
-from rich import box
+# rich import 제거 (미사용)
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from enum import Enum
@@ -439,13 +655,49 @@ try:
     from stability_ratio_analyzer import StabilityRatioAnalyzer
     from test_integrated_analysis import create_integrated_analysis
 except ImportError as e:
-    # ✅ import 에러 처리 개선: logging 사용 및 재발생
     logging.error(f"❌ 필수 모듈 import 실패: {e}")
-    logging.error("💡 해결 방법:")
-    logging.error("   1. 모든 분석기 모듈이 같은 디렉토리에 있는지 확인")
-    logging.error("   2. 또는 pip install로 필요한 패키지 설치")
-    logging.error("   3. PYTHONPATH에 모듈 경로 추가")
-    raise  # 재발생하여 프로그램 종료
+    if safe_env_bool("ENABLE_FAKE_PROVIDERS", False):
+        logging.warning("ENABLE_FAKE_PROVIDERS=true → 더미 구현으로 폴백합니다.")
+        class KISDataProvider:
+            def __init__(self): pass
+            def get_stock_price_info(self, symbol): 
+                return {'per': 15.0, 'pbr': 1.2, 'eps': 1000.0, 'bps': 8000.0}
+            def get_financial_ratios(self, symbol): 
+                return [{'roe': 12.5, 'roa': 8.0, 'debt_ratio': 30.0}]
+            def get_profit_ratios(self, symbol): 
+                return [{'gross_margin': 25.0, 'operating_margin': 15.0, 'net_margin': 10.0}]
+            def get_stability_ratios(self, symbol): 
+                return [{'current_ratio': 1.5, 'quick_ratio': 1.2, 'debt_to_equity': 0.4}]
+        
+        class EnhancedPriceProvider:
+            def get_comprehensive_price_data(self, symbol): 
+                return {'per': 15.0, 'pbr': 1.2, 'eps': 1000.0, 'bps': 8000.0, 'market_cap': 500000000000}
+        
+        class InvestmentOpinionAnalyzer:
+            def analyze_single_stock(self, symbol, days_back=30): 
+                return {'buy': 5, 'hold': 3, 'sell': 1, 'target_price': 50000}
+        
+        class EstimatePerformanceAnalyzer:
+            def analyze_single_stock(self, symbol): 
+                return {'accuracy': 0.75, 'bias': 0.05, 'revision_trend': 'up'}
+        
+        class FinancialRatioAnalyzer:
+            def get_financial_ratios(self, symbol): 
+                return [{'roe': 12.5, 'roa': 8.0, 'debt_ratio': 30.0}]
+        
+        class ProfitRatioAnalyzer:
+            def get_profit_ratios(self, symbol): 
+                return [{'gross_margin': 25.0, 'operating_margin': 15.0, 'net_margin': 10.0}]
+        
+        class StabilityRatioAnalyzer:
+            def get_stability_ratios(self, symbol): 
+                return [{'current_ratio': 1.5, 'quick_ratio': 1.2, 'debt_to_equity': 0.4}]
+        
+        def create_integrated_analysis(opinion, estimate): 
+            return {'score': 75.0, 'recommendation': 'BUY', 'confidence': 0.8}
+    else:
+        logging.error("💡 해결: 모듈 경로/설치 확인 또는 ENABLE_FAKE_PROVIDERS=true")
+        raise
 
 # =============================================================================
 # 1. 데이터 클래스 및 열거형
@@ -470,6 +722,7 @@ class AnalysisResult:
     market_cap: float = 0.0
     current_price: float = 0.0
     price_position: Optional[float] = None
+    price_band_outside: bool = False  # 52주 밴드 밖 여부 플래그
     risk_score: Optional[float] = None
     financial_data: FinancialData = field(default_factory=dict)
     opinion_analysis: Dict[str, Any] = field(default_factory=dict)
@@ -482,9 +735,9 @@ class AnalysisResult:
     sector_analysis: Dict[str, Any] = field(default_factory=dict)  # 섹터 분석 결과
     
 
-@dataclass
+@dataclass(frozen=True)
 class AnalysisConfig:
-    """분석 설정 데이터 클래스"""
+    """분석 설정 데이터 클래스 (불변)"""
     weights: Dict[str, float]
     financial_ratio_weights: Dict[str, float]
     estimate_analysis_weights: Dict[str, float]
@@ -534,6 +787,9 @@ class TPSRateLimiter:
         self.notify_all = safe_env_bool("RATE_LIMITER_NOTIFY_ALL", False)
         # ✅ 기본 타임아웃 옵션 (꽉 막힘 방지)
         self.default_timeout = safe_env_float("RATE_LIMITER_DEFAULT_TIMEOUT", 2.0, 0.1)
+        # ✅ 밀리초 → 초 변환 (기존 버그: ms를 초로 오해)
+        # RATE_LIMITER_MIN_SLEEP_MS: 밀리초 단위 (기본값: 2.0ms, 최소값: 1.0ms)
+        self.min_sleep_seconds = safe_env_ms_to_seconds("RATE_LIMITER_MIN_SLEEP_MS", 2.0, 1.0)
     
     def acquire(self, timeout: float = None):
         """요청 허가를 받습니다 (타임아웃 지원)."""
@@ -544,26 +800,38 @@ class TPSRateLimiter:
                 now = _monotonic()
                 # 슬라이딩 윈도우 정리(항상 수행)
                 one_sec_ago = now - 1.0
+                old_count = len(self.ts)
                 while self.ts and self.ts[0] < one_sec_ago:
                     self.ts.popleft()
-
-                if len(self.ts) < self.max_tps:
-                    self.ts.append(now)
-                    # ✅ 깔끔한 웨이크업: 환경변수로 notify 방식 선택
+                # 오래된 타임스탬프 제거 후 대기자들에게 알림
+                if len(self.ts) < old_count:
                     if self.notify_all:
                         self.cv.notify_all()
                     else:
-                        self.cv.notify(1)  # 기본값: 효율성 우선
+                        self.cv.notify()
+
+                if len(self.ts) < self.max_tps:
+                    self.ts.append(now)
+                    # 토큰 획득 후 대기자들에게 알림
+                    if self.notify_all:
+                        self.cv.notify_all()
+                    else:
+                        self.cv.notify()
                     break
 
-                if timeout is not None and (now - start) >= timeout:
+                waited = now - start
+                if timeout is not None and waited >= timeout:
                     logging.warning(f"[ratelimiter] acquire timeout (max_tps={self.max_tps})")
                     raise TimeoutError(f"Rate limiter acquire() timed out after {timeout:.1f}s (max_tps={self.max_tps}, in_window={len(self.ts)})")
 
                 # 다음 해제 시점까지 기다림 (정확한 대기 + 스핀 방지)
                 earliest = self.ts[0]
                 wait_for = max(0.0, (earliest + 1.0) - now)
-                sleep_for = max(wait_for + random.uniform(0.0, self.jitter_max), 0.001)  # 최소 1ms
+                # 고TPS 환경에서 컨텍스트 스위칭/스핀 감소: ms 설정을 초로 변환해 사용
+                min_sleep = self.min_sleep_seconds  # e.g., 2ms → 0.002s
+                sleep_for = max(wait_for + random.uniform(0.0, self.jitter_max), min_sleep)
+                if waited > 1.0:
+                    logging.debug(f"[ratelimiter] waited={waited:.3f}s, in_window={len(self.ts)}, next={sleep_for:.3f}s")
                 self.cv.wait(sleep_for)
     
 
@@ -733,8 +1001,9 @@ class DataValidator:
             return True
             
         import re
-        # KRX 스타일 접미사와 명시적 키워드
-        pat = re.compile(r"(?:\(우[A-C]?\)|\b우선주\b|우B$|우C$|우$)")
+        # KRX 스타일 접미사와 명시적 키워드 (띄어쓰기/특수문자 변형 허용)
+        # 더 엄격한 패턴: 괄호 표기, 명시적 키워드, 우선주 접미사만 허용
+        pat = re.compile(r"(?:\((?:우|우B|우C)\)|\b우선주\b|(?:\s|^)우(?:B|C)?$)")
         return bool(pat.search(s))
     
     @staticmethod
@@ -804,15 +1073,15 @@ class DataConverter:
         return v * 100.0 if abs(v) <= 5.0 else v
     
     @staticmethod
-    def normalize_percentage(value: Any, assume_ratio_if_abs_lt_1: bool = True) -> float:
+    def normalize_percentage(value: Any, assume_ratio_if_abs_lt_1: bool = True) -> Optional[float]:
         """퍼센트 값을 정규화 (0.12 → 12.0)"""
         try:
             v = float(value)
             if pd.isna(v):
-                return 0.0
+                return None
             return v * 100.0 if assume_ratio_if_abs_lt_1 and -1.0 <= v <= 1.0 else v
         except Exception:
-            return 0.0
+            return None
     
     @staticmethod
     def format_percentage(value: Any, decimal_places: int = 1) -> str:
@@ -836,6 +1105,11 @@ class DataConverter:
         # DO NOT convert % units again after this point.
         # Any additional scaling will create double-scaling bugs (e.g., 0.03 -> 3 -> 300).
         """
+        # 환경변수 기반 정책이 바뀌었을 수 있으므로 진입 시점에 캐시를 갱신
+        try:
+            _refresh_env_cache()
+        except Exception:
+            pass
         out = data.copy()
 
         # 1) 퍼센트 필드는 비율형(<=5) → %로 변환, 결측은 None 유지
@@ -851,13 +1125,48 @@ class DataConverter:
                         if vv is None:
                             out[k] = None
                         else:
-                            # 0~10 사이라면 배수로 보고 ×100, 50~5000 사이는 이미 %로 간주
-                            out[k] = vv * 100.0 if 0.0 <= vv <= 10.0 else vv
+                            # 환경변수 가드: 강제 % 해석 모드 (캐시된 값 사용)
+                            force_percent = _ENV_CACHE['current_ratio_force_percent'].lower() == "true"
+                            
+                            if force_percent:
+                                # 강제 % 모드: 0~5는 배수로 보고 %로 변환, 나머지는 %로 간주
+                                out[k] = vv * 100.0 if 0.0 <= vv <= 5.0 else vv
+                                logging.debug(f"[unit] current_ratio force percent mode: {v} -> {out[k]} (0-5 range check applied)")
+                            elif 0.0 <= vv <= 10.0:
+                                out[k] = vv * 100.0
+                                logging.debug(f"[unit] current_ratio treated as multiple: {v} -> {vv*100}")
+                            elif vv >= 50.0:
+                                out[k] = vv
+                                logging.debug(f"[unit] current_ratio assumed as percent: {v} -> {vv}")
+                            else:
+                                # 10~50 사이 애매 구간 처리 전략 (캐시된 값 사용)
+                                ambiguous_strategy = _ENV_CACHE['current_ratio_ambiguous_strategy'].lower()
+                                if ambiguous_strategy == "clamp":
+                                    # 클램프 모드: 합리적 범위로 제한 [10, 300]
+                                    clamped = max(10.0, min(300.0, vv))
+                                    out[k] = clamped
+                                    logging.debug(f"[unit] current_ratio ambiguous range (clamped): {v} -> {clamped} (treated as %)")
+                                else:  # as_is
+                                    # as_is 모드: 원본 값 유지 (outlier 가드만)
+                                    out[k] = vv
+                                    if not (0.0 <= vv <= 10000.0):
+                                        logging.debug(f"[unit] current_ratio outlier left as-is: {vv}")
                     else:
                         out[k] = DataConverter.enforce_canonical_percent(v, field_name=k)
-                    # 표준화 경로가 바뀌어도 일관되게 클램프
-                    if out[k] is not None and abs(out[k]) > 10000.0:
-                        out[k] = math.copysign(10000.0, out[k])
+                    # 필드별 클램프 상한 분리 (극단값 방지)
+                    if out[k] is not None:
+                        if k in ["roe", "roa"]:
+                            # 수익성 지표: 5,000% 상한
+                            if abs(out[k]) > 5000.0:
+                                out[k] = math.copysign(5000.0, out[k])
+                        elif k in ["revenue_growth_rate", "operating_income_growth_rate", "net_income_growth_rate"]:
+                            # 성장률: 1,000% 상한
+                            if abs(out[k]) > 1000.0:
+                                out[k] = math.copysign(1000.0, out[k])
+                        else:
+                            # 기타: 10,000% 상한
+                            if abs(out[k]) > 10000.0:
+                                out[k] = math.copysign(10000.0, out[k])
 
         # 2) 나머지 스칼라도 결측은 None으로, 수치/문자 수치만 안전 변환
         for k, v in list(out.items()):
@@ -938,26 +1247,32 @@ class FinancialDataProvider(DataProvider):
         self._max_keys = safe_env_int("KIS_CACHE_MAX_KEYS", 2000, 100)
         self.metrics = metrics
     
+    
     def _get_cached(self, cache, key):
         """캐시에서 데이터 조회 (동시성 안전, TTL 분리)"""
         now = _monotonic()
         with self._cache_lock:
             hit = cache.get(key)
             cache_type = 'price' if cache is self._cache_price else 'financial'
-            ttl = self._ttl[cache_type]
-            if hit and now - hit[0] < ttl:
-                if self.metrics:
-                    self.metrics.record_cache_hit(cache_type)
-                return hit[1]
+            if hit:
+                # TTL override 지원 (빈 데이터용)
+                ttl = hit[2] if len(hit) > 2 and hit[2] is not None else self._ttl[cache_type]
+                if now - hit[0] < ttl:
+                    if self.metrics:
+                        self.metrics.record_cache_hit(cache_type)
+                    return hit[1]
         
         if self.metrics:
             self.metrics.record_cache_miss(cache_type)
         return None
 
-    def _set_cached(self, cache, key, value):
+    def _set_cached(self, cache, key, value, ttl_override=None):
         """캐시에 데이터 저장 (동시성 안전, LRU 한도 적용)"""
         with self._cache_lock:
-            cache[key] = (_monotonic(), value)
+            # 빈 데이터는 짧은 TTL 적용
+            if ttl_override is None and isinstance(value, dict) and not value:
+                ttl_override = min(1.0, self._ttl['price'] * 0.2)  # 20% of normal TTL
+            cache[key] = (_monotonic(), value, ttl_override)
             cache.move_to_end(key)
             while len(cache) > self._max_keys:
                 cache.popitem(last=False)  # 가장 오래된 항목 제거
@@ -983,10 +1298,12 @@ class FinancialDataProvider(DataProvider):
                 raise
             
             # 실제 API는 _with_retries가 집계
+            cb_final = (lambda ok, et=None: self.metrics.record_api_call(ok, et)) if self.metrics else None
+            cb_attempt = (lambda et=None: self.metrics.record_api_attempt_error(et)) if self.metrics else None
             financial_ratios = _with_retries(
                 lambda: self.financial_ratio_analyzer.get_financial_ratios(symbol),
-                metrics_attempt=cb,
-                metrics_final=cb
+                metrics_attempt=cb_attempt,
+                metrics_final=cb_final
             )
             if financial_ratios and len(financial_ratios) > 0:
                 latest_ratios = financial_ratios[0]
@@ -1016,10 +1333,12 @@ class FinancialDataProvider(DataProvider):
                 raise
             
             # 실제 API는 _with_retries가 집계
+            cb_final = (lambda ok, et=None: self.metrics.record_api_call(ok, et)) if self.metrics else None
+            cb_attempt = (lambda et=None: self.metrics.record_api_attempt_error(et)) if self.metrics else None
             profit_ratios = _with_retries(
                 lambda: self.profit_ratio_analyzer.get_profit_ratios(symbol),
-                metrics_attempt=cb,
-                metrics_final=cb
+                metrics_attempt=cb_attempt,
+                metrics_final=cb_final
             )
             if profit_ratios and len(profit_ratios) > 0:
                 latest_profit = profit_ratios[0]
@@ -1045,10 +1364,12 @@ class FinancialDataProvider(DataProvider):
                 raise
             
             # 실제 API는 _with_retries가 집계
+            cb_final = (lambda ok, et=None: self.metrics.record_api_call(ok, et)) if self.metrics else None
+            cb_attempt = (lambda et=None: self.metrics.record_api_attempt_error(et)) if self.metrics else None
             stability = _with_retries(
                 lambda: self.stability_ratio_analyzer.get_stability_ratios(symbol),
-                metrics_attempt=cb,
-                metrics_final=cb
+                metrics_attempt=cb_attempt,
+                metrics_final=cb_final
             )
             if stability and len(stability) > 0:
                 latest_stab = stability[0]
@@ -1062,6 +1383,8 @@ class FinancialDataProvider(DataProvider):
         
         # 단위 표준화 일괄 적용 (새로운 표준화 함수 사용)
         financial_data = DataConverter.standardize_financial_units(financial_data)
+        # ✅ Percent canonicalization 보호 플래그 설정
+        financial_data["_percent_canonicalized"] = True
         
         # 기존 혼재 단위 정규화도 유지 (호환성) - standardize_financial_units()에서 통일 처리
         # debt_ratio, equity_ratio는 PERCENT_FIELDS에 포함되어 자동 처리됨
@@ -1085,13 +1408,14 @@ class FinancialDataProvider(DataProvider):
             
         try:
             # 향상된 가격 프로바이더 사용 (리트라이 + 메트릭 콜백으로 일원화)
-            cb = (lambda ok, et=None: self.metrics.record_api_call(ok, et)) if self.metrics else None
+            cb_final = (lambda ok, et=None: self.metrics.record_api_call(ok, et)) if self.metrics else None
+            cb_attempt = (lambda et=None: self.metrics.record_api_attempt_error(et)) if self.metrics else None
             price_data = _with_retries(
                 lambda: self.price_provider.get_comprehensive_price_data(symbol),
-                metrics_attempt=cb,
-                metrics_final=cb
+                metrics_attempt=cb_attempt,
+                metrics_final=cb_final
             )
-            # 빈 페이로드는 _with_retries에서 이미 기록됨 (중복 기록 방지)
+            # 빈 페이로드 추가 집계
             
             if price_data:
                 # 결측치 표현 일관성: "없으면 None"로 통일 (legitimate zero 허용)
@@ -1103,10 +1427,10 @@ class FinancialDataProvider(DataProvider):
                     'current_price': _local_none_if_missing(price_data.get('current_price')),
                     'price_change': _local_none_if_missing(price_data.get('price_change')),
                     'price_change_rate': _local_none_if_missing(price_data.get('price_change_rate')),
-                    'volume': _local_none_if_missing(price_data.get('volume')),
+                    'volume': int(v) if (v := _local_none_if_missing(price_data.get('volume'))) is not None else None,
                     'eps': _local_none_if_missing(price_data.get('eps')),
                     'bps': _local_none_if_missing(price_data.get('bps')),
-                    'market_cap': _local_none_if_missing(price_data.get('market_cap'))
+                    'market_cap': normalize_market_cap_ekwon(_local_none_if_missing(price_data.get('market_cap')))
                 }
                 
                 # PER/PBR 계산 (EPS/BPS가 양수일 때만, 0원 주가 방어)
@@ -1127,12 +1451,16 @@ class FinancialDataProvider(DataProvider):
                 if eps is not None and eps > EPS_MIN and cp is not None:
                     data['per'] = DataValidator.safe_divide(cp, eps)
                 else:
-                    data['per'] = None
+                    data['per'] = None  # 원인: eps_min 미달/결측/정지
+                    if self.metrics:
+                        self.metrics.metrics['valuation_skips']['per_epsmin'] += 1
                 # ✅ PBR 계산 가드 명확화: current_price가 None이거나 0이면 스킵 (정지/단주 등)
                 if bps is not None and bps > BPS_MIN and cp is not None:
                     data['pbr'] = DataValidator.safe_divide(cp, bps)
                 else:
-                    data['pbr'] = None
+                    data['pbr'] = None  # 원인: bps_min 미달/결측/정지
+                    if self.metrics:
+                        self.metrics.metrics['valuation_skips']['pbr_bpsmin'] += 1
                 
                 # ✅ PER/PBR 상한 클램프 환경변수화: 운영 중 튜닝 가능
                 PER_MAX = safe_env_float("PER_MAX_DEFAULT", 500.0, 100.0)
@@ -1150,11 +1478,12 @@ class FinancialDataProvider(DataProvider):
                     # KIS API에서 추가 조회
                     try:
                         self.rate_limiter.acquire()
-                        cb = (lambda ok, et=None: self.metrics.record_api_call(ok, et)) if self.metrics else None
+                        cb_final = (lambda ok, et=None: self.metrics.record_api_call(ok, et)) if self.metrics else None
+                        cb_attempt = (lambda et=None: self.metrics.record_api_attempt_error(et)) if self.metrics else None
                         price_info = _with_retries(
                             lambda: self.provider.get_stock_price_info(symbol),
-                            metrics_attempt=cb,
-                            metrics_final=cb
+                            metrics_attempt=cb_attempt,
+                            metrics_final=cb_final
                         )
                         if price_info:
                             w52h = _none_if_missing_strict(price_info.get('w52_high')) if w52h is None else w52h
@@ -1175,6 +1504,8 @@ class FinancialDataProvider(DataProvider):
             # _with_retries가 이미 실패를 기록하므로 중복 기록 방지
             log_error("가격 데이터 조회", symbol, e)
         
+        if self.metrics:
+            self.metrics.record_api_call(False, ErrorType.EMPTY_PRICE_PAYLOAD)
         data = {}
         self._set_cached(self._cache_price, symbol, data)
         return data
@@ -1224,14 +1555,21 @@ class EnhancedScoreCalculator(ScoreCalculator):
         scale_score = _clamp01(scale_score)
         price_position_score = _clamp01(price_position_score)
         
-        # 가중치 재정규화 (유효 데이터만 정규화 대상으로)
+        # 가중치 재정규화 (결측 데이터는 50점 + half-weight로 항상 포함)
         valid_scores = []
         weights_for_norm = []
-        for s, w in [(opinion_score, w_op), (estimate_score, w_est), (financial_score, w_fin),
-                     (growth_score, w_gro), (scale_score, w_sca), (price_position_score, w_pp)]:
-            if s is not None:             # 유효 데이터만 정규화 대상으로
-                valid_scores.append((s, w))
-                weights_for_norm.append(w)
+        for s, w in [
+            (opinion_score, w_op),
+            (estimate_score, w_est),
+            (financial_score, w_fin),
+            (growth_score, w_gro),
+            (scale_score, w_sca),
+            (price_position_score, w_pp),
+        ]:
+            # _use() already returned (score_or_50, adjusted_weight)
+            # So at this point s is never None; keep as-is for clarity.
+            valid_scores.append((s, w))
+            weights_for_norm.append(w)
         
         total_weight = sum(weights_for_norm)
         if total_weight > 0:
@@ -1304,12 +1642,24 @@ class EnhancedScoreCalculator(ScoreCalculator):
     def _calculate_financial_score(self, financial_data: Dict[str, Any]) -> Optional[float]:
         """재무비율 점수 계산 (존재하는 지표만 가중합, 모두 결측이면 None 반환)
         
-        주의: 이 함수는 % 입력을 전제로 함 (DataConverter.standardize_financial_units()에서 변환됨)
+        **이중 스케일 금지**: 이 함수는 % 입력을 전제로 함 (DataConverter.standardize_financial_units()에서 변환됨)
         """
         if not financial_data:
             return None
         
-        # NOTE: ROE/ROA/current_ratio are already % (0–100+) here. Do NOT rescale.
+        # ✅ Percent canonicalization 보호 체크 (resilience 개선)
+        if financial_data.get("_percent_canonicalized") is not True:
+            logging.warning("WARNING: financial_data not canonicalized! Re-scaling detected. Applying on-the-fly canonicalization.")
+            financial_data = DataConverter.standardize_financial_units(financial_data)
+            financial_data["_percent_canonicalized"] = True
+        
+        # NOTE: 입력은 canonical % (DataConverter.standardize_financial_units 이후)
+        # 재스케일 금지: 숫자 범위만 검증 (로컬 스냅샷으로 부수효과 방지)
+        _roe = DataValidator.safe_float_optional(financial_data.get('roe'))
+        _roa = DataValidator.safe_float_optional(financial_data.get('roa'))
+        _debt = DataValidator.safe_float_optional(financial_data.get('debt_ratio'))
+        _npm = DataValidator.safe_float_optional(financial_data.get('net_profit_margin'))
+        _cr = DataValidator.safe_float_optional(financial_data.get('current_ratio'))
 
         w = self.config.financial_ratio_weights
         roe_w = w.get('roe_score', 8)
@@ -1318,12 +1668,12 @@ class EnhancedScoreCalculator(ScoreCalculator):
         npm_w = w.get('net_profit_margin_score', 5)
         cr_w = w.get('current_ratio_score', 3)
 
-        # 값은 optional로 읽어 결측(None)은 제외
-        roe = DataValidator.safe_float_optional(financial_data.get('roe'))
-        roa = DataValidator.safe_float_optional(financial_data.get('roa'))
-        debt_ratio = DataValidator.safe_float_optional(financial_data.get('debt_ratio'))
-        npm = DataValidator.safe_float_optional(financial_data.get('net_profit_margin'))
-        cr = DataValidator.safe_float_optional(financial_data.get('current_ratio'))
+        # 로컬 스냅샷 사용 (financial_data 수정 금지)
+        roe = _roe
+        roa = _roa
+        debt_ratio = _debt
+        npm = _npm
+        cr = _cr
         # Current ratio units: now fully canonicalized in standardize_financial_units
 
         acc = 0.0
@@ -1378,8 +1728,10 @@ class EnhancedScoreCalculator(ScoreCalculator):
         else:
             return 0.0
     
-    def _calculate_scale_score(self, market_cap: float) -> float:
+    def _calculate_scale_score(self, market_cap: Optional[float]) -> float:
         """규모 점수 계산 (설정값 사용)"""
+        if market_cap is None:
+            return 50.0  # default for unknown market cap
         t = self.config.scale_score_thresholds
         if market_cap >= t.get('mega_cap', 100000):
             return 100
@@ -1445,10 +1797,24 @@ class EnhancedIntegratedAnalyzer:
     """
     
     def __init__(self, config_file: str = "config.yaml", include_realtime: bool = True, include_external: bool = True):
+        # 로깅/환경 캐시 준비
+        _refresh_env_cache()
         self.config_manager = ConfigManager(config_file)
         self.rate_limiter = TPSRateLimiter()
         self.include_realtime = include_realtime
         self.include_external = include_external
+        
+        # ✅ 환경변수 캐싱 (핫패스 최적화)
+        self.env_cache = {
+            'current_ratio_ambiguous_strategy': os.getenv("CURRENT_RATIO_AMBIGUOUS_STRATEGY", "as_is"),
+            'current_ratio_force_percent': os.getenv("CURRENT_RATIO_FORCE_PERCENT", "false"),
+            'market_cap_strict_mode': os.getenv("MARKET_CAP_STRICT_MODE", "true"),
+            'sector_target_good': safe_env_int("SECTOR_TARGET_GOOD", 60, 10),
+            'max_sector_peers_base': safe_env_int("MAX_SECTOR_PEERS_BASE", 40, 5),
+            'max_sector_peers_full': safe_env_int("MAX_SECTOR_PEERS_FULL", 200, 20),
+            'max_sector_cache_entries': safe_env_int("MAX_SECTOR_CACHE_ENTRIES", 64, 1),
+            'max_sector_api_boost': safe_env_int("MAX_SECTOR_API_BOOST", 10, 0),
+        }
         
         # 메트릭 수집기 초기화
         self.metrics = MetricsCollector()
@@ -1464,10 +1830,11 @@ class EnhancedIntegratedAnalyzer:
         # 설정 로드
         self.config = self._load_analysis_config()
         self.score_calculator = EnhancedScoreCalculator(self.config)
+        self._validate_config()
         
         # ✅ 스레드 안전성을 위한 락 추가
         self._sector_warned_lock = RLock()
-        self._sector_warned: set[str] = set()
+        self._sector_warned: Set[str] = set()
         
         # KOSPI 데이터 로드
         self.kospi_data = None
@@ -1490,6 +1857,14 @@ class EnhancedIntegratedAnalyzer:
     def _result_to_dict(self, r: AnalysisResult) -> Dict[str, Any]:
         """Convert AnalysisResult to serializable dict for JSON export"""
         pdict = r.price_data or {}
+        
+        # 대시보드용 요약 필드 생성
+        sector_summary = ""
+        if r.sector_analysis and r.sector_analysis.get('total_score') is not None:
+            score = r.sector_analysis.get('total_score', 0)
+            grade = r.sector_analysis.get('grade', 'N/A')
+            sector_summary = f"{grade}({score:.1f})"
+        
         d = {
             "symbol": r.symbol,
             "name": r.name,
@@ -1505,6 +1880,10 @@ class EnhancedIntegratedAnalyzer:
             "score_breakdown": r.score_breakdown,
             "financial_data": r.financial_data,
             "sector_analysis": r.sector_analysis,
+            # 대시보드용 요약 필드
+            "sector_valuation": sector_summary,
+            "opinion_summary": r.opinion_analysis.get('summary', '') if r.opinion_analysis else '',
+            "estimate_summary": r.estimate_analysis.get('summary', '') if r.estimate_analysis else '',
         }
         # ✅ 직렬화 안전성 강화: 넘파이 스칼라 등 처리
         return serialize_for_json(d)
@@ -1562,6 +1941,19 @@ class EnhancedIntegratedAnalyzer:
                 'micro_cap': 0
             }),
         )
+    
+    def _validate_config(self) -> None:
+        """설정 가중치/임계값 sanity-check (경고만)"""
+        try:
+            w = self.config.weights
+            total = sum(float(w.get(k,0)) for k in w)
+            if total <= 0:
+                logging.warning("[config] weights 합이 0 이하입니다. 기본 가중치 권장")
+            for name, thr in self.config.scale_score_thresholds.items():
+                if not isinstance(thr, (int,float)):
+                    logging.warning(f"[config] scale threshold '{name}'이 숫자가 아님")
+        except Exception as e:
+            logging.debug(f"[config] validate 실패: {e}")
     
     def _load_kospi_data(self):
         """KOSPI 마스터 데이터를 로드합니다 (xlsx/csv 지원)."""
@@ -1624,13 +2016,16 @@ class EnhancedIntegratedAnalyzer:
                 # 스키마 검증
                 required_cols = {"단축코드", "한글명", "시가총액"}
                 if not required_cols.issubset(self.kospi_data.columns):
+                    # 스키마 정보 로깅 (운영 지원)
+                    detected_cols = list(self.kospi_data.columns)[:10]  # 처음 10개 컬럼만
+                    logging.error(f"KOSPI 스키마 불일치: 필요컬럼 {required_cols}, 감지된 컬럼 {detected_cols}")
                     raise ValueError(f"KOSPI 스키마 불일치: 필요컬럼 {required_cols}, 실제 {set(self.kospi_data.columns)}")
                 
                 # 시가총액 컬럼 정리 (혼합 타입 처리)
                 if '시가총액' in self.kospi_data.columns:
                     self.kospi_data['시가총액'] = pd.to_numeric(
                         self.kospi_data['시가총액'].astype(str).str.replace(',', ''), errors='coerce'
-                    ).fillna(0)
+                    )  # no fillna - keep NaN for unknown market caps
                 
                 # 유효한 6자리 종목 코드만 필터링
                 original_count = len(self.kospi_data)
@@ -1640,6 +2035,11 @@ class EnhancedIntegratedAnalyzer:
                 filtered_count = len(self.kospi_data)
                 
                 logging.info(f"KOSPI 마스터 데이터 로드 완료: {original_count}개 → {filtered_count}개 유효 종목")
+                
+                # ✅ pandas filtering 최적화: 인덱스 설정 (임시 비활성화)
+                # if not self.kospi_data.empty and '단축코드' in self.kospi_data.columns:
+                #     self.kospi_data = self.kospi_data.set_index('단축코드')
+                #     logging.debug("KOSPI 데이터 인덱스 설정 완료 (단축코드)")
         except Exception as e:
             log_error("KOSPI 데이터 로드", error=e, level="error")
             self.kospi_data = pd.DataFrame()
@@ -1745,6 +2145,7 @@ class EnhancedIntegratedAnalyzer:
                 market_cap=market_cap,
                 current_price=price_data.get('current_price', 0),
                 price_position=analysis_data['price_position'],
+                price_band_outside=self._is_price_outside_52w_band(price_data),  # 52주 밴드 밖 여부
                 financial_data=financial_data,
                 opinion_analysis=opinion_analysis,
                 estimate_analysis=estimate_analysis,
@@ -1777,11 +2178,12 @@ class EnhancedIntegratedAnalyzer:
             return {}
         try:
             with self._opinion_lock:
-                cb = (lambda ok, et=None: self.metrics.record_api_call(ok, et)) if self.metrics else None
+                cb_final = (lambda ok, et=None: self.metrics.record_api_call(ok, et)) if self.metrics else None
+                cb_attempt = (lambda et=None: self.metrics.record_api_attempt_error(et)) if self.metrics else None
                 return _with_retries(
                     lambda: self.opinion_analyzer.analyze_single_stock(symbol, days_back=days_back),
-                    metrics_attempt=cb,
-                    metrics_final=cb
+                    metrics_attempt=cb_attempt,
+                    metrics_final=cb_final
                 )
         except Exception as e:
             if self.metrics:
@@ -1795,11 +2197,12 @@ class EnhancedIntegratedAnalyzer:
             return {}
         try:
             with self._estimate_lock:
-                cb = (lambda ok, et=None: self.metrics.record_api_call(ok, et)) if self.metrics else None
+                cb_final = (lambda ok, et=None: self.metrics.record_api_call(ok, et)) if self.metrics else None
+                cb_attempt = (lambda et=None: self.metrics.record_api_attempt_error(et)) if self.metrics else None
                 return _with_retries(
                     lambda: self.estimate_analyzer.analyze_single_stock(symbol),
-                    metrics_attempt=cb,
-                    metrics_final=cb
+                    metrics_attempt=cb_attempt,
+                    metrics_final=cb_final
                 )
         except Exception as e:
             if self.metrics:
@@ -1833,7 +2236,7 @@ class EnhancedIntegratedAnalyzer:
             per = DataValidator.safe_float_optional(price_data.get('per'))
             pbr = DataValidator.safe_float_optional(price_data.get('pbr'))
             roe = DataValidator.safe_float_optional(financial_data.get('roe'))
-            market_cap_pd = DataValidator.safe_float_optional(price_data.get('market_cap', 0))
+            market_cap_pd = normalize_market_cap_ekwon(DataValidator.safe_float_optional(price_data.get('market_cap', 0)))
             
             # 섹터 백분위 기반 스코어를 우선 사용하고, 없으면 기존 선형 매핑 사용
             sector_val = self._evaluate_valuation_by_sector(
@@ -1850,30 +2253,37 @@ class EnhancedIntegratedAnalyzer:
             if sector_val and sector_val.get('total_score') is not None:
                 financial_score = float(sector_val['total_score'])
             else:
-                financial_score = 50.0
-                if per is not None and per > 0:
-                    financial_score += _delta(self._calculate_metric_score(per, min_val=10, max_val=30, reverse=True), 20)
-                if pbr is not None and pbr > 0:
-                    financial_score += _delta(self._calculate_metric_score(pbr, min_val=1.0, max_val=3.0, reverse=True), 15)
+                # 섹터 데이터 없으면 None으로 반환하여 상위 half-weight 로직 한 번만 적용
+                financial_score = None
 
             # 성장성 점수 (ROE 기반 가/감점)
             growth_score = 50.0
             if roe is not None and roe > 0:
-                growth_score += _delta(self._calculate_metric_score(roe, min_val=5, max_val=20, reverse=False), 25)
+                roe_score = self._calculate_metric_score(roe, min_val=5, max_val=20, reverse=False)
+                if roe_score is not None:
+                    growth_score += _delta(roe_score, 25)
 
             # 안정성 점수 (시총 기반 가/감점)
             stability_score = 50.0
             market_cap_file = self._get_market_cap(symbol)  # 억원 단위(파일 기준)
-            market_cap_pd_ek = self._normalize_market_cap_ekwon(market_cap_pd)  # 억원 단위로 정규화
-            mc = market_cap_file if market_cap_file else (market_cap_pd_ek or 0)
+            mc = market_cap_file if market_cap_file else (market_cap_pd or 0)
             if mc > 100000: stability_score += 20
             elif mc > 50000: stability_score += 10
 
-            # 각 스코어/최종 클램프
-            financial_score = max(0.0, min(100.0, financial_score))
-            growth_score    = max(0.0, min(100.0, growth_score))
-            stability_score = max(0.0, min(100.0, stability_score))
-            total_score     = max(0.0, min(100.0, (financial_score + growth_score + stability_score) / 3.0))
+            # 각 스코어/최종 클램프 (None 안전 처리)
+            def _clamp_0_100(x, default=50.0):
+                """값을 0-100 범위로 클램프하되, None이면 기본값 반환"""
+                if x is None:
+                    return default
+                try:
+                    return max(0.0, min(100.0, float(x)))
+                except (ValueError, TypeError):
+                    return default
+            
+            financial_score = _clamp_0_100(financial_score, 50.0)
+            growth_score    = _clamp_0_100(growth_score, 50.0)
+            stability_score = _clamp_0_100(stability_score, 50.0)
+            total_score     = _clamp_0_100((financial_score + growth_score + stability_score) / 3.0, 50.0)
             
             # 등급 결정
             if total_score >= 80:
@@ -1908,22 +2318,8 @@ class EnhancedIntegratedAnalyzer:
             return {'grade': 'C', 'total_score': 50.0,
                     'breakdown': {'재무_건전성': 50.0, '성장성': 50.0, '안정성': 50.0}}
     
-    def _normalize_market_cap_ekwon(self, x: Optional[float]) -> Optional[float]:
-        """시가총액을 억원 단위로 정규화
 
-        원(아주 큰 수)로 추정되면 억원으로 변환, 이미 억원인 값은 그대로
-        """
-        v = DataValidator.safe_float_optional(x)
-        if v is None:
-            return None
-        # ✅ 시장총액 단위 혼재 보수 가드: 1e12만 보지 말고 안전 범위 추가
-        # 단순·안전 휴리스틱: 1조원(=1e12) 이상이면 원 단위로 판단해 억원 변환
-        # (원 단위라면 보통 10^12 스케일, 억원 단위는 10^5~10^7 스케일)
-        if 1e10 <= v < 1e15:   # 1e12만 보지 말고 안전 범위 추가
-            return v / 1e8
-        return v
-
-    def _get_market_cap(self, symbol: str) -> float:
+    def _get_market_cap(self, symbol: str) -> Optional[float]:
         """시가총액 조회 (억원 단위)
         
         Note: KOSPI 파일의 시가총액 컬럼은 억원 단위로 가정합니다.
@@ -1932,8 +2328,11 @@ class EnhancedIntegratedAnalyzer:
         if self.kospi_data is not None and not self.kospi_data.empty:
             stock_info = self.kospi_data[self.kospi_data['단축코드'] == str(symbol)]
             if not stock_info.empty:
-                return DataValidator.safe_float(stock_info.iloc[0]['시가총액'])
-        return 0.0
+                mc = stock_info.iloc[0]['시가총액']
+                if pd.isna(mc):
+                    return None  # unknown market cap
+                return float(mc)
+        return None
     
     def _calculate_price_position(self, price_data: Dict[str, Any]) -> Optional[float]:
         """52주 위치 계산 (NaN/0-division 방지, 밴드 밖도 클램프)"""
@@ -1947,13 +2346,16 @@ class EnhancedIntegratedAnalyzer:
         if not (cp > 0 and hi > 0 and lo > 0):
             return None
         band = hi - lo
-        if band <= 0:
-            logging.debug(f"Invalid 52w band: hi={hi}, lo={lo}")
-            return None
         # ✅ 52주 밴드 임계치 환경변수화 (기본 0.1%)
         tiny_band_threshold = safe_env_float("POS_TINY_BAND_THRESHOLD", 0.001, 0.0)  # 0.1%
-        if band/hi <= tiny_band_threshold:
-            logging.debug(f"Tiny 52w band: hi={hi}, lo={lo}, cp={cp}")
+        
+        # 상대·절대 동시 체크로 float 오차 및 극미/퇴화 케이스 방지
+        if band <= 0 or band/hi <= tiny_band_threshold or band <= 1e-6:
+            logging.debug(f"Tiny/degenerate 52w band: hi={hi}, lo={lo}, cp={cp}")
+            # 퇴화 케이스 메트릭 기록 (운영 모니터링용) – API 실패로 집계하지 않음
+            if hasattr(self, 'metrics') and self.metrics:
+                self.metrics.metrics['errors_by_type'][ErrorType.INVALID_52W_BAND] = \
+                    self.metrics.metrics['errors_by_type'].get(ErrorType.INVALID_52W_BAND, 0) + 1
             return None
         
         raw = (cp - lo) / band * 100.0
@@ -1961,13 +2363,13 @@ class EnhancedIntegratedAnalyzer:
     
     def _is_price_outside_52w_band(self, price_data: Dict[str, Any]) -> bool:
         """현재가가 52주 밴드 밖인지 확인 (UI 경고용)"""
-        cp = DataValidator.safe_float(price_data.get('current_price', 0))
-        hi = DataValidator.safe_float(price_data.get('w52_high', 0))
-        lo = DataValidator.safe_float(price_data.get('w52_low', 0))
+        cp = DataValidator.safe_float_optional(price_data.get('current_price'))
+        hi = DataValidator.safe_float_optional(price_data.get('w52_high'))
+        lo = DataValidator.safe_float_optional(price_data.get('w52_low'))
         
-        if cp > 0 and hi > lo > 0:
-            return cp < lo or cp > hi
-        return False
+        if cp is None or hi is None or lo is None or not (cp > 0 and hi > 0 and lo > 0):
+            return False
+        return cp < lo or cp > hi
     
     def _analyze_profit_trend(self, financial_data: Dict[str, Any]) -> str:
         """이익률 추세 분석 (중복 API 호출 제거)"""
@@ -1988,18 +2390,15 @@ class EnhancedIntegratedAnalyzer:
         
         # 캐시 확인 (섹터명 기준 캐시 우선 시도)
         with self._sector_char_cache_lock:
-            # 1) 심볼→섹터명 캐시 (얕은 캐시)
-            sym_hit = self._sector_char_cache.get(f"sym:{symbol}")
+            # 1) 심볼→섹터명 캐시 (얕은 캐시) - 일관성을 위해 str(symbol) 사용
+            sym_hit = self._sector_char_cache.get(f"sym:{str(symbol)}")
             if sym_hit and now - sym_hit[0] < self._sector_char_cache_ttl:
                 sector = sym_hit[1]['name']
                 sec_hit = self._sector_char_cache.get(f"sec:{sector}")
                 if sec_hit and now - sec_hit[0] < self._sector_char_cache_ttl:
                     return sec_hit[1]
             
-            # 2) 기존 심볼 직접 캐시 (하위 호환)
-            cached = self._sector_char_cache.get(symbol)
-            if cached and now - cached[0] < self._sector_char_cache_ttl:
-                return cached[1]
+            # 레거시 키 경로 제거: 모든 캐시는 'sym:'/'sec:' 접두 사용
         
         try:
             # 하드코딩된 업종 매핑 (우선 적용)
@@ -2048,9 +2447,12 @@ class EnhancedIntegratedAnalyzer:
                 self._sector_char_cache[f"sym:{sym_key}"] = (now, {"name": sector})
                 self._sector_char_cache[f"sec:{sector}"] = (now, result)
                 # ✅ 레거시 키 제거: 충돌 방지 및 캐시 크기 최적화
-                # 캐시 크기 제한 (LRU 방식)
-                if len(self._sector_char_cache) > 512:
+                # 캐시 크기 제한 (LRU 방식) - sym:/sec: 쌍 삽입 고려하여 2회 pop
+                while len(self._sector_char_cache) > 512:
                     self._sector_char_cache.popitem(last=False)
+                    # 쌍으로 삽입되므로 한 번 더 pop
+                    if len(self._sector_char_cache) > 512:
+                        self._sector_char_cache.popitem(last=False)
             
             return result
             
@@ -2245,7 +2647,6 @@ class EnhancedIntegratedAnalyzer:
         """섹터 내부 백분위 기반 밸류에이션 평가"""
         start_time = _monotonic()
         try:
-            import math
             
             sector_info = self._get_sector_characteristics(symbol)
             sector_name = sector_info.get('name', '기타')
@@ -2302,6 +2703,7 @@ class EnhancedIntegratedAnalyzer:
                     return None
                 # guard: if all values are identical, avoid 0/0 weirdness later
                 if np.all(colv == colv[0]):
+                    # 모든 피어 동일값: 백분위 중립 0.5로 처리 (저/고 선호 지표 모두 중립)
                     return 0.5
                 return float((colv < x).mean())
             
@@ -2321,14 +2723,30 @@ class EnhancedIntegratedAnalyzer:
             if not scores:
                 # 모든 지표가 결측인 경우 중립 점수
                 base_score = 50.0
+                notes.append('all_metrics_skipped')
                 # ✅ 메트릭 이중 집계 방지: 컬럼별로 이미 기록했으므로 여기서는 제외
             else:
                 base_score = sum(scores) / len(scores) * 100.0
             
             # 리더 보너스(축소 후) 적용 (억원 단위로 정규화)
-            market_cap_ek = self._normalize_market_cap_ekwon(market_cap)
+            market_cap_ek = normalize_market_cap_ekwon(market_cap)
             leader_bonus = self._calculate_leader_bonus(symbol, sector_name, market_cap_ek or 0.0, 
                                                        price_data, financial_data)
+            
+            # 섹터 표본 부족 시 리더 보너스 캡 적용 (점수 부풀림 방지)
+            if not scores:
+                # 모든 지표가 제외된 경우 leader_bonus를 0으로 고정 (과보정 방지)
+                leader_bonus = 0.0
+                logging.debug(f"[sector] All metrics excluded, leader_bonus set to 0.0 to prevent over-correction")
+            
+            # 섹터 총 표본 수에 따른 연속 감쇠 (과잉 보정 방지)
+            sector_sample_count = len(vals) if 'vals' in locals() else 0
+            if sector_sample_count < 30:
+                # 표본 크기에 따른 연속 감쇠 (0.5~1.0 사이)
+                factor = max(0.5, sector_sample_count / 30.0)
+                leader_bonus *= factor
+                logging.debug(f"[sector] Sample size ({sector_sample_count}), leader bonus factor: {factor:.2f}")
+            
             total_score = min(100, max(0, base_score + leader_bonus))
             
             # 등급 결정
@@ -2370,11 +2788,11 @@ class EnhancedIntegratedAnalyzer:
             if self.metrics:
                 self.metrics.record_sector_evaluation(duration)
     
-    def _calculate_metric_score(self, value: float, min_val: float, max_val: float, reverse: bool = False) -> float:
+    def _calculate_metric_score(self, value: float, min_val: float, max_val: float, reverse: bool = False) -> Optional[float]:
         """지표별 점수 계산 (PER/PBR/ROE 등 선형 매핑 헬퍼)"""
         # ✅ _calculate_metric_score 가드 강화: NaN 및 무한값 처리
         if value is None or not math.isfinite(value) or value <= 0:
-            return 0
+            return None  # 상위에서 half-weight+50점으로 처리
         
         if max_val <= min_val:
             return 50.0  # 안전한 중립값 반환
@@ -2431,7 +2849,8 @@ class EnhancedIntegratedAnalyzer:
             return getattr(d, 'price_data', {}) or {}
         
         # 1) enhanced(price_data) -> 2) basic(price_data) -> 3) (필요 시) 실시간/엑셀
-        p = _pick_price(stock_dict.get('enhanced_result')) or _pick_price(stock_dict.get('basic_result'))
+        p = _pick_price(stock_dict.get('enhanced_result') or {}) \
+            or _pick_price(stock_dict.get('basic_result') or {})  # legacy
         current = p.get('current_price')
         w52h, w52l = p.get('w52_high'), p.get('w52_low')
         
@@ -2452,11 +2871,12 @@ class EnhancedIntegratedAnalyzer:
                 symbol = stock_dict.get('symbol')
                 if symbol:
                     self.rate_limiter.acquire()
-                    cb = (lambda ok, et=None: self.metrics.record_api_call(ok, et)) if self.metrics else None
+                    cb_final = (lambda ok, et=None: self.metrics.record_api_call(ok, et)) if self.metrics else None
+                    cb_attempt = (lambda et=None: self.metrics.record_api_attempt_error(et)) if self.metrics else None
                     price_info = _with_retries(
                         lambda: self.provider.get_stock_price_info(symbol),
-                        metrics_attempt=cb,
-                        metrics_final=cb
+                        metrics_attempt=cb_attempt,
+                        metrics_final=cb_final
                     )
                     if price_info:
                         w52h = price_info.get('w52_high') or w52h
@@ -2611,19 +3031,23 @@ class EnhancedIntegratedAnalyzer:
             total = None
         return {'grade': grade, 'total_score': total}
     
-    def _nan_if_nonpos(self, x):
+    def _nan_if_nonpos(self, x, zero_is_nan: bool = True):
         """
         0 이상이고 유한한 값만 반환, 그 외는 NaN
         
         정책:
         - PER/PBR: 0 이상만 통과 (음수는 영업적자로 제외)
         - ROE: 0 이상만 통과 (음수는 손실로 제외, 0은 포함)
+        - zero_is_nan=True: 0도 NaN으로 처리 (더 엄격한 필터링)
         """
-        x = DataValidator.safe_float(x, float('nan'))
-        # numpy float 지원
-        if isinstance(x, (int, float, np.floating)) and math.isfinite(float(x)) and float(x) >= 0:
-            return float(x)
-        return float('nan')
+        v = DataValidator.safe_float(x, float('nan'))
+        if not (isinstance(v, (int, float, np.floating)) and math.isfinite(float(v))):
+            return float('nan')
+        if v < 0: 
+            return float('nan')
+        if zero_is_nan and v == 0: 
+            return float('nan')
+        return float(v)
     
     def _nan_if_negative(self, x):
         """
@@ -2634,143 +3058,104 @@ class EnhancedIntegratedAnalyzer:
             return float(x)
         return float('nan')
 
-    def _get_sector_peers_snapshot(self, sector_name: str):
-        """섹터 동종군 샘플링 + 캐시 (TTL 10분)
-        
-        섹터 필터링이 실패할 때 전량 샘플 대상으로 돌아가는 로직을 유지하되,
-        샘플링 수를 상수화하여 성능과 정확성의 균형을 맞춤.
+    def _get_sector_peers_snapshot(self, sector_name: str) -> List[PeerTriple]:
         """
-        import math  # 안전 가드 (리팩토링/분할 시도 대비)
-        # ✅ 가드 1: KOSPI 데이터 존재/스키마 검증 (드문 케이스 NPE 방지)
-        if self.kospi_data is None or self.kospi_data.empty:
-            if self.metrics:
-                self.metrics.record_cache_miss('sector')
-            logging.debug(f"Sector[{sector_name}] peers snapshot skipped: empty KOSPI data")
-            return []
-        if '단축코드' not in self.kospi_data.columns:
-            if self.metrics:
-                self.metrics.record_cache_miss('sector')
-            logging.debug(f"Sector[{sector_name}] peers snapshot skipped: missing '단축코드' column")
-            return []
+        주어진 섹터의 피어들에 대한 (PER, PBR, ROE) 스냅샷을 반환합니다.
+        - 반환: [(per, pbr, roe), ...]  (모두 유효한 비음수가 있는 케이스만 채택)
+        - 10분 TTL 캐시(_sector_cache) 적용
+        """
+        now = _monotonic()
 
-        # 적응형 샘플링 수 (캐시 히트율 기반, 워밍업 최적화)
-        MAX_SECTOR_PEERS_BASE = safe_env_int("MAX_SECTOR_PEERS_BASE", 60, 5)
-        MAX_SECTOR_PEERS_FULL = safe_env_int("MAX_SECTOR_PEERS_FULL", 200, 20)
-        MAX_CACHE_ENTRIES = safe_env_int("MAX_SECTOR_CACHE_ENTRIES", 64, 1)  # 64~96 권장
-        MAX_API_BOOST = safe_env_int("MAX_SECTOR_API_BOOST", 20, 0)  # 운영 안정성을 위해 기본값 20으로 조정
-        
+        # 1) 캐시 조회
         with self._sector_cache_lock:
-            now = _monotonic()
             hit = self._sector_cache.get(sector_name)
             if hit and now - hit[0] < self._sector_cache_ttl:
-                if self.metrics:
-                    self.metrics.record_cache_hit('sector')
                 return hit[1]
-            
-            if self.metrics:
-                self.metrics.record_cache_miss('sector')
-            
-            # 동종군 찾기 (정확 매치 우선, 부분 매치 대체)
-            if self.kospi_data is None or self.kospi_data.empty:
-                self._sector_cache[sector_name] = (_monotonic(), [])
-                return []
 
-            cols = ['단축코드', '업종', '지수업종대분류', '업종명', '섹터']
-            have = [c for c in cols if c in self.kospi_data.columns]
-            peers = self.kospi_data[have]  # projection only, no full-frame copy
-            for col in ('업종', '지수업종대분류', '업종명', '섹터'):
-                if col in peers.columns:
-                    colseries = peers[col].astype(str)
-                    exact = peers[colseries == sector_name]
-                    peers = exact if not exact.empty else peers[colseries.str.contains(sector_name, na=False, regex=False)]
+        # 2) KOSPI 없으면 빈 리스트
+        if self.kospi_data is None or self.kospi_data.empty:
+            with self._sector_cache_lock:
+                self._sector_cache[sector_name] = (now, [])
+            return []
+
+        # 3) 섹터 컬럼 후보에서 동종군 추출
+        sector_cols = ('업종', '지수업종대분류', '업종명', '섹터')
+        df = self.kospi_data
+        peers_df = None
+        s_lower = str(sector_name).strip().lower()
+
+        for col in sector_cols:
+            if col in df.columns:
+                tmp = df[df[col].astype(str).str.strip().str.lower() == s_lower]
+                if not tmp.empty:
+                    peers_df = tmp
                     break
-            
-            # ✅ 가드 2: 필터 결과가 비었을 경우 조기 반환(캐시 기록 포함)
-            if peers.empty:
-                now = _monotonic()
+        if peers_df is None or peers_df.empty:
+            # 섹터명이 애매하면 부분매칭(contains)로 한 번 더 시도
+            for col in sector_cols:
+                if col in df.columns:
+                    tmp = df[df[col].astype(str).str.strip().str.lower().str.contains(s_lower, na=False)]
+                    if not tmp.empty:
+                        peers_df = tmp
+                        break
+
+        if peers_df is None or peers_df.empty:
+            with self._sector_cache_lock:
                 self._sector_cache[sector_name] = (now, [])
-                return []
-            
-            # 적응형 샘플링 (캐시 히트율 기반)
-            codes = peers['단축코드'].astype(str).tolist()
-            # ✅ 가드 3: 코드 리스트가 비면 조기 반환
-            if not codes:
-                now = _monotonic()
-                self._sector_cache[sector_name] = (now, [])
-                return []
-            
-            # 캐시 히트율에 따른 샘플링 수 조정
-            hit_rate = self.metrics.get_cache_hit_rate('financial') if self.metrics else 0
-            limit = MAX_SECTOR_PEERS_FULL if hit_rate >= 50 else MAX_SECTOR_PEERS_BASE
-            
-            # ✅ 섹터 피어 샘플링 최적화: 소형 섹터에서 불필요한 sort 비용 제거
-            if len(codes) > limit:
-                # 대형 섹터에서만 정렬 및 stride 적용
-                codes.sort()  # 안정된 순서
-                stride = max(1, len(codes) // limit)
-                codes = codes[::stride][:limit]
-            # 소형 섹터는 그대로 사용 (정렬 생략)
-            
-            vals: List[PeerTriple] = []
-            api_boost_count = 0
-            # ✅ 성능 핫스팟 완충: 동일 실행 내 중복 코드 요청에 대한 초미니 메모이제이션
-            local_price_cache = {}
-            local_fin_cache = {}
-            
-            # ✅ 섹터 피어 샘플링 성능 최적화: 목표 좋은 샘플 수에 도달하면 빠른 종료
-            TARGET_GOOD = safe_env_int("SECTOR_TARGET_GOOD", 80, 10)
-            
-            for code in codes:
+            return []
+
+        # 4) 동종군 코드 수집 (문자 6자리)
+        codes = (
+            peers_df.get('단축코드', pd.Series(dtype=str))
+            .astype(str)
+            .str.replace(r'\.0$', '', regex=True)
+            .str.zfill(6)
+            .tolist()
+        )
+
+        # 5) 표본 수 제한: base/full
+        max_full = self.env_cache.get('max_sector_peers_full', 200)
+        if len(codes) > max_full:
+            # 랜덤 샘플링(섹터 평균을 왜곡하지 않도록 넓게 고르게)
+            random.shuffle(codes)
+            codes = codes[:max_full]
+
+        # 6) 동시 수집
+        results: List[PeerTriple] = []
+        max_workers = safe_env_int("MAX_WORKERS", 0, min_val=None) or min(32, max(4, os.cpu_count() or 8))
+
+        def fetch_tuple(code: str) -> Optional[PeerTriple]:
+            try:
+                # 캐시된 프로바이더 사용: 내부 TTL + 재시도 처리
+                pdict = self.data_provider.get_price_data(code) or {}
+                fdict = self.data_provider.get_financial_data(code) or {}
+
+                per = self._nan_if_nonpos(pdict.get('per'), zero_is_nan=True)
+                pbr = self._nan_if_nonpos(pdict.get('pbr'), zero_is_nan=True)
+                roe = self._nan_if_negative(fdict.get('roe'))  # ROE는 0 허용, 음수 제외
+
+                if not (math.isfinite(per) and math.isfinite(pbr) and math.isfinite(roe)):
+                    return None
+                return (per, pbr, roe)
+            except Exception:
+                return None
+
+        with ThreadPoolExecutor(max_workers=max_workers) as ex:
+            for tup in ex.map(fetch_tuple, codes):
+                if tup is not None:
+                    results.append(tup)
+
+        # 7) 결과 캐시 + LRU 축소
+        with self._sector_cache_lock:
+            self._sector_cache[sector_name] = (now, results)
+            # LRU: 오래된 섹터 제거
+            while len(self._sector_cache) > self.env_cache.get('max_sector_cache_entries', 64):
                 try:
-                    pr = local_price_cache.get(code)
-                    if pr is None:
-                        pr = self.data_provider.get_price_data(code)
-                        local_price_cache[code] = pr
-                    fn = local_fin_cache.get(code)
-                    if fn is None:
-                        fn = self.data_provider.get_financial_data(code)
-                        local_fin_cache[code] = fn
-                    # ✅ 개선된 NaN 처리: 양수이고 유한한 값만 유효
-                    per_v = self._nan_if_nonpos(pr.get('per'))
-                    pbr_v = self._nan_if_nonpos(pr.get('pbr'))
-                    roe_v = self._nan_if_nonpos(fn.get('roe'))
-                    
-                    # 모두 nan이면 API 보강 시도 (1회차에만)
-                    if not any(math.isfinite(v) for v in (per_v, pbr_v, roe_v)) and api_boost_count < MAX_API_BOOST:
-                        api_boost_count += 1
-                        # API 보강 로직 (간단한 재시도)
-                        try:
-                            pr = self.data_provider.get_price_data(code)
-                            fn = self.data_provider.get_financial_data(code)
-                            # API 보강 시에도 동일한 NaN 처리 적용
-                            per_v = self._nan_if_nonpos(pr.get('per'))
-                            pbr_v = self._nan_if_nonpos(pr.get('pbr'))
-                            roe_v = self._nan_if_nonpos(fn.get('roe'))
-                        except Exception:
-                            pass  # 보강 실패 시 원래 nan 값 유지
-                    
-                    # 최소 하나라도 유효하면 포함
-                    if any(math.isfinite(v) for v in (per_v, pbr_v, roe_v)):
-                        vals.append((per_v, pbr_v, roe_v))
-                        # ✅ 빠른 종료: 목표 샘플 수에 도달하면 API 호출 비용 절약
-                        if len(vals) >= TARGET_GOOD:
-                            break
-                except Exception as e:
-                    if self.metrics:
-                        self.metrics.record_api_call(False, ErrorType.SECTOR_PEER_DATA)
-                    continue
-            
-            snapshot = vals
-            self._sector_cache[sector_name] = (now, snapshot)
-            
-            # LRU 관리 (상수화된 최대 캐시 엔트리 수)
-            while len(self._sector_cache) > MAX_CACHE_ENTRIES:
-                self._sector_cache.popitem(last=False)
-            
-            # 메트릭스 로깅 (섹터 피어 샘플 크기/히트율)
-            logging.debug(f"Sector[{sector_name}] peers={len(codes)} hit_rate_fin={hit_rate:.1f}% api_boost={api_boost_count}")
-            
-            return snapshot
+                    self._sector_cache.popitem(last=False)
+                except Exception:
+                    break
+
+        return results
     
     def _analyze_stocks_parallel(self, stocks_data, max_workers: int = None) -> List[AnalysisResult]:
         """종목들을 병렬로 분석하는 공통 메서드 (API TPS 최적화)"""
@@ -2789,7 +3174,8 @@ class EnhancedIntegratedAnalyzer:
                 env_mw = None
 
             auto_guess = (int(1.5 * max_tps) if self.include_external else int(2.0 * max_tps))
-            auto_cap   = (cpu_cores * 2 if self.include_external else cpu_cores * 3)
+            # I/O 바운드 환경을 고려하여 코어*4까지 여유를 둠 (환경에 따라 튜닝 가능)
+            auto_cap   = (cpu_cores * 3 if self.include_external else cpu_cores * 4)
             auto_val   = min(auto_guess, auto_cap)
 
             if env_mw is None or env_mw == 0:
@@ -2823,7 +3209,7 @@ class EnhancedIntegratedAnalyzer:
                     else:
                         logging.debug(f"분석 실패: {name} ({symbol}) - {result.error}")
                 except Exception as e:
-                    log_error("종목 분석", f"{name}({symbol})", e)
+                    log_error("종목 분석", f"{name}({symbol})", e, LogLevel.ERROR)
                     continue
 
         # 분석된 종목 수 기록
@@ -2831,6 +3217,63 @@ class EnhancedIntegratedAnalyzer:
             self.metrics.record_stocks_analyzed(len(results))
         
         return results
+
+    # -----------------------------
+    # 실행 유틸/엔트리포인트 보강
+    # -----------------------------
+    def run_universe(self, limit: int = 100) -> List[AnalysisResult]:
+        """
+        KOSPI 마스터에서 우선주 제외 후 시총 상위 limit개를 병렬 분석.
+        """
+        if self.kospi_data is None or self.kospi_data.empty:
+            logging.error("KOSPI 마스터 데이터가 없습니다. kospi_code.csv/xlsx를 확인하세요.")
+            return []
+
+        df = self.kospi_data.copy()
+
+        # 우선주 제외
+        if "한글명" in df.columns:
+            df = df[~df["한글명"].astype(str).apply(DataValidator.is_preferred_stock)]
+
+        # 시총 정렬 후 상위 limit
+        if "시가총액" in df.columns:
+            df = df.sort_values("시가총액", ascending=False)
+        if limit and limit > 0:
+            df = df.head(limit)
+
+        results = self._analyze_stocks_parallel(df)
+        
+        # 투자 매력도(종합점수) 순으로 정렬
+        results.sort(key=lambda x: x.enhanced_score, reverse=True)
+        
+        return results
+
+    def export_json(self, results: List[AnalysisResult], path: str) -> None:
+        """분석 결과를 JSON 파일로 저장"""
+        payload = [self._result_to_dict(r) for r in results]
+        with open(path, "w", encoding="utf-8") as f:
+            json.dump(payload, f, ensure_ascii=False, indent=2)
+        logging.info(f"JSON 저장 완료: {path}")
+
+    def export_csv(self, results: List[AnalysisResult], path: str) -> None:
+        """분석 결과를 CSV 파일로 저장 (주요 필드 중심)"""
+        rows = []
+        for r in results:
+            d = self._result_to_dict(r)
+            rows.append({
+                "symbol": d.get("symbol"),
+                "name": d.get("name"),
+                "grade": d.get("enhanced_grade"),
+                "score": d.get("enhanced_score"),
+                "market_cap_억": d.get("market_cap"),
+                "current_price": d.get("current_price"),
+                "price_position": d.get("price_position"),
+                "per": d.get("per"),
+                "pbr": d.get("pbr"),
+                "sector_valuation": d.get("sector_valuation"),
+            })
+        pd.DataFrame(rows).to_csv(path, index=False, encoding="utf-8-sig")
+        logging.info(f"CSV 저장 완료: {path}")
     
     def analyze_full_market_enhanced(self, max_stocks: int = 100, min_score: float = 20.0, 
                                    include_realtime: bool = True, include_external: bool = True,
@@ -2861,6 +3304,9 @@ class EnhancedIntegratedAnalyzer:
             CPU 코어 수에 맞춰 워커 수를 자동 조정합니다.
         """
         try:
+            # ✅ 엔트리포인트에서 로그 초기화
+            _setup_logging_if_needed()
+            
             start_time = _monotonic()
             
             # KOSPI 데이터 확인
@@ -2911,6 +3357,18 @@ class EnhancedIntegratedAnalyzer:
                 'sector_analysis': {},
                 'market_statistics': {}
             }
+        finally:
+            try:
+                summ = self.metrics.get_summary() if hasattr(self, "metrics") and self.metrics else {}
+                # 타임스탬프를 포함한 파일명으로 겹침 방지
+                from datetime import datetime
+                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                metrics_filename = f"metrics_summary_{timestamp}.json"
+                with open(metrics_filename, "w", encoding="utf-8") as f:
+                    json.dump(serialize_for_json(summ), f, ensure_ascii=False, indent=2)
+                logging.info(f"메트릭 요약 저장: {metrics_filename}")
+            except Exception as _e:
+                logging.warning(f"메트릭 요약 저장 실패: {_e}")
     
     def analyze_top_market_cap_stocks_enhanced(self, count: int = 50, min_score: float = 20.0, 
                                              max_workers: Optional[int] = None) -> Dict[str, Any]:
@@ -3053,220 +3511,85 @@ class EnhancedIntegratedAnalyzer:
     def _display_enhanced_results_table(self, results: Dict[str, Any]):
         """향상된 분석 결과를 표 형태로 출력"""
         try:
-            console = Console()
-            
-            # 메타데이터 출력
             metadata = results.get('metadata', {})
-            console.print(f"\n🚀 [bold blue]향상된 통합 분석 결과 v{metadata.get('analysis_version', '2.0_enhanced')}[/bold blue]")
-            console.print(f"📅 분석 일시: {metadata.get('analysis_date', 'Unknown')}")
-            console.print(f"⏱️ 분석 시간: {metadata.get('analysis_time_seconds', 0):.1f}초")
+            print(f"\n🚀 향상된 통합 분석 결과 v{metadata.get('analysis_version', '2.0_enhanced')}")
+            print(f"📅 분석 일시: {metadata.get('analysis_date', 'Unknown')}")
+            print(f"⏱️ 분석 시간: {metadata.get('analysis_time_seconds', 0):.1f}초")
             total = metadata.get('total_analyzed', metadata.get('total_stocks_analyzed', 0))
-            console.print(f"📊 총 분석 종목: {total}개")
-            console.print(f"🎯 추천 종목: {metadata.get('undervalued_count', 0)}개")
-            
-            # 활성화된 기능 표시
-            features = metadata.get('features_enabled', {})
-            enabled_features = [k for k, v in features.items() if v]
-            if enabled_features:
-                console.print(f"✨ 활성화된 기능: {', '.join(enabled_features)}")
+            print(f"📊 총 분석 종목: {total}개")
+            print(f"🎯 추천 종목: {metadata.get('undervalued_count', 0)}개")
             
             # 상위 추천 종목 표
             top_recommendations = results.get('top_recommendations', [])
             if top_recommendations:
-                table = Table(title="🏆 향상된 종목 추천 결과", box=box.ROUNDED)
+                print("\n🏆 향상된 종목 추천 결과")
+                print("=" * 100)
+                print(f"{'순위':<4} {'종목코드':<8} {'종목명':<15} {'현재가':<10} {'52주위치':<8} {'종합점수':<8} {'등급':<6} {'시가총액':<12}")
+                print("-" * 100)
                 
-                # 컬럼 추가
-                table.add_column("순위", style="cyan", width=4)
-                table.add_column("종목코드", style="magenta", width=8)
-                table.add_column("종목명", style="green", width=15)
-                table.add_column("현재가", style="white", width=10)
-                table.add_column("종합점수", style="yellow", width=8)
-                table.add_column("등급", style="red", width=6)
-                table.add_column("시가총액", style="blue", width=12)
-                table.add_column("52주위치", style="magenta", width=20, no_wrap=True)
-                table.add_column("바스켓", style="bright_blue", width=12)
-                table.add_column("포지션", style="bright_yellow", width=8)
-                table.add_column("손익비", style="bright_red", width=12)
-                table.add_column("섹터밸류", style="bright_cyan", width=10)
-                table.add_column("투자의견", style="cyan", width=8)
-                table.add_column("재무비율", style="green", width=8)
-                table.add_column("가격위치", style="yellow", width=8)
-                
-                # 필터링된 추천 종목 (리스크관리 바스켓용) - 계산 결과 캐싱
-                filtered_recommendations = []
-                stock_calculations = {}  # 계산 결과 캐싱
-                
-                for stock in top_recommendations[:10]:
-                    # 원본 데이터만 사용 (추가 API 호출 금지)
-                    current_price = stock.get("current_price")
-                    w52h = stock.get("w52_high")
-                    w52l = stock.get("w52_low")
-                    price_position = stock.get("price_position")
-                    
-                    # 필요 시 price_position 없으면 여기서만 _calculate_price_position로 '값만' 계산하고, API 호출 금지
-                    if price_position is None and current_price is not None and w52h is not None and w52l is not None:
-                        price_position = self._calculate_price_position({
-                            'current_price': current_price,
-                            'w52_high': w52h,
-                            'w52_low': w52l
-                        })
-                    
-                    basket_type = self._classify_bucket(price_position)
-                    
-                    # 계산 결과 저장
-                    stock_calculations[id(stock)] = {
-                        'current_price': current_price,
-                        'price_position': price_position,
-                        'basket_type': basket_type
-                    }
-                    
-                    # 리스크관리 바스켓에서는 ≥85% 종목 제외
-                    if basket_type == "밸류/리스크관리" and price_position is not None and price_position >= 85:
-                        continue
-                    
-                    filtered_recommendations.append(stock)
-                
-                for i, stock in enumerate(filtered_recommendations, 1):
-                    # 캐시된 계산 결과 사용 (중복 계산 제거)
-                    calc = stock_calculations[id(stock)]
-                    current_price = calc['current_price']
-                    price_position = calc['price_position']
-                    basket_type = calc['basket_type']
-                    
-                    # 현재가 표시
-                    current_price_display = f"{current_price:,.0f}원" if current_price is not None else "N/A"
-                    
-                    # 52주 위치 표시
-                    position_text = self._position_label(price_position)
-                    
-                    # 바스켓 스타일
-                    basket_style = "green" if basket_type == "밸류/리스크관리" else "red" if basket_type == "모멘텀/브레이크아웃" else "yellow"
-                    
-                    # 포지션 사이징 계산
-                    position_sizing = self._get_position_sizing(price_position, basket_type)
-                    
-                    # 손익비 기준 계산
-                    risk_reward = self._get_risk_reward_ratio(price_position, basket_type)
-                    
-                    # 섹터 밸류 점수 계산
-                    sector_valuation = self._extract_sector_valuation_text(stock)
-                    
-                    # breakdown 정보 추출
-                    breakdown = {}
-                    if isinstance(stock, dict):
-                        # enhanced_result에서 breakdown 추출
-                        enhanced_result = stock.get('enhanced_result')
-                        if enhanced_result and hasattr(enhanced_result, 'score_breakdown'):
-                            breakdown = enhanced_result.score_breakdown or {}
-                        else:
-                            breakdown = stock.get('score_breakdown', {})
-                    else:
-                        breakdown = getattr(stock, 'score_breakdown', {})
-                    
-                    opinion_score = breakdown.get('투자의견', 0)
-                    financial_score = breakdown.get('재무비율', 0)
-                    price_position_score = breakdown.get('가격위치', 0)
-
-                    # 색상/라벨
-                    if isinstance(stock, dict):
-                        grade = stock.get('enhanced_grade', 'F')
-                    else:
-                        grade = getattr(stock, 'enhanced_grade', 'F')
-                    grade_style = "green" if grade in ['A+','A','B+','B'] else "yellow" if grade in ['C+','C','D+','D'] else "red"
-                    
+                for i, stock in enumerate(top_recommendations[:10], 1):
                     # stock이 딕셔너리인지 객체인지 확인
                     if isinstance(stock, dict):
                         symbol = stock.get('symbol', 'N/A')
                         name = stock.get('name', 'N/A')
                         enhanced_score = stock.get('enhanced_score', 0)
                         market_cap = stock.get('market_cap', 0)
+                        current_price = stock.get('current_price', 0)
+                        grade = stock.get('enhanced_grade', 'F')
+                        w52_high = stock.get('w52_high', 0)
+                        w52_low = stock.get('w52_low', 0)
                     else:
                         symbol = getattr(stock, 'symbol', 'N/A')
                         name = getattr(stock, 'name', 'N/A')
                         enhanced_score = getattr(stock, 'enhanced_score', 0)
                         market_cap = getattr(stock, 'market_cap', 0)
+                        current_price = getattr(stock, 'current_price', 0)
+                        grade = getattr(stock, 'enhanced_grade', 'F')
+                        w52_high = getattr(stock, 'w52_high', 0)
+                        w52_low = getattr(stock, 'w52_low', 0)
                     
-                    table.add_row(
-                        str(i),
-                        symbol,
-                        name[:12] + ('...' if len(name)>12 else ''),
-                        current_price_display,
-                        f"{enhanced_score:.1f}",
-                        f"[{grade_style}]{grade}[/{grade_style}]",
-                        f"{market_cap:,.0f}억",
-                        position_text,
-                        f"[{basket_style}]{basket_type}[/{basket_style}]",
-                        f"{position_sizing:.2f}x",
-                        risk_reward,
-                        sector_valuation,
-                        f"{opinion_score:.1f}",
-                        f"{financial_score:.1f}",
-                        f"{price_position_score:.1f}"
-                    )
+                    # 현재가 표시
+                    current_price_display = f"{current_price:,.0f}원" if current_price is not None else "N/A"
+                    
+                    # 52주 위치 계산 및 표시
+                    if current_price and w52_high and w52_low and w52_high > w52_low:
+                        position = ((current_price - w52_low) / (w52_high - w52_low)) * 100
+                        position_display = f"{position:.0f}%"
+                    else:
+                        position_display = "N/A"
+                    
+                    # 시가총액 표시
+                    market_cap_display = f"{market_cap:,.0f}억" if market_cap else "N/A"
+                    
+                    # 종목명 길이 제한
+                    name_display = name[:12] + ('...' if len(name) > 12 else '')
+                    
+                    print(f"{i:<4} {symbol:<8} {name_display:<15} {current_price_display:<10} {position_display:<8} {enhanced_score:<8.1f} {grade:<6} {market_cap_display:<12}")
                 
-                console.print(table)
-                
-                # 바스켓별 요약 정보 (캐시된 결과 사용)
-                console.print(f"\n📊 [bold blue]바스켓별 분류 요약[/bold blue]")
-                value_basket = [stock for stock in filtered_recommendations if stock_calculations[id(stock)]['basket_type'] == "밸류/리스크관리"]
-                momentum_basket = [stock for stock in filtered_recommendations if stock_calculations[id(stock)]['basket_type'] == "모멘텀/브레이크아웃"]
-                
-                if value_basket:
-                    console.print(f"🟢 [green]밸류/리스크관리 바스켓 ({len(value_basket)}개)[/green]")
-                    for stock in value_basket:
-                        calc = stock_calculations[id(stock)]
-                        pp = calc.get('price_position')
-                        position_display = f"{pp:.1f}%" if pp is not None and math.isfinite(float(pp)) else "N/A"
-                        console.print(f"  • {stock.get('name', 'N/A')}({stock.get('symbol', 'N/A')}) - {position_display}")
-                
-                if momentum_basket:
-                    console.print(f"🔴 [red]모멘텀/브레이크아웃 바스켓 ({len(momentum_basket)}개) - 🔴 과열/추세 라벨[/red]")
-                    for stock in momentum_basket:
-                        calc = stock_calculations[id(stock)]
-                        pp = calc.get('price_position')
-                        position_display = f"{pp:.1f}%" if pp is not None and math.isfinite(float(pp)) else "N/A"
-                        console.print(f"  • {stock.get('name', 'N/A')}({stock.get('symbol', 'N/A')}) - {position_display} 🔴")
+                print("=" * 100)
             
             # 업종별 분석 결과
             sector_analysis = results.get('sector_analysis', {})
             if sector_analysis:
-                console.print(f"\n📊 [bold green]업종별 분석 결과[/bold green]")
+                print(f"\n📊 업종별 분석 결과")
                 for sector, data in sector_analysis.items():
-                    console.print(f"  {sector}: {data['count']}개 종목, 평균점수 {data['avg_score']:.1f}")
+                    print(f"  {sector}: {data['count']}개 종목, 평균점수 {data['avg_score']:.1f}")
             
             # 시장 통계
             market_stats = results.get('market_statistics', {})
             if market_stats:
-                console.print(f"\n📈 [bold blue]시장 통계[/bold blue]")
-                console.print(f"  평균 점수: {market_stats.get('avg_score', 0):.1f}")
-                console.print(f"  최고 점수: {market_stats.get('max_score', 0):.1f}")
-                console.print(f"  최저 점수: {market_stats.get('min_score', 0):.1f}")
+                print(f"\n📈 시장 통계")
+                print(f"  평균 점수: {market_stats.get('avg_score', 0):.1f}")
+                print(f"  최고 점수: {market_stats.get('max_score', 0):.1f}")
+                print(f"  최저 점수: {market_stats.get('min_score', 0):.1f}")
                 
                 score_dist = market_stats.get('score_distribution', {})
                 if score_dist:
-                    console.print(f"  점수 분포: A+({score_dist.get('A+', 0)}) A({score_dist.get('A', 0)}) B+({score_dist.get('B+', 0)}) B({score_dist.get('B', 0)})")
-            
-            # 메트릭 표시
-            if hasattr(self, 'metrics'):
-                metrics_summary = self.metrics.get_summary()
-                console.print(f"\n📊 [bold blue]시스템 메트릭[/bold blue]")
-                console.print(f"  API 성공률: {metrics_summary['api_success_rate']:.1f}%")
-                console.print(
-                    f"  캐시 히트율: "
-                    f"가격({metrics_summary['cache_hit_rates']['price']:.1f}%) "
-                    f"재무({metrics_summary['cache_hit_rates']['financial']:.1f}%) "
-                    f"섹터({metrics_summary['cache_hit_rates']['sector']:.1f}%)"
-                )
-                console.print(f"  평균 분석 시간: {metrics_summary['avg_analysis_duration']:.3f}s "
-                              f"(p50={metrics_summary.get('analysis_p50', 0):.1f}s, p90={metrics_summary.get('analysis_p90', 0):.1f}s, p95={metrics_summary.get('analysis_p95', 0):.1f}s)")
-                console.print(f"  섹터 평가 평균 시간: {metrics_summary['avg_sector_evaluation']:.3f}s "
-                              f"(p50={metrics_summary.get('sector_p50', 0):.1f}s, p90={metrics_summary.get('sector_p90', 0):.1f}s, p95={metrics_summary.get('sector_p95', 0):.1f}s)")
-                if metrics_summary['errors_by_type']:
-                    console.print(f"  오류 유형: {', '.join([f'{k}({v}건)' for k, v in metrics_summary['errors_by_type'].items()])}")
+                    print(f"  점수 분포: A+({score_dist.get('A+', 0)}) A({score_dist.get('A', 0)}) B+({score_dist.get('B+', 0)}) B({score_dist.get('B', 0)})")
             
         except Exception as e:
-            log_error("결과 표시", error=e, level="error")
-            print(f"❌ 결과 표시 중 오류 발생: {e}")
+            log_error("결과 테이블 출력", error=e, level="error")
+            pass
 
 # =============================================================================
 # 6. CLI 인터페이스 (기존과 동일)
@@ -3279,13 +3602,16 @@ app = typer.Typer(help="Enhanced Integrated Analyzer")
 def test_enhanced_analysis(
     count: int = typer.Option(15, help="분석할 종목 수"),
     min_score: float = typer.Option(20.0, help="최소 점수"),
-    max_workers: int = typer.Option(safe_env_int("MAX_WORKERS", 0, 0), help="워커 수(0=자동)"),
+    max_workers: int = typer.Option(safe_env_int("MAX_WORKERS", 0, min_val=None), help="워커 수(0=자동)"),
     realtime: bool = typer.Option(True, help="실시간 데이터 포함"),
     external: bool = typer.Option(True, help="외부 분석 포함(의견/추정)"),
 ):
     """
     간단 실행: 시가총액 상위 종목을 분석하여 표 출력
     """
+    # ✅ 로깅 부트스트랩 호출
+    _setup_logging_if_needed()
+    
     analyzer = EnhancedIntegratedAnalyzer(include_realtime=realtime, include_external=external)
     
     # ✅ 전역 인스턴스 설정 (메트릭 덤프용)
@@ -3303,13 +3629,16 @@ def test_enhanced_analysis(
 def full_market(
     max_stocks: int = typer.Option(100, help="시총 상위 N개 분석"),
     min_score: float = typer.Option(20.0, help="최소 점수"),
-    max_workers: int = typer.Option(safe_env_int("MAX_WORKERS", 0, 0), help="워커 수(0=자동)"),
+    max_workers: int = typer.Option(safe_env_int("MAX_WORKERS", 0, min_val=None), help="워커 수(0=자동)"),
     realtime: bool = typer.Option(True, help="실시간 데이터 포함"),
     external: bool = typer.Option(True, help="외부 분석 포함(의견/추정)"),
 ):
     """
     전체 시장(시총 상위 max_stocks) 분석 실행
     """
+    # ✅ 로깅 부트스트랩 호출
+    _setup_logging_if_needed()
+    
     analyzer = EnhancedIntegratedAnalyzer(include_realtime=realtime, include_external=external)
     
     # ✅ 전역 인스턴스 설정 (메트릭 덤프용)
@@ -3334,6 +3663,9 @@ def analyze(
     external: bool = True,
 ):
     """단일 종목 분석"""
+    # ✅ 로깅 부트스트랩 호출
+    _setup_logging_if_needed()
+    
     ai = EnhancedIntegratedAnalyzer(include_realtime=realtime, include_external=external)
     
     # ✅ 전역 인스턴스 설정 (메트릭 덤프용)
@@ -3365,6 +3697,116 @@ def scan(
     
     res = a.analyze_full_market_enhanced(max_stocks=max_stocks, min_score=min_score)
     a._display_enhanced_results_table(res)
+
+@app.command(help="KOSPI 시총 상위 N개 종목을 분석하고 결과 파일로 저장합니다.")
+def run(
+    limit: int = typer.Option(50, help="분석할 시총 상위 종목 수"),
+    config: str = typer.Option("config.yaml", help="설정 파일 경로"),
+    include_realtime: bool = typer.Option(True, help="실시간/추가 가격 정보 포함"),
+    include_external: bool = typer.Option(True, help="외부(의견/추정) 분석 포함"),
+    out_json: str = typer.Option("results.json", help="JSON 결과 파일"),
+    out_csv: str = typer.Option("results.csv", help="CSV 결과 파일"),
+    log_level: str = typer.Option(os.getenv("LOG_LEVEL", "INFO"), help="로그 레벨 (DEBUG/INFO/WARN/ERROR)"),
+):
+    """KOSPI 시총 상위 N개 종목을 분석하고 결과 파일로 저장합니다."""
+    _setup_logging_if_needed()
+    logging.getLogger().setLevel(getattr(logging, log_level.upper(), logging.INFO))
+
+    analyzer = EnhancedIntegratedAnalyzer(
+        include_realtime=include_realtime,
+        include_external=include_external,
+    )
+
+    # ✅ 전역 인스턴스 설정 (메트릭 덤프용)
+    global _global_analyzer_instance
+    _global_analyzer_instance = analyzer
+
+    start = _monotonic()
+    results = analyzer.run_universe(limit=limit)
+    elapsed = _monotonic() - start
+
+    # 저장
+    analyzer.export_json(results, out_json)
+    analyzer.export_csv(results, out_csv)
+
+    # 결과 표 출력 (Rich 테이블)
+    if results:
+        console = Console()
+        console.print(f"\n🚀 [bold blue]종목 분석 결과 (상위 {len(results)}개)[/bold blue]")
+        
+        # Rich 테이블 생성
+        table = Table(title="🏆 종목 분석 결과", box=ROUNDED)
+        
+        # 컬럼 추가
+        table.add_column("순위", style="cyan", width=4, justify="center")
+        table.add_column("종목코드", style="magenta", width=8)
+        table.add_column("종목명", style="green", width=15)
+        table.add_column("현재가", style="white", width=12)
+        table.add_column("52주위치", style="bright_magenta", width=8, justify="center")
+        table.add_column("종합점수", style="yellow", width=8, justify="center")
+        table.add_column("등급", style="red", width=6, justify="center")
+        table.add_column("시가총액", style="blue", width=12)
+        
+        for i, result in enumerate(results[:10], 1):
+            # 현재가 표시
+            current_price_display = f"{result.current_price:,.0f}원" if result.current_price else "N/A"
+            
+            # 52주 위치 표시 (색상 코딩)
+            if result.price_position is not None:
+                if result.price_position >= 90:
+                    position_display = f"[red]{result.price_position:.0f}%[/red]"
+                elif result.price_position >= 70:
+                    position_display = f"[yellow]{result.price_position:.0f}%[/yellow]"
+                elif result.price_position <= 30:
+                    position_display = f"[green]{result.price_position:.0f}%[/green]"
+                else:
+                    position_display = f"{result.price_position:.0f}%"
+            else:
+                position_display = "N/A"
+            
+            # 시가총액 표시
+            market_cap_display = f"{result.market_cap:,.0f}억" if result.market_cap else "N/A"
+            
+            # 종목명 길이 제한
+            name_display = result.name[:12] + ('...' if len(result.name) > 12 else '')
+            
+            # 등급 색상 코딩
+            if result.enhanced_grade in ['A+', 'A']:
+                grade_display = f"[green]{result.enhanced_grade}[/green]"
+            elif result.enhanced_grade in ['B+', 'B']:
+                grade_display = f"[yellow]{result.enhanced_grade}[/yellow]"
+            else:
+                grade_display = f"[red]{result.enhanced_grade}[/red]"
+            
+            # 행 추가
+            table.add_row(
+                str(i),
+                result.symbol,
+                name_display,
+                current_price_display,
+                position_display,
+                f"{result.enhanced_score:.1f}",
+                grade_display,
+                market_cap_display
+            )
+        
+        console.print(table)
+        
+        # 요약 통계
+        if len(results) > 1:
+            avg_score = sum(r.enhanced_score for r in results) / len(results)
+            max_score = max(r.enhanced_score for r in results)
+            min_score = min(r.enhanced_score for r in results)
+            console.print(f"\n📈 [bold green]분석 요약:[/bold green]")
+            console.print(f"• 총 분석 종목: {len(results)}개")
+            console.print(f"• 평균 점수: {avg_score:.1f}점")
+            console.print(f"• 최고 점수: {max_score:.1f}점")
+            console.print(f"• 최저 점수: {min_score:.1f}점")
+
+    # 메트릭 요약 출력
+    summary = analyzer.metrics.get_summary()
+    logging.info(f"분석 완료: {len(results)}개, {elapsed:.2f}s")
+    logging.info(f"API 성공률: {summary['api_success_rate']:.1f}% / 가격 캐시 히트: {summary['cache_hit_rates']['price']:.1f}%")
 
 # =============================================================================
 # Graceful Shutdown & Metrics Dump
@@ -3405,6 +3847,84 @@ def _install_signals():
     except Exception:
         pass
 
+def show_help():
+    """도움말 표시"""
+    print("""
+🚀 향상된 통합 분석 시스템 v2.0
+
+사용법:
+  python enhanced_integrated_analyzer_refactored.py [옵션]
+
+옵션:
+  --help, -h           이 도움말 표시
+  --count N            분석할 종목 수 (기본값: 10)
+  --min-score N        최소 점수 필터 (기본값: 15.0)
+  --max-workers N      워커 수 (기본값: 0=자동)
+  --no-external        외부 데이터(투자의견/추정실적) 비활성화
+  --no-realtime        실시간 데이터(가격/52주) 비활성화
+  --dump PATH          결과를 JSON 파일로 저장
+
+예시:
+  python enhanced_integrated_analyzer_refactored.py --count 20 --min-score 25
+  python enhanced_integrated_analyzer_refactored.py --no-external --dump results.json
+  python enhanced_integrated_analyzer_refactored.py --count 5 --min-score 30 --max-workers 4
+    """)
+
+def parse_args():
+    """명령행 인수 파싱"""
+    import sys
+    
+    # 기본값
+    count = 10
+    min_score = 15.0
+    max_workers = 0
+    include_external = True
+    include_realtime = True
+    dump_path = None
+    
+    i = 1
+    while i < len(sys.argv):
+        arg = sys.argv[i]
+        
+        if arg in ['--help', '-h', 'help']:
+            show_help()
+            sys.exit(0)
+        elif arg == '--count' and i + 1 < len(sys.argv):
+            count = int(sys.argv[i + 1])
+            i += 2
+        elif arg == '--min-score' and i + 1 < len(sys.argv):
+            min_score = float(sys.argv[i + 1])
+            i += 2
+        elif arg == '--max-workers' and i + 1 < len(sys.argv):
+            max_workers = int(sys.argv[i + 1])
+            i += 2
+        elif arg == '--no-external':
+            include_external = False
+            i += 1
+        elif arg == '--no-realtime':
+            include_realtime = False
+            i += 1
+        elif arg == '--dump' and i + 1 < len(sys.argv):
+            dump_path = sys.argv[i + 1]
+            i += 2
+        else:
+            print(f"❌ 알 수 없는 옵션: {arg}")
+            print("💡 --help를 사용하여 사용법을 확인하세요.")
+            sys.exit(1)
+    
+    return {
+        'count': count,
+        'min_score': min_score,
+        'max_workers': max_workers if max_workers > 0 else None,
+        'include_external': include_external,
+        'include_realtime': include_realtime,
+        'dump_path': dump_path
+    }
+
 if __name__ == "__main__":
-    _install_signals()
-    app()
+    # ✅ 엔트리포인트에서 로깅 부트스트랩 호출
+    _setup_logging_if_needed()
+    try:
+        app()
+    except KeyboardInterrupt:
+        logging.warning("사용자 중단(CTRL+C)")

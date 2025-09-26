@@ -31,3 +31,4 @@ python enhanced_integrated_analyzer_refactored.py analyze-top-market-cap --count
 
  python enhanced_integrated_analyzer_refactored.py full-market --max-stocks 100
  
+python enhanced_integrated_analyzer_refactored.py  test-enhanced-analysis --count 65

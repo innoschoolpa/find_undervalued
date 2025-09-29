@@ -1,0 +1,16 @@
+{
+  "timestamp": "2025-09-28T14:45:57.775783",
+  "overall_stats": {
+    "uptime": 2.58445143699646,
+    "total_requests": 0,
+    "successful_requests": 0,
+    "failed_requests": 0,
+    "success_rate": 0.0,
+    "avg_response_time": 0.0,
+    "peak_memory_usage": 0.0,
+    "peak_cpu_usage": 0.0,
+    "active_alerts": 0
+  },
+  "metrics": {},
+  "alerts": []
+}

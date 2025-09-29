@@ -46,11 +46,33 @@ class EnhancedPriceProvider:
                 try:
                     if path.endswith('.xlsx'):
                         df = pd.read_excel(path)
-                        if '종목코드' in df.columns and '현재가' in df.columns:
-                            logger.info(f"✅ KOSPI 마스터 데이터 로드 성공: {path}")
-                            return df.set_index('종목코드')
+                        # 더 유연한 컬럼 매칭
+                        symbol_col = None
+                        price_col = None
+                        
+                        # 가능한 종목코드 컬럼명들
+                        symbol_candidates = ['종목코드', '표준코드', '코드', 'symbol', 'code']
+                        for col in df.columns:
+                            if any(candidate in str(col) for candidate in symbol_candidates):
+                                symbol_col = col
+                                break
+                        
+                        # 가능한 현재가 컬럼명들
+                        price_candidates = ['현재가', '가격', 'price', 'close', '종가']
+                        for col in df.columns:
+                            if any(candidate in str(col) for candidate in price_candidates):
+                                price_col = col
+                                break
+                        
+                        if symbol_col is not None:
+                            logger.info(f"✅ KOSPI 마스터 데이터 로드 성공: {path} (종목코드: {symbol_col}, 가격: {price_col})")
+                            return df.set_index(symbol_col)
+                        else:
+                            logger.debug(f"⚠️ {path}에서 종목코드 컬럼을 찾을 수 없습니다. 사용 가능한 컬럼: {list(df.columns)}")
+                            
                     elif path.endswith('.mst'):
                         # .mst 파일 처리 (필요시)
+                        logger.debug(f"⚠️ .mst 파일 처리는 아직 구현되지 않았습니다: {path}")
                         pass
                 except Exception as e:
                     logger.debug(f"⚠️ {path} 로드 실패: {e}")

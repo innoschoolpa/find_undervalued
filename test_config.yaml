@@ -1,0 +1,202 @@
+# Test Configuration for Comprehensive Test Suite
+# ===============================================
+
+# Test Environment Settings
+test_environment:
+  enable_fake_providers: true
+  market_cap_strict_mode: false  # Relaxed mode for testing
+  current_ratio_strategy: "as_is"
+  tps_limit: 10  # Higher limit for testing
+  timeout_seconds: 30
+  max_workers: 2
+
+# Test Categories
+test_categories:
+  unit_tests: true
+  performance_tests: true
+  integration_tests: true
+  unit_conversion_tests: true
+
+# Performance Test Settings
+performance_tests:
+  single_stock_timeout: 30.0  # seconds
+  parallel_analysis_timeout: 120.0  # seconds
+  memory_limit_mb: 100.0
+  cache_performance_threshold: 0.5  # Cache hit should be 50% faster
+
+# Integration Test Settings
+integration_tests:
+  fake_provider_enabled: true
+  fallback_testing: true
+  rate_limiting_testing: true
+  cache_integration_testing: true
+  error_handling_testing: true
+  concurrent_analysis_testing: true
+
+# Unit Conversion Test Settings
+unit_conversion_tests:
+  market_cap_test_cases:
+    - input: 100000000000
+      expected: 1000.0
+      description: "1000억원 in won"
+    - input: 10000000000
+      expected: 100.0
+      description: "100억원 in won"
+    - input: 1000000000
+      expected: 10.0
+      description: "10억원 in won"
+    - input: 100000000
+      expected: 1.0
+      description: "1억원 in won"
+    - input: 10000000
+      expected: 0.1
+      description: "0.1억원 in won"
+    - input: 1000000
+      expected: 0.01
+      description: "0.01억원 in won"
+    - input: 100000
+      expected: 0.001
+      description: "0.001억원 in won"
+    - input: 10000
+      expected: 0.0001
+      description: "0.0001억원 in won"
+    - input: 1000
+      expected: 0.00001
+      description: "0.00001억원 in won"
+    - input: 100
+      expected: 0.000001
+      description: "0.000001억원 in won"
+    - input: 10
+      expected: 0.0000001
+      description: "0.0000001억원 in won"
+    - input: 1
+      expected: 0.00000001
+      description: "0.00000001억원 in won"
+
+  percent_canonicalization_test_cases:
+    - input: 0.0
+      expected: 0.0
+      description: "Zero"
+    - input: 0.05
+      expected: 5.0
+      description: "Just below threshold"
+    - input: 0.1
+      expected: 10.0
+      description: "At threshold"
+    - input: 0.5
+      expected: 50.0
+      description: "Middle range"
+    - input: 1.0
+      expected: 100.0
+      description: "100%"
+    - input: 1.5
+      expected: 150.0
+      description: "Above 100%"
+    - input: 10.0
+      expected: 1000.0
+      description: "High value"
+    - input: 50.0
+      expected: 50.0
+      description: "Above 10, as-is"
+    - input: 100.0
+      expected: 100.0
+      description: "Very high, as-is"
+
+  current_ratio_test_cases:
+    - input: 0.8
+      strategy: "multiply"
+      expected: 80.0
+      description: "0.8 → 80% (multiply)"
+    - input: 1.5
+      strategy: "as_is"
+      expected: 1.5
+      description: "1.5 → 1.5 (as_is)"
+    - input: 12.0
+      strategy: "multiply"
+      expected: 1200.0
+      description: "12 → 1200% (multiply)"
+    - input: 65.0
+      strategy: "as_is"
+      expected: 65.0
+      description: "65 → 65 (as_is)"
+    - input: 25.0
+      strategy: "clamp"
+      expected: 25.0
+      description: "25 → 25 (clamp)"
+
+  price_position_test_cases:
+    - current: 100
+      w52_high: 100
+      w52_low: 100
+      expected: 50.0
+      description: "Zero range"
+    - current: 100.1
+      w52_high: 100.2
+      w52_low: 100.0
+      expected_range: [0.0, 100.0]
+      description: "Tiny range"
+    - current: 75000
+      w52_high: 80000
+      w52_low: 60000
+      expected: 75.0
+      description: "Realistic inputs"
+
+# Test Data
+test_data:
+  sample_symbols:
+    - "005930"  # 삼성전자
+    - "000660"  # SK하이닉스
+    - "035420"  # NAVER
+    - "051910"  # LG화학
+    - "006400"  # 삼성SDI
+    - "TEST001"  # Test stock 1
+    - "TEST002"  # Test stock 2
+    - "TEST003"  # Test stock 3
+    - "TEST004"  # Test stock 4
+    - "TEST005"  # Test stock 5
+
+  sample_names:
+    - "Samsung"
+    - "SK Hynix"
+    - "NAVER"
+    - "LG Chem"
+    - "Samsung SDI"
+    - "TestStock1"
+    - "TestStock2"
+    - "TestStock3"
+    - "TestStock4"
+    - "TestStock5"
+
+# Logging Settings
+logging:
+  level: "INFO"
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  file: "test_results.log"
+  console: true
+
+# Output Settings
+output:
+  save_results: true
+  results_directory: "test_results"
+  generate_report: true
+  report_format: "text"  # text, json, html
+  include_performance_metrics: true
+  include_memory_usage: true
+  include_timing_details: true
+
+# Failure Handling
+failure_handling:
+  stop_on_first_failure: false
+  max_failures: 10
+  retry_failed_tests: false
+  save_failure_details: true
+  failure_details_directory: "test_failures"
+
+# Coverage Settings
+coverage:
+  enabled: false  # Requires coverage.py
+  source: ["enhanced_integrated_analyzer_refactored.py"]
+  omit: ["*/tests/*", "*/test_*"]
+  report_format: "html"
+  report_directory: "coverage_report"
+  threshold: 80.0  # Minimum coverage percentage

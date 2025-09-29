@@ -32,3 +32,16 @@ python enhanced_integrated_analyzer_refactored.py analyze-top-market-cap --count
  python enhanced_integrated_analyzer_refactored.py full-market --max-stocks 100
  
 python enhanced_integrated_analyzer_refactored.py  test-enhanced-analysis --count 65
+
+ python enhanced_integrated_analyzer_refactored.py run --limit 75 --out-json test_final_table.json --out-csv test_final_table.csv
+
+ python enhanced_integrated_analyzer_refactored.py full-market --max-stocks 100 --min-score 20.0 --max-workers 2
+ 
+
+최종 점수 분포 (25% 가중치 적용)
+재무비율: (25% 가중치)
+투자의견: (15% 가중치)
+성장성:  (10% 가중치)
+가격위치: (25% 가중치)
+추정실적: (20% 가중치)
+규모:  (5% 가중치)

@@ -396,21 +396,22 @@ enhanced_integrated_analysis:
   # 예: weights: { opinion_analysis: 20, ..., valuation_bonus: 5 }
   # weights 밖 최상위에 valuation_bonus를 적으면 읽지 않습니다.
   weights:
-    opinion_analysis: 20      # 투자의견 분석 (20%) - 가격위치 반영으로 조정
-    estimate_analysis: 25     # 추정실적 분석 (25%) - 가격위치 반영으로 조정
-    financial_ratios: 30      # 재무비율 분석 (30%) - 핵심 신규 요소
-    growth_analysis: 10       # 성장성 분석 (10%)
+    opinion_analysis: 8       # 투자의견 분석 (8%) - 영업이익 중심 강화
+    estimate_analysis: 8      # 추정실적 분석 (8%) - 영업이익 중심 강화
+    financial_ratios: 24      # 재무비율 분석 (24%) - 영업이익 중심 강화
+    growth_analysis: 15       # 성장성 분석 (15%) - 영업이익 중심으로 대폭 강화
     scale_analysis: 5         # 규모 분석 (5%)
-    price_position: 5         # 가격위치 분석 (5%) - 신규 추가
-    valuation_bonus: 5        # 저평가 보너스 (5%) - 가격위치 반영으로 조정
+    price_position: 40        # 가격위치 분석 (40%) - 저평가 가치주 발굴 유지
   
-  # 재무비율 세부 가중치 (28점 만점 - enhanced_integrated_analyzer_refactored.py 기준)
+  # 재무비율 세부 가중치 (영업이익 중심 강화 버전)
   financial_ratio_weights:
-    roe_score: 8              # ROE 점수 (8점)
+    roe_score: 7              # ROE 점수 (7점) - 영업이익 중심으로 감소
     roa_score: 5              # ROA 점수 (5점)
-    debt_ratio_score: 7       # 부채비율 점수 (7점)
-    net_profit_margin_score: 5 # 순이익률 점수 (5점)
+    debt_ratio_score: 6       # 부채비율 점수 (6점) - 영업이익 중심으로 감소
+    net_profit_margin_score: 8 # 순이익률 점수 (8점) - 영업이익 중심으로 증가
     current_ratio_score: 3    # 유동비율 점수 (3점)
+    growth_score: 6           # 성장성 점수 (6점) - 영업이익 중심으로 증가
+    profitability_consistency_score: 8 # 수익성 일관성 점수 (8점) - 영업이익 중심으로 대폭 증가
     quick_ratio_score: 0      # 당좌비율 점수 (0점 - 옵션)
     # 총 28점 (100점 만점으로 변환)
   

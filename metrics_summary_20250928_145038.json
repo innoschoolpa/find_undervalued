@@ -1,0 +1,27 @@
+{
+  "runtime_seconds": 4.753561000106856,
+  "stocks_analyzed": 2,
+  "api_calls": {
+    "total": 0,
+    "success": 0,
+    "error": 0
+  },
+  "api_success_rate": 0.0,
+  "cache_hit_rates": {
+    "price": 0.0,
+    "financial": 0.0,
+    "sector": 0.0
+  },
+  "avg_analysis_duration": 1.4317419999279082,
+  "avg_sector_evaluation": 0,
+  "errors_by_type": {},
+  "errors_by_category": {},
+  "sector_sample_insufficient": 0,
+  "sector_sample_insufficient_by_sector": {},
+  "analysis_p50": 0.5,
+  "analysis_p90": 5.0,
+  "analysis_p95": 5.0,
+  "sector_p50": 0.0,
+  "sector_p90": 0.0,
+  "sector_p95": 0.0
+}

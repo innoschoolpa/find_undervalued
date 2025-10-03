@@ -1,0 +1,408 @@
+{
+  "portfolio_analysis": [
+    {
+      "symbol": "005930",
+      "name": "삼성전자",
+      "status": "FAILED",
+      "error": "Basic analysis failed",
+      "basic_analysis": {
+        "symbol": "005930",
+        "name": "삼성전자",
+        "status": "success",
+        "error": null,
+        "enhanced_score": 28.004183358758052,
+        "enhanced_grade": "D+",
+        "market_cap": 5055370.0,
+        "current_price": 89000.0,
+        "price_position": 96.78217821782178,
+        "w52_high": 90300.0,
+        "w52_low": 49900.0,
+        "per": 17.97979797979798,
+        "pbr": 1.5363369583980666,
+        "score_breakdown": {
+          "투자의견": 1.4598540145985401,
+          "추정실적": 1.4598540145985401,
+          "재무비율": 11.434207930558296,
+          "성장성": 0.4653284671532847,
+          "규모": 3.64963503649635,
+          "가격위치": 0.3382236033822362,
+          "가치투자": 9.197080291970805
+        },
+        "raw_breakdown": {
+          "opinion_raw": 50.0,
+          "estimate_raw": 50.0,
+          "financial_raw": 65.27027027027027,
+          "growth_raw": 4.25,
+          "scale_raw": 100.0,
+          "price_position_raw": 1.1584158415841592,
+          "value_raw": 28.000000000000004
+        },
+        "financial_data": {
+          "roe": 6.64,
+          "roa": 5.254827477049699,
+          "debt_ratio": 26.36,
+          "equity_ratio": 73.64,
+          "revenue_growth_rate": 5.29,
+          "operating_income_growth_rate": -33.36,
+          "net_income_growth_rate": -19.62,
+          "net_profit_margin": 8.68,
+          "gross_profit_margin": 34.89,
+          "profitability_grade": null,
+          "current_ratio": 251.37,
+          "_percent_canonicalized": true
+        },
+        "sector_analysis": {
+          "grade": "D",
+          "total_score": 27.85229630353918,
+          "breakdown": {
+            "재무_건전성": 56.88044448790176,
+            "성장성": 40.233333333333334,
+            "안정성": 70.0
+          },
+          "is_leader": true,
+          "leader_bonus": 8.0
+        },
+        "sector_valuation": "D(27.9)",
+        "opinion_summary": "",
+        "estimate_summary": "",
+        "intrinsic_value": 69260.4,
+        "margin_of_safety": 0.0,
+        "moat_grade": "Thin",
+        "watchlist_signal": "PASS",
+        "target_buy": 48482.27999999999,
+        "playbook": [
+          "① 리스트: 역량 범위 내 우량 기업을 목록화",
+          "② 내재가치(보수적): 주당 약 69,260",
+          "③ 매수가(안전마진 반영): ≤ 48,482",
+          "④ 기다림: 미스터 마켓이 공포일 때만 집행",
+          "⑤ 집행: 해자등급(Thin) 훼손 없으면 장기 보유 전제"
+        ]
+      }
+    },
+    {
+      "symbol": "000660",
+      "name": "SK하이닉스",
+      "status": "FAILED",
+      "error": "Basic analysis failed",
+      "basic_analysis": {
+        "symbol": "000660",
+        "name": "SK하이닉스",
+        "status": "success",
+        "error": null,
+        "enhanced_score": 52.39829933790963,
+        "enhanced_grade": "C+",
+        "market_cap": 2602608.0,
+        "current_price": 395500.0,
+        "price_position": 96.35479951397326,
+        "w52_high": 404500.0,
+        "w52_low": 157600.0,
+        "per": 14.550069899197998,
+        "pbr": 3.782264002983733,
+        "score_breakdown": {
+          "투자의견": 1.4598540145985401,
+          "추정실적": 1.4598540145985401,
+          "재무비율": 13.119747484710988,
+          "성장성": 4.37956204379562,
+          "규모": 3.64963503649635,
+          "가격위치": 0.21285842254170734,
+          "가치투자": 28.11678832116788
+        },
+        "raw_breakdown": {
+          "opinion_raw": 50.0,
+          "estimate_raw": 50.0,
+          "financial_raw": 74.89189189189189,
+          "growth_raw": 40.0,
+          "scale_raw": 100.0,
+          "price_position_raw": 0.7290400972053477,
+          "value_raw": 85.6
+        },
+        "financial_data": {
+          "roe": 37.52,
+          "roa": 25.32910281509485,
+          "debt_ratio": 48.13,
+          "equity_ratio": 51.87,
+          "revenue_growth_rate": 38.19,
+          "operating_income_growth_rate": 99.33,
+          "net_income_growth_rate": 150.2,
+          "net_profit_margin": 37.88,
+          "gross_profit_margin": 55.39,
+          "profitability_grade": null,
+          "current_ratio": 178.5,
+          "_percent_canonicalized": true
+        },
+        "sector_analysis": {
+          "grade": "D",
+          "total_score": 37.28701025449761,
+          "breakdown": {
+            "재무_건전성": 91.22206152698564,
+            "성장성": 62.5,
+            "안정성": 70.0
+          },
+          "is_leader": true,
+          "leader_bonus": 8.0
+        },
+        "sector_valuation": "D(37.3)",
+        "opinion_summary": "",
+        "estimate_summary": "",
+        "intrinsic_value": 767438.4666666668,
+        "margin_of_safety": 0.4846492361559151,
+        "moat_grade": "Wide",
+        "watchlist_signal": "PASS",
+        "target_buy": 537206.9266666668,
+        "playbook": [
+          "① 리스트: 역량 범위 내 우량 기업을 목록화",
+          "② 내재가치(보수적): 주당 약 767,438",
+          "③ 매수가(안전마진 반영): ≤ 537,207",
+          "④ 기다림: 미스터 마켓이 공포일 때만 집행",
+          "⑤ 집행: 해자등급(Wide) 훼손 없으면 장기 보유 전제"
+        ]
+      }
+    },
+    {
+      "symbol": "035420",
+      "name": "NAVER",
+      "status": "FAILED",
+      "error": "Basic analysis failed",
+      "basic_analysis": {
+        "symbol": "035420",
+        "name": "NAVER",
+        "status": "success",
+        "error": null,
+        "enhanced_score": 40.42772875199841,
+        "enhanced_grade": "C",
+        "market_cap": 357624.0,
+        "current_price": 253000.0,
+        "price_position": 67.6674364896074,
+        "w52_high": 295000.0,
+        "w52_low": 165100.0,
+        "per": 21.23730378578024,
+        "pbr": 1.5220700152207,
+        "score_breakdown": {
+          "투자의견": 1.4598540145985401,
+          "추정실적": 1.4598540145985401,
+          "재무비율": 9.204182284474255,
+          "성장성": 3.0656934306569346,
+          "규모": 3.64963503649635,
+          "가격위치": 9.238145007670134,
+          "가치투자": 12.350364963503653
+        },
+        "raw_breakdown": {
+          "opinion_raw": 50.0,
+          "estimate_raw": 50.0,
+          "financial_raw": 52.54054054054053,
+          "growth_raw": 28.0,
+          "scale_raw": 100.0,
+          "price_position_raw": 31.64064665127021,
+          "value_raw": 37.60000000000001
+        },
+        "financial_data": {
+          "roe": 7.05,
+          "roa": 5.004969473235836,
+          "debt_ratio": 40.86,
+          "equity_ratio": 59.14,
+          "revenue_growth_rate": 11.01,
+          "operating_income_growth_rate": 12.6,
+          "net_income_growth_rate": 373.0,
+          "net_profit_margin": 16.15,
+          "gross_profit_margin": 100.0,
+          "profitability_grade": null,
+          "current_ratio": 129.96,
+          "_percent_canonicalized": true
+        },
+        "sector_analysis": {
+          "grade": "D",
+          "total_score": 27.43241303449344,
+          "breakdown": {
+            "재무_건전성": 53.67781154029399,
+            "성장성": 40.916666666666664,
+            "안정성": 70.0
+          },
+          "is_leader": true,
+          "leader_bonus": 8.0
+        },
+        "sector_valuation": "D(27.4)",
+        "opinion_summary": "",
+        "estimate_summary": "",
+        "intrinsic_value": 266628.824,
+        "margin_of_safety": 0.05111534377843568,
+        "moat_grade": "Thin",
+        "watchlist_signal": "PASS",
+        "target_buy": 186640.17680000002,
+        "playbook": [
+          "① 리스트: 역량 범위 내 우량 기업을 목록화",
+          "② 내재가치(보수적): 주당 약 266,629",
+          "③ 매수가(안전마진 반영): ≤ 186,640",
+          "④ 기다림: 미스터 마켓이 공포일 때만 집행",
+          "⑤ 집행: 해자등급(Thin) 훼손 없으면 장기 보유 전제"
+        ]
+      }
+    },
+    {
+      "symbol": "051910",
+      "name": "LG화학",
+      "status": "FAILED",
+      "error": "Basic analysis failed",
+      "basic_analysis": {
+        "symbol": "051910",
+        "name": "LG화학",
+        "status": "success",
+        "error": null,
+        "enhanced_score": 31.533233072606077,
+        "enhanced_grade": "D+",
+        "market_cap": 201894.0,
+        "current_price": 277500.0,
+        "price_position": 51.474530831099194,
+        "w52_high": 368000.0,
+        "w52_low": 181500.0,
+        "per": null,
+        "pbr": 0.6526478688401213,
+        "score_breakdown": {
+          "투자의견": 1.4598540145985401,
+          "추정실적": 1.4598540145985401,
+          "재무비율": 4.445847307161176,
+          "성장성": 1.094890510948905,
+          "규모": 3.64963503649635,
+          "가격위치": 9.404904013620083,
+          "가치투자": 10.018248175182482
+        },
+        "raw_breakdown": {
+          "opinion_raw": 50.0,
+          "estimate_raw": 50.0,
+          "financial_raw": 25.37837837837838,
+          "growth_raw": 10.0,
+          "scale_raw": 100.0,
+          "price_position_raw": 32.21179624664879,
+          "value_raw": 30.5
+        },
+        "financial_data": {
+          "roe": -335.0,
+          "roa": 0.0,
+          "debt_ratio": 110.71,
+          "equity_ratio": -10.709999999999994,
+          "revenue_growth_rate": -109.00000000000001,
+          "operating_income_growth_rate": 0.0,
+          "net_income_growth_rate": -63.02,
+          "net_profit_margin": 63.0,
+          "gross_profit_margin": 16.65,
+          "profitability_grade": null,
+          "current_ratio": 124.93,
+          "_percent_canonicalized": true
+        },
+        "sector_analysis": {
+          "grade": "D",
+          "total_score": 29.884357675121123,
+          "breakdown": {
+            "재무_건전성": 59.306146050726724,
+            "성장성": 50.0,
+            "안정성": 70.0
+          },
+          "is_leader": false,
+          "leader_bonus": 3.0
+        },
+        "sector_valuation": "D(29.9)",
+        "opinion_summary": "",
+        "estimate_summary": "",
+        "intrinsic_value": null,
+        "margin_of_safety": null,
+        "moat_grade": "None",
+        "watchlist_signal": "PASS",
+        "target_buy": null,
+        "playbook": [
+          "① 리스트: 역량 범위 내 우량 기업을 목록화",
+          "④ 기다림: 미스터 마켓이 공포일 때만 집행",
+          "⑤ 집행: 해자등급(None) 훼손 없으면 장기 보유 전제"
+        ]
+      }
+    },
+    {
+      "symbol": "006400",
+      "name": "삼성SDI",
+      "status": "FAILED",
+      "error": "Basic analysis failed",
+      "basic_analysis": {
+        "symbol": "006400",
+        "name": "삼성SDI",
+        "status": "success",
+        "error": null,
+        "enhanced_score": 33.45141749651279,
+        "enhanced_grade": "D+",
+        "market_cap": 165603.0,
+        "current_price": 206500.0,
+        "price_position": 21.375383267630312,
+        "w52_high": 386000.0,
+        "w52_low": 157700.0,
+        "per": 24.86453943407586,
+        "pbr": 0.7408842534290563,
+        "score_breakdown": {
+          "투자의견": 1.4598540145985401,
+          "추정실적": 1.4598540145985401,
+          "재무비율": 1.7470901558492802,
+          "성장성": 5.474452554744526,
+          "규모": 3.64963503649635,
+          "가격위치": 17.525495223875186,
+          "가치투자": 2.1350364963503647
+        },
+        "raw_breakdown": {
+          "opinion_raw": 50.0,
+          "estimate_raw": 50.0,
+          "financial_raw": 9.972972972972974,
+          "growth_raw": 50.0,
+          "scale_raw": 100.0,
+          "price_position_raw": 60.02482114177252,
+          "value_raw": 6.5
+        },
+        "financial_data": {
+          "roe": -368.0,
+          "roa": 0.0,
+          "debt_ratio": 82.71,
+          "equity_ratio": 17.290000000000006,
+          "revenue_growth_rate": -28.6,
+          "operating_income_growth_rate": 0.0,
+          "net_income_growth_rate": 0.0,
+          "net_profit_margin": -6.02,
+          "gross_profit_margin": 7.6,
+          "profitability_grade": null,
+          "current_ratio": 109.33,
+          "_percent_canonicalized": true
+        },
+        "sector_analysis": {
+          "grade": "D",
+          "total_score": 26.506755356874436,
+          "breakdown": {
+            "재무_건전성": 39.04053214124661,
+            "성장성": 50.0,
+            "안정성": 70.0
+          },
+          "is_leader": false,
+          "leader_bonus": 5.0
+        },
+        "sector_valuation": "D(26.5)",
+        "opinion_summary": "",
+        "estimate_summary": "",
+        "intrinsic_value": -9135.500000000002,
+        "margin_of_safety": null,
+        "moat_grade": "None",
+        "watchlist_signal": "PASS",
+        "target_buy": null,
+        "playbook": [
+          "① 리스트: 역량 범위 내 우량 기업을 목록화",
+          "② 내재가치(보수적): 주당 약 -9,136",
+          "④ 기다림: 미스터 마켓이 공포일 때만 집행",
+          "⑤ 집행: 해자등급(None) 훼손 없으면 장기 보유 전제"
+        ]
+      }
+    }
+  ],
+  "portfolio_summary": {
+    "error": "no_successful_analyses",
+    "total_analyzed": 5,
+    "successful_analyses": 0,
+    "success_rate": 0.0
+  },
+  "analysis_metadata": {
+    "total_stocks": 5,
+    "successful_analyses": 0,
+    "analysis_timestamp": "2025-10-03T19:03:55.785030",
+    "system_version": "Ultimate Value System v1.0"
+  }
+}

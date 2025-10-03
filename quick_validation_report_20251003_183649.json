@@ -1,0 +1,60 @@
+{
+  "timestamp": "2025-10-03T18:36:49.912102",
+  "total_tests": 4,
+  "passed_tests": 1,
+  "pass_rate": 0.25,
+  "overall_status": "FAIL",
+  "test_results": {
+    "basic_functionality": {
+      "passed": false,
+      "status": "success",
+      "grade": "D+",
+      "score": 28.004183358758052,
+      "has_financial_data": true,
+      "has_value_analysis": false,
+      "has_quality_metrics": false
+    },
+    "top_stocks_analysis": {
+      "passed": true,
+      "total_analyzed": 0,
+      "top_recommendations_count": 5,
+      "has_portfolio_metrics": false,
+      "has_sector_analysis": true,
+      "first_stock": {
+        "symbol": "000660",
+        "name": "SK하이닉스",
+        "score": 52.39829933790963,
+        "grade": "C+"
+      }
+    },
+    "value_analysis_components": {
+      "passed": false,
+      "component_results": {
+        "value_precision": false,
+        "margin_safety": false,
+        "quality_metrics": false,
+        "financial_health": false,
+        "valuation_analysis": false
+      },
+      "total_components": 5,
+      "available_components": 0
+    },
+    "pipeline_compatibility": {
+      "passed": false,
+      "compatibility_results": {
+        "top_recommendations": true,
+        "portfolio_metrics": false,
+        "total_analyzed": false,
+        "analysis_summary": false
+      },
+      "has_recommendations": true,
+      "recommendation_fields": {
+        "symbol": true,
+        "name": true,
+        "enhanced_score": true,
+        "enhanced_grade": true
+      },
+      "fields_complete": true
+    }
+  }
+}

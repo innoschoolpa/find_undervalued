@@ -1,0 +1,86 @@
+{
+  "timestamp": "2025-10-03T18:41:59.570106",
+  "total_tests": 4,
+  "passed_tests": 3,
+  "pass_rate": 0.75,
+  "overall_status": "PASS",
+  "test_results": {
+    "basic_functionality": {
+      "passed": false,
+      "status": "success",
+      "grade": "D+",
+      "score": 28.004183358758052,
+      "has_financial_data": true,
+      "has_value_analysis": false,
+      "has_quality_metrics": false,
+      "available_keys": [
+        "symbol",
+        "name",
+        "status",
+        "error",
+        "enhanced_score",
+        "enhanced_grade",
+        "market_cap",
+        "current_price",
+        "price_position",
+        "w52_high"
+      ]
+    },
+    "top_stocks_analysis": {
+      "passed": true,
+      "total_analyzed": 0,
+      "top_recommendations_count": 5,
+      "has_portfolio_metrics": false,
+      "has_sector_analysis": true,
+      "first_stock": {
+        "symbol": "000660",
+        "name": "SK하이닉스",
+        "score": 52.39829933790963,
+        "grade": "C+"
+      }
+    },
+    "value_analysis_components": {
+      "passed": true,
+      "component_results": {
+        "financial_data": true,
+        "sector_analysis": true,
+        "sector_valuation": true,
+        "intrinsic_value": true,
+        "margin_of_safety": true,
+        "moat_grade": true,
+        "score_breakdown": true,
+        "raw_breakdown": true,
+        "opinion_summary": true
+      },
+      "total_components": 9,
+      "available_components": 9,
+      "has_score_breakdown": true,
+      "has_intrinsic_value": true,
+      "has_margin_of_safety": true
+    },
+    "pipeline_compatibility": {
+      "passed": true,
+      "compatibility_results": {
+        "top_recommendations": true,
+        "portfolio_metrics": false,
+        "total_analyzed": false,
+        "analysis_summary": false,
+        "sector_analysis": true
+      },
+      "has_recommendations": true,
+      "available_keys": [
+        "metadata",
+        "top_recommendations",
+        "sector_analysis",
+        "market_statistics"
+      ],
+      "recommendation_fields": {
+        "symbol": true,
+        "name": true,
+        "enhanced_score": true,
+        "enhanced_grade": true
+      },
+      "fields_complete": true
+    }
+  }
+}

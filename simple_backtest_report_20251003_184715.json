@@ -1,0 +1,85 @@
+{
+  "timestamp": "2025-10-03T18:47:15.869548",
+  "backtest_type": "Simple Demo",
+  "regimes_analyzed": [
+    "bull_market",
+    "bear_market",
+    "sideways_market"
+  ],
+  "portfolio_info": {
+    "total_stocks": 5,
+    "selection_method": "Enhanced Integrated Analyzer"
+  },
+  "performance_results": {
+    "bull_market": {
+      "regime_data": {
+        "description": "강세장 (2013-2017)",
+        "kospi_return": 0.12,
+        "volatility": 0.15,
+        "expected_alpha": 0.08
+      },
+      "annual_returns": [
+        0.23725356147584245,
+        0.18963017741216115,
+        0.24857664035755195
+      ],
+      "avg_annual_return": 0.22515345974851853,
+      "total_return": 0.8389565681548379,
+      "sharpe_ratio": 1.5010230649901235,
+      "max_drawdown": -0.3,
+      "excess_return": 0.10515345974851853
+    },
+    "bear_market": {
+      "regime_data": {
+        "description": "약세장 (2009-2012)",
+        "kospi_return": -0.05,
+        "volatility": 0.25,
+        "expected_alpha": 0.03
+      },
+      "annual_returns": [
+        0.04208926912640408,
+        -0.037283037646398086,
+        0.06096106726258656
+      ],
+      "avg_annual_return": 0.021922432914197515,
+      "total_return": 0.06721961370644913,
+      "sharpe_ratio": 0.08768973165679006,
+      "max_drawdown": -0.5,
+      "excess_return": 0.07192243291419752
+    },
+    "sideways_market": {
+      "regime_data": {
+        "description": "횡보장 (2018-2020)",
+        "kospi_return": 0.02,
+        "volatility": 0.18,
+        "expected_alpha": 0.05
+      },
+      "annual_returns": [
+        0.11470427377101095,
+        0.05755621289459339,
+        0.12829196842906232
+      ],
+      "avg_annual_return": 0.10018415169822222,
+      "total_return": 0.33166858257988996,
+      "sharpe_ratio": 0.556578620545679,
+      "max_drawdown": -0.36,
+      "excess_return": 0.08018415169822221
+    }
+  },
+  "assessment": {
+    "overall_grade": "A+",
+    "pass_rate": 1.0,
+    "avg_excess_return": 0.08575334812031277,
+    "avg_sharpe_ratio": 0.7150971390641975,
+    "validation_checks": {
+      "consistent_excess_return": "True",
+      "positive_sharpe": "True",
+      "regime_consistency": "True",
+      "portfolio_diversification": true
+    }
+  },
+  "recommendations": [
+    "시스템이 우수한 성과를 보이고 있습니다.",
+    "종합 백테스트 시스템으로 확장 가능합니다."
+  ]
+}

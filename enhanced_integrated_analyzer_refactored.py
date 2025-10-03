@@ -593,6 +593,1728 @@ def safe_env_ms_to_seconds(key: str, default_ms: float, min_ms: float = 0.0) -> 
     return ms / 1000.0
 
 # =============================================================================
+# 입력 신뢰도 가드 클래스
+# =============================================================================
+
+class InputReliabilityGuard:
+    """입력 데이터 신뢰도 검증 및 가드 클래스"""
+    
+    def __init__(self, metrics_collector: MetricsCollector = None):
+        self.metrics = metrics_collector
+        # 핵심 재무 필드 정의 (2개 이상 결측 시 스코어링 제외)
+        self.core_financial_fields = {
+            'roe', 'roa', 'debt_ratio', 'net_profit_margin', 'current_ratio'
+        }
+        # 시총 스크립트 모드 강제 설정
+        self.market_cap_strict_mode = safe_env_bool("MARKET_CAP_STRICT_MODE", True)
+        # 결측 필드 임계치 (환경변수로 조정 가능)
+        self.max_missing_core_fields = safe_env_int("MAX_MISSING_CORE_FIELDS", 2, 0)
+    
+    def validate_market_cap_reliability(self, market_cap: Optional[float]) -> Tuple[bool, str]:
+        """시가총액 신뢰도 검증"""
+        if market_cap is None:
+            return False, "market_cap_missing"
+        
+        # 스크립트 모드에서 애매한 밴드(1e7~1e11원) 드롭
+        if self.market_cap_strict_mode and 1e7 <= market_cap < 1e11:
+            return False, "market_cap_ambiguous_strict_mode"
+        
+        # 이상치 검증 (너무 작거나 큰 값) - 완화
+        if market_cap < 1e4:  # 1만원 미만 (100만원 → 1만원)
+            return False, "market_cap_too_small"
+        if market_cap > 1e9:  # 10억원 초과 (1억원 → 10억원)
+            return False, "market_cap_too_large"
+        
+        return True, "valid"
+    
+    def validate_financial_data_reliability(self, financial_data: Dict[str, Any]) -> Tuple[bool, str, int]:
+        """재무 데이터 신뢰도 검증"""
+        if not financial_data:
+            return False, "financial_data_empty", 0
+        
+        # 핵심 필드 결측 개수 계산
+        missing_count = 0
+        for field in self.core_financial_fields:
+            if field not in financial_data or financial_data[field] is None:
+                missing_count += 1
+        
+        # 결측 필드 메트릭 기록
+        if self.metrics and missing_count > 0:
+            self.metrics.record_missing_financial_fields(missing_count)
+        
+        # 임계치 초과 시 스코어링 제외
+        if missing_count > self.max_missing_core_fields:
+            return False, f"too_many_missing_fields_{missing_count}", missing_count
+        
+        return True, "valid", missing_count
+    
+    def validate_percentage_units_consistency(self, financial_data: Dict[str, Any]) -> Tuple[bool, str]:
+        """% 단위 일관성 검증 (이중 스케일링 방지)"""
+        # 이미 표준화되었는지 확인
+        if financial_data.get("_percent_canonicalized") is not True:
+            return False, "percent_not_canonicalized"
+        
+        # % 필드들의 값 범위 검증
+        percent_fields = DataConverter.PERCENT_FIELDS
+        for field in percent_fields:
+            if field in financial_data and financial_data[field] is not None:
+                value = financial_data[field]
+                if isinstance(value, (int, float)) and not math.isfinite(value):
+                    return False, f"invalid_percent_value_{field}"
+                # 비정상적으로 큰 % 값 검증 (예: 1000% 이상)
+                if isinstance(value, (int, float)) and abs(value) > 1000:
+                    return False, f"percent_value_too_large_{field}"
+        
+        return True, "valid"
+    
+    def validate_input_reliability(self, symbol: str, market_cap: Optional[float], 
+                                 financial_data: Dict[str, Any]) -> Tuple[bool, str, Dict[str, Any]]:
+        """종합 입력 신뢰도 검증"""
+        validation_result = {
+            'market_cap_valid': False,
+            'financial_data_valid': False,
+            'percentage_units_valid': False,
+            'missing_core_fields': 0,
+            'validation_errors': []
+        }
+        
+        # 1. 시가총액 검증
+        mc_valid, mc_error = self.validate_market_cap_reliability(market_cap)
+        validation_result['market_cap_valid'] = mc_valid
+        if not mc_valid:
+            validation_result['validation_errors'].append(f"market_cap: {mc_error}")
+        
+        # 2. 재무 데이터 검증
+        fin_valid, fin_error, missing_count = self.validate_financial_data_reliability(financial_data)
+        validation_result['financial_data_valid'] = fin_valid
+        validation_result['missing_core_fields'] = missing_count
+        if not fin_valid:
+            validation_result['validation_errors'].append(f"financial_data: {fin_error}")
+        
+        # 3. % 단위 일관성 검증
+        pct_valid, pct_error = self.validate_percentage_units_consistency(financial_data)
+        validation_result['percentage_units_valid'] = pct_valid
+        if not pct_valid:
+            validation_result['validation_errors'].append(f"percentage_units: {pct_error}")
+        
+        # 전체 검증 결과
+        overall_valid = mc_valid and fin_valid and pct_valid
+        error_summary = "; ".join(validation_result['validation_errors']) if validation_result['validation_errors'] else "valid"
+        
+        return overall_valid, error_summary, validation_result
+
+# =============================================================================
+# 가치지표 정밀화 클래스
+# =============================================================================
+
+class ValueMetricsPrecision:
+    """가치지표 핵심 5개 정밀화 클래스"""
+    
+    def __init__(self, metrics_collector: MetricsCollector = None):
+        self.metrics = metrics_collector
+        # 가치지표 가중치 (총합 100)
+        self.value_weights = {
+            'ev_ebit': 35,           # EV/EBIT (현금흐름 대리값)
+            'fcf_yield': 25,         # 정상화 FCF 수익률
+            'owner_earnings': 20,    # Owner Earnings Yield (버핏식)
+            'earnings_quality': 10,  # Earnings Yield의 질 보정
+            'shareholder_yield': 10  # 배당재투자 보정
+        }
+        # 절대 밴드 임계치
+        self.absolute_bands = {
+            'ev_ebit_max': 8.0,      # EV/EBIT ≤ 8 가점
+            'fcf_yield_min': 0.05,   # FCF Yield ≥ 5% 가점
+            'owner_earnings_min': 0.08,  # Owner Earnings ≥ 8% 가점
+            'earnings_quality_min': 0.06,  # Earnings Quality ≥ 6% 가점
+            'shareholder_yield_min': 0.03  # Shareholder Yield ≥ 3% 가점
+        }
+    
+    def calculate_ev_ebit_score(self, market_cap: float, net_debt: float, 
+                               operating_income: float, sector_median: float = None) -> float:
+        """EV/EBIT 점수 계산 (현금흐름 대리값)"""
+        if not all(x is not None and x > 0 for x in [market_cap, operating_income]):
+            return 0.0
+        
+        # EV = 시가총액 + 순부채
+        ev = market_cap + (net_debt or 0)
+        ev_ebit = ev / operating_income
+        
+        # 절대 밴드 점수 (EV/EBIT ≤ 8 가점)
+        if ev_ebit <= self.absolute_bands['ev_ebit_max']:
+            absolute_score = 100.0
+        else:
+            # 8~20 범위에서 선형 감소
+            absolute_score = max(0, 100 * (20 - ev_ebit) / (20 - 8))
+        
+        # 섹터 상대 점수 (역순 백분위)
+        if sector_median and sector_median > 0:
+            relative_score = max(0, 100 * (sector_median - ev_ebit) / sector_median)
+        else:
+            relative_score = 50.0  # 중립 점수
+        
+        # 절대/상대 가중 평균 (절대 70%, 상대 30%)
+        return 0.7 * absolute_score + 0.3 * relative_score
+    
+    def calculate_normalized_fcf_yield(self, market_cap: float, fcf_history: List[float]) -> float:
+        """정상화 FCF 수익률 계산 (최근 5년 가중 평균)"""
+        if not fcf_history or not market_cap or market_cap <= 0:
+            return 0.0
+        
+        # 최근 5년 데이터만 사용
+        recent_fcf = fcf_history[-5:] if len(fcf_history) >= 5 else fcf_history
+        
+        # 가중 평균 (최근치 가중↑)
+        weights = [i + 1 for i in range(len(recent_fcf))]
+        total_weight = sum(weights)
+        
+        # 적자 연도는 0으로 클립
+        weighted_fcf = sum(max(0, fcf) * weight for fcf, weight in zip(recent_fcf, weights))
+        normalized_fcf = weighted_fcf / total_weight
+        
+        # FCF Yield = 정상화 FCF / 시가총액
+        fcf_yield = normalized_fcf / market_cap
+        
+        # 점수화 (≥5% 가점)
+        if fcf_yield >= self.absolute_bands['fcf_yield_min']:
+            return 100.0
+        else:
+            return max(0, 100 * fcf_yield / self.absolute_bands['fcf_yield_min'])
+    
+    def calculate_owner_earnings_yield(self, market_cap: float, net_income: float,
+                                     depreciation: float, maintenance_capex: float) -> float:
+        """Owner Earnings Yield 계산 (버핏식)"""
+        if not all(x is not None for x in [market_cap, net_income]) or market_cap <= 0:
+            return 0.0
+        
+        # Owner Earnings = 순이익 + 감가상각·충당금 - 유지보수성 CapEx
+        owner_earnings = net_income + (depreciation or 0) - (maintenance_capex or 0)
+        
+        # Owner Earnings Yield = Owner Earnings / 시가총액
+        owner_earnings_yield = owner_earnings / market_cap
+        
+        # 점수화 (≥8% 가점)
+        if owner_earnings_yield >= self.absolute_bands['owner_earnings_min']:
+            return 100.0
+        else:
+            return max(0, 100 * owner_earnings_yield / self.absolute_bands['owner_earnings_min'])
+    
+    def calculate_earnings_quality_score(self, market_cap: float, net_income: float,
+                                       net_debt: float, is_loss: bool, 
+                                       one_time_items: float = 0, tax_rate: float = 0.25) -> float:
+        """Earnings Yield의 질 보정 점수"""
+        if not all(x is not None for x in [market_cap, net_income]) or market_cap <= 0:
+            return 0.0
+        
+        # EV = 시가총액 + 순부채
+        ev = market_cap + (net_debt or 0)
+        
+        # 기본 Earnings Yield
+        earnings_yield = net_income / ev
+        
+        # 품질 보정 팩터
+        quality_factor = 1.0
+        
+        # 적자 패널티
+        if is_loss or net_income <= 0:
+            quality_factor *= 0.3
+        
+        # 일회성 항목 패널티
+        if one_time_items and abs(one_time_items) > abs(net_income) * 0.1:
+            quality_factor *= 0.8
+        
+        # 적정세율 보정 (실제 세율이 너무 낮으면 패널티)
+        if tax_rate < 0.15:  # 15% 미만이면 패널티
+            quality_factor *= 0.9
+        
+        # 보정된 Earnings Yield
+        adjusted_earnings_yield = earnings_yield * quality_factor
+        
+        # 점수화 (≥6% 가점)
+        if adjusted_earnings_yield >= self.absolute_bands['earnings_quality_min']:
+            return 100.0
+        else:
+            return max(0, 100 * adjusted_earnings_yield / self.absolute_bands['earnings_quality_min'])
+    
+    def calculate_shareholder_yield_score(self, market_cap: float, dividend_yield: float,
+                                        shares_outstanding: float, shares_repurchased: float) -> float:
+        """배당재투자 보정 점수 (Shareholder Yield)"""
+        if not market_cap or market_cap <= 0:
+            return 0.0
+        
+        # 배당수익률
+        dividend_component = dividend_yield or 0
+        
+        # 순자사주율 (총발행 대비 순감소율)
+        if shares_outstanding and shares_outstanding > 0:
+            buyback_yield = (shares_repurchased or 0) / shares_outstanding
+        else:
+            buyback_yield = 0
+        
+        # Shareholder Yield = 배당수익률 + 순자사주율
+        shareholder_yield = dividend_component + buyback_yield
+        
+        # 점수화 (≥3% 가점)
+        if shareholder_yield >= self.absolute_bands['shareholder_yield_min']:
+            return 100.0
+        else:
+            return max(0, 100 * shareholder_yield / self.absolute_bands['shareholder_yield_min'])
+    
+    def calculate_comprehensive_value_score(self, financial_data: Dict[str, Any], 
+                                          market_cap: float, sector_data: Dict[str, Any] = None) -> Dict[str, Any]:
+        """종합 가치 점수 계산 (핵심 5개 지표)"""
+        result = {
+            'individual_scores': {},
+            'weighted_score': 0.0,
+            'breakdown': {}
+        }
+        
+        # 1. EV/EBIT 점수
+        ev_ebit_score = self.calculate_ev_ebit_score(
+            market_cap=market_cap,
+            net_debt=financial_data.get('net_debt'),
+            operating_income=financial_data.get('operating_income'),
+            sector_median=sector_data.get('ev_ebit_median') if sector_data else None
+        )
+        result['individual_scores']['ev_ebit'] = ev_ebit_score
+        
+        # 2. 정상화 FCF Yield 점수
+        fcf_yield_score = self.calculate_normalized_fcf_yield(
+            market_cap=market_cap,
+            fcf_history=financial_data.get('fcf_history', [])
+        )
+        result['individual_scores']['fcf_yield'] = fcf_yield_score
+        
+        # 3. Owner Earnings Yield 점수
+        owner_earnings_score = self.calculate_owner_earnings_yield(
+            market_cap=market_cap,
+            net_income=financial_data.get('net_income'),
+            depreciation=financial_data.get('depreciation'),
+            maintenance_capex=financial_data.get('maintenance_capex')
+        )
+        result['individual_scores']['owner_earnings'] = owner_earnings_score
+        
+        # 4. Earnings Quality 점수
+        earnings_quality_score = self.calculate_earnings_quality_score(
+            market_cap=market_cap,
+            net_income=financial_data.get('net_income'),
+            net_debt=financial_data.get('net_debt'),
+            is_loss=financial_data.get('net_income', 0) <= 0,
+            one_time_items=financial_data.get('one_time_items', 0),
+            tax_rate=financial_data.get('effective_tax_rate', 0.25)
+        )
+        result['individual_scores']['earnings_quality'] = earnings_quality_score
+        
+        # 5. Shareholder Yield 점수
+        shareholder_yield_score = self.calculate_shareholder_yield_score(
+            market_cap=market_cap,
+            dividend_yield=financial_data.get('dividend_yield'),
+            shares_outstanding=financial_data.get('shares_outstanding'),
+            shares_repurchased=financial_data.get('shares_repurchased')
+        )
+        result['individual_scores']['shareholder_yield'] = shareholder_yield_score
+        
+        # 가중합 계산
+        total_weighted_score = 0.0
+        for metric, score in result['individual_scores'].items():
+            weight = self.value_weights.get(metric, 0)
+            weighted_score = score * weight / 100.0
+            total_weighted_score += weighted_score
+            result['breakdown'][metric] = {
+                'score': score,
+                'weight': weight,
+                'weighted_score': weighted_score
+            }
+        
+        result['weighted_score'] = total_weighted_score
+        result['comprehensive_value_score'] = total_weighted_score  # 종합점수 키 추가
+        
+        return result
+
+# =============================================================================
+# 안전마진·내재가치 2단계 계산 클래스
+# =============================================================================
+
+class MarginOfSafetyCalculator:
+    """안전마진·내재가치 2단계 계산 클래스"""
+    
+    def __init__(self, metrics_collector: MetricsCollector = None):
+        self.metrics = metrics_collector
+        # 시나리오 확률 가중치
+        self.scenario_probabilities = {
+            'conservative': 0.3,    # 보수적 시나리오 30%
+            'base': 0.5,           # 기준 시나리오 50%
+            'optimistic': 0.2      # 낙관적 시나리오 20%
+        }
+        # 안전마진 임계치
+        self.mos_thresholds = {
+            'buy': 0.30,      # MoS ≥ 30% → BUY
+            'watch': 0.10,    # MoS ≥ 10% → WATCH
+            'pass': 0.0       # MoS < 10% → PASS
+        }
+    
+    def calculate_fcf_multiple_valuation(self, market_cap: float, fcf_history: List[float],
+                                       growth_rate: float = 0.0, discount_rate: float = 0.10) -> float:
+        """FCF 멀티플 기반 내재가치 계산"""
+        if not fcf_history or not market_cap or market_cap <= 0:
+            return 0.0
+        
+        # 최근 3년 FCF 평균
+        recent_fcf = fcf_history[-3:] if len(fcf_history) >= 3 else fcf_history
+        avg_fcf = sum(recent_fcf) / len(recent_fcf)
+        
+        # 성장률이 적용된 영구가치
+        if growth_rate >= discount_rate:
+            growth_rate = discount_rate - 0.01  # 성장률이 할인율 이상이면 조정
+        
+        # 영구가치 = FCF * (1 + 성장률) / (할인율 - 성장률)
+        terminal_value = avg_fcf * (1 + growth_rate) / (discount_rate - growth_rate)
+        
+        return terminal_value
+    
+    def calculate_eps_multiple_valuation(self, market_cap: float, eps_history: List[float],
+                                       pe_ratio: float = 15.0, growth_rate: float = 0.0) -> float:
+        """EPS 멀티플 기반 내재가치 계산"""
+        if not eps_history or not market_cap or market_cap <= 0:
+            return 0.0
+        
+        # 최근 3년 EPS 평균
+        recent_eps = eps_history[-3:] if len(eps_history) >= 3 else eps_history
+        avg_eps = sum(recent_eps) / len(recent_eps)
+        
+        # 성장률 조정된 적정 PER
+        adjusted_pe = pe_ratio * (1 + growth_rate)
+        
+        # 내재가치 = 평균 EPS × 조정된 PER
+        intrinsic_value = avg_eps * adjusted_pe
+        
+        return intrinsic_value
+    
+    def calculate_scenario_based_valuation(self, financial_data: Dict[str, Any], 
+                                         market_cap: float) -> Dict[str, Any]:
+        """시나리오 3분기 기반 내재가치 계산"""
+        result = {
+            'scenarios': {},
+            'expected_intrinsic_value': 0.0,
+            'scenario_breakdown': {}
+        }
+        
+        # 시나리오별 파라미터
+        scenarios = {
+            'conservative': {
+                'growth_rate': 0.02,      # 2% 성장
+                'discount_rate': 0.12,    # 12% 할인율
+                'pe_ratio': 12.0,         # 보수적 PER
+                'fcf_multiplier': 0.8     # FCF 보수적 조정
+            },
+            'base': {
+                'growth_rate': 0.05,      # 5% 성장
+                'discount_rate': 0.10,    # 10% 할인율
+                'pe_ratio': 15.0,         # 기준 PER
+                'fcf_multiplier': 1.0     # FCF 기준
+            },
+            'optimistic': {
+                'growth_rate': 0.08,      # 8% 성장
+                'discount_rate': 0.08,    # 8% 할인율
+                'pe_ratio': 18.0,         # 낙관적 PER
+                'fcf_multiplier': 1.2     # FCF 낙관적 조정
+            }
+        }
+        
+        # 각 시나리오별 내재가치 계산
+        for scenario_name, params in scenarios.items():
+            # FCF 멀티플 내재가치
+            fcf_iv = self.calculate_fcf_multiple_valuation(
+                market_cap=market_cap,
+                fcf_history=financial_data.get('fcf_history', []),
+                growth_rate=params['growth_rate'],
+                discount_rate=params['discount_rate']
+            ) * params['fcf_multiplier']
+            
+            # EPS 멀티플 내재가치
+            eps_iv = self.calculate_eps_multiple_valuation(
+                market_cap=market_cap,
+                eps_history=financial_data.get('eps_history', []),
+                pe_ratio=params['pe_ratio'],
+                growth_rate=params['growth_rate']
+            )
+            
+            # 더 낮은 값 선택 (보수적 접근)
+            scenario_iv = min(fcf_iv, eps_iv) if fcf_iv > 0 and eps_iv > 0 else max(fcf_iv, eps_iv)
+            
+            result['scenarios'][scenario_name] = {
+                'fcf_valuation': fcf_iv,
+                'eps_valuation': eps_iv,
+                'intrinsic_value': scenario_iv,
+                'probability': self.scenario_probabilities[scenario_name]
+            }
+        
+        # 확률 가중 기대 내재가치
+        expected_iv = sum(
+            scenario_data['intrinsic_value'] * scenario_data['probability']
+            for scenario_data in result['scenarios'].values()
+        )
+        result['expected_intrinsic_value'] = expected_iv
+        
+        # 시나리오별 기여도 계산
+        for scenario_name, scenario_data in result['scenarios'].items():
+            contribution = scenario_data['intrinsic_value'] * scenario_data['probability']
+            result['scenario_breakdown'][scenario_name] = {
+                'contribution': contribution,
+                'weight': contribution / expected_iv if expected_iv > 0 else 0
+            }
+        
+        return result
+    
+    def calculate_margin_of_safety(self, current_price: float, intrinsic_value: float) -> Dict[str, Any]:
+        """안전마진 계산 및 신호 결정"""
+        if not current_price or not intrinsic_value or intrinsic_value <= 0:
+            return {
+                'margin_of_safety': 0.0,
+                'signal': 'PASS',
+                'reason': 'insufficient_data',
+                'target_buy_price': 0.0
+            }
+        
+        # 안전마진 = (내재가치 - 현재가) / 내재가치
+        margin_of_safety = max(0.0, (intrinsic_value - current_price) / intrinsic_value)
+        
+        # 목표 매수가 = 내재가치 × (1 - 최소 안전마진)
+        target_buy_price = intrinsic_value * (1 - self.mos_thresholds['buy'])
+        
+        # 신호 결정
+        if margin_of_safety >= self.mos_thresholds['buy']:
+            signal = 'BUY'
+            reason = f'mos_{margin_of_safety:.1%}_above_buy_threshold'
+        elif margin_of_safety >= self.mos_thresholds['watch']:
+            signal = 'WATCH'
+            reason = f'mos_{margin_of_safety:.1%}_above_watch_threshold'
+        else:
+            signal = 'PASS'
+            reason = f'mos_{margin_of_safety:.1%}_below_watch_threshold'
+        
+        return {
+            'margin_of_safety': margin_of_safety,
+            'signal': signal,
+            'reason': reason,
+            'target_buy_price': target_buy_price,
+            'intrinsic_value': intrinsic_value,
+            'current_price': current_price
+        }
+    
+    def calculate_comprehensive_valuation(self, symbol: str, current_price: float,
+                                        financial_data: Dict[str, Any], 
+                                        market_cap: float) -> Dict[str, Any]:
+        """종합 가치평가 (2단계 + 시나리오)"""
+        result = {
+            'symbol': symbol,
+            'current_price': current_price,
+            'market_cap': market_cap,
+            'scenario_analysis': {},
+            'margin_of_safety_analysis': {},
+            'final_recommendation': {}
+        }
+        
+        # 1단계: 시나리오 기반 내재가치 계산
+        scenario_result = self.calculate_scenario_based_valuation(financial_data, market_cap)
+        result['scenario_analysis'] = scenario_result
+        
+        # 2단계: 안전마진 계산
+        expected_iv = scenario_result['expected_intrinsic_value']
+        mos_result = self.calculate_margin_of_safety(current_price, expected_iv)
+        result['margin_of_safety_analysis'] = mos_result
+        
+        # 최종 권고사항
+        result['final_recommendation'] = {
+            'signal': mos_result['signal'],
+            'intrinsic_value': expected_iv,
+            'margin_of_safety': mos_result['margin_of_safety'],
+            'target_buy_price': mos_result['target_buy_price'],
+            'confidence_level': self._calculate_confidence_level(scenario_result),
+            'risk_factors': self._identify_risk_factors(financial_data, scenario_result)
+        }
+        
+        return result
+    
+    def _calculate_confidence_level(self, scenario_result: Dict[str, Any]) -> str:
+        """신뢰도 수준 계산"""
+        scenarios = scenario_result['scenarios']
+        
+        # 시나리오 간 편차 계산
+        values = [s['intrinsic_value'] for s in scenarios.values()]
+        if not values or len(values) < 2:
+            return 'LOW'
+        
+        mean_val = sum(values) / len(values)
+        variance = sum((v - mean_val) ** 2 for v in values) / len(values)
+        std_dev = variance ** 0.5
+        cv = std_dev / mean_val if mean_val > 0 else 1.0
+        
+        if cv < 0.2:
+            return 'HIGH'
+        elif cv < 0.4:
+            return 'MEDIUM'
+        else:
+            return 'LOW'
+    
+    def _identify_risk_factors(self, financial_data: Dict[str, Any], 
+                             scenario_result: Dict[str, Any]) -> List[str]:
+        """리스크 요인 식별"""
+        risk_factors = []
+        
+        # FCF 변동성 리스크
+        fcf_history = financial_data.get('fcf_history', [])
+        if len(fcf_history) >= 3:
+            fcf_std = np.std(fcf_history) if len(fcf_history) > 1 else 0
+            fcf_mean = np.mean(fcf_history) if fcf_history else 0
+            if fcf_mean > 0 and fcf_std / fcf_mean > 0.5:
+                risk_factors.append('high_fcf_volatility')
+        
+        # 시나리오 간 편차 리스크
+        scenarios = scenario_result['scenarios']
+        values = [s['intrinsic_value'] for s in scenarios.values()]
+        if values:
+            min_val = min(values)
+            max_val = max(values)
+            if min_val > 0 and (max_val - min_val) / min_val > 1.0:
+                risk_factors.append('high_scenario_variance')
+        
+        # 부채 리스크
+        debt_ratio = financial_data.get('debt_ratio', 0)
+        if debt_ratio and debt_ratio > 50:  # 50% 이상
+            risk_factors.append('high_debt_ratio')
+        
+        return risk_factors
+
+# =============================================================================
+# 품질·지속성 필터 클래스
+# =============================================================================
+
+class QualityConsistencyFilter:
+    """품질·지속성 필터 클래스 (가치 계산 전 자격 검증)"""
+    
+    def __init__(self, metrics_collector: MetricsCollector = None):
+        self.metrics = metrics_collector
+        # 품질 임계치
+        self.quality_thresholds = {
+            'min_operating_margin': 5.0,      # 최소 영업이익률 5%
+            'min_net_margin': 3.0,            # 최소 순이익률 3%
+            'min_piotroski_score': 6,         # 최소 Piotroski F-Score 6/9
+            'min_interest_coverage': 3.0,     # 최소 이자보상배율 3배
+            'max_accruals_ratio': 0.3,        # 최대 Accruals 비율 30%
+            'min_profitability_consistency': 0.6  # 최소 수익성 일관성 60%
+        }
+        # 5년 롤링 윈도우
+        self.rolling_window = 5
+    
+    def check_profitability_consistency(self, financial_data: Dict[str, Any]) -> Tuple[bool, str, float]:
+        """지속적 수익성 검증 (5년 롤링)"""
+        # 영업이익률과 순이익률 5년 데이터 필요 (데이터 부족 시 현재 데이터로 대체)
+        operating_margins = financial_data.get('operating_margin_history', [])
+        net_margins = financial_data.get('net_margin_history', [])
+        
+        # 데이터가 부족한 경우 현재 데이터로 대체
+        if len(operating_margins) < self.rolling_window:
+            current_operating = financial_data.get('operating_margin', 0)
+            if current_operating == 0:
+                # operating_margin이 없으면 net_profit_margin 사용
+                current_operating = financial_data.get('net_profit_margin', 0)
+            operating_margins = [current_operating] * self.rolling_window
+        
+        if len(net_margins) < self.rolling_window:
+            current_net = financial_data.get('net_margin', 0)
+            if current_net == 0:
+                # net_margin이 없으면 net_profit_margin 사용
+                current_net = financial_data.get('net_profit_margin', 0)
+            net_margins = [current_net] * self.rolling_window
+        
+        # 최근 5년 데이터
+        recent_operating = operating_margins[-self.rolling_window:]
+        recent_net = net_margins[-self.rolling_window:]
+        
+        # 평균값으로 검사 (백분위 대신)
+        avg_operating = np.mean(recent_operating)
+        avg_net = np.mean(recent_net)
+        
+        # 임계치 미달 검사
+        if avg_operating < self.quality_thresholds['min_operating_margin']:
+            return False, f"operating_margin_avg_{avg_operating:.1f}%", avg_operating
+        
+        if avg_net < self.quality_thresholds['min_net_margin']:
+            return False, f"net_margin_avg_{avg_net:.1f}%", avg_net
+        
+        # 일관성 점수 계산 (양수 연도 비율)
+        positive_operating_years = sum(1 for margin in recent_operating if margin > 0)
+        positive_net_years = sum(1 for margin in recent_net if margin > 0)
+        
+        consistency_score = (positive_operating_years + positive_net_years) / (2 * self.rolling_window)
+        
+        if consistency_score < self.quality_thresholds['min_profitability_consistency']:
+            return False, f"low_profitability_consistency_{consistency_score:.1%}", consistency_score
+        
+        return True, "profitability_consistent", consistency_score
+    
+    def check_accruals_quality(self, financial_data: Dict[str, Any]) -> Tuple[bool, str, float]:
+        """Accruals 가드 (회계적 이익/현금 괴리 검증)"""
+        # 총자산 증가 대비 순이익 증가 비율
+        total_assets_history = financial_data.get('total_assets_history', [])
+        net_income_history = financial_data.get('net_income_history', [])
+        
+        if len(total_assets_history) < 2 or len(net_income_history) < 2:
+            return True, "insufficient_data_for_accruals", 0.0  # 데이터 부족 시 통과
+        
+        # 최근 2년 비교
+        assets_growth = (total_assets_history[-1] - total_assets_history[-2]) / total_assets_history[-2]
+        income_growth = (net_income_history[-1] - net_income_history[-2]) / abs(net_income_history[-2]) if net_income_history[-2] != 0 else 0
+        
+        # Accruals 비율 = (순이익 증가 - 총자산 증가) / 총자산 증가
+        if abs(assets_growth) < 0.01:  # 총자산 변화가 1% 미만이면 정상
+            accruals_ratio = 0.0
+        else:
+            accruals_ratio = abs(income_growth - assets_growth) / abs(assets_growth)
+        
+        if accruals_ratio > self.quality_thresholds['max_accruals_ratio']:
+            return False, f"high_accruals_ratio_{accruals_ratio:.1%}", accruals_ratio
+        
+        return True, "accruals_acceptable", accruals_ratio
+    
+    def calculate_piotroski_f_score(self, financial_data: Dict[str, Any]) -> Tuple[bool, str, int]:
+        """Piotroski F-Score 계산 (간이형)"""
+        score = 0
+        max_score = 9
+        
+        # 디버깅 정보
+        print(f"    [DEBUG] Piotroski F-Score 계산:")
+        
+        # 1. 순이익 > 0 (1점) - ROE로 대체
+        roe = financial_data.get('roe', 0)
+        if roe > 0:
+            score += 1
+            print(f"      - ROE > 0: {roe:.1f}% (PASS)")
+        else:
+            print(f"      - ROE > 0: {roe:.1f}% (FAIL)")
+        
+        # 2. 영업현금흐름 > 0 (1점) - ROA로 대체
+        roa = financial_data.get('roa', 0)
+        if roa > 0:
+            score += 1
+            print(f"      - ROA > 0: {roa:.1f}% (PASS)")
+        else:
+            print(f"      - ROA > 0: {roa:.1f}% (FAIL)")
+        
+        # 3. 부채비율 적정 (1점)
+        debt_ratio = financial_data.get('debt_ratio', 0)
+        if debt_ratio < 50:  # 부채비율 50% 미만
+            score += 1
+            print(f"      - 부채비율 < 50%: {debt_ratio:.1f}% (PASS)")
+        else:
+            print(f"      - 부채비율 < 50%: {debt_ratio:.1f}% (FAIL)")
+        
+        # 4. 유동비율 적정 (1점)
+        current_ratio = financial_data.get('current_ratio', 0)
+        if current_ratio > 1.0:  # 유동비율 1.0 이상
+            score += 1
+            print(f"      - 유동비율 > 1.0: {current_ratio:.1f} (PASS)")
+        else:
+            print(f"      - 유동비율 > 1.0: {current_ratio:.1f} (FAIL)")
+        
+        # 5. 매출총이익률 양호 (1점)
+        gross_margin = financial_data.get('gross_profit_margin', 0)
+        if gross_margin > 0:
+            score += 1
+            print(f"      - 매출총이익률 > 0: {gross_margin:.1f}% (PASS)")
+        else:
+            print(f"      - 매출총이익률 > 0: {gross_margin:.1f}% (FAIL)")
+        
+        # 6. 순이익률 양호 (1점)
+        net_margin = financial_data.get('net_profit_margin', 0)
+        if net_margin > 0:
+            score += 1
+            print(f"      - 순이익률 > 0: {net_margin:.1f}% (PASS)")
+        else:
+            print(f"      - 순이익률 > 0: {net_margin:.1f}% (FAIL)")
+        
+        # 7. ROE 양호 (1점)
+        if roe > 5:  # ROE 5% 이상
+            score += 1
+            print(f"      - ROE > 5%: {roe:.1f}% (PASS)")
+        else:
+            print(f"      - ROE > 5%: {roe:.1f}% (FAIL)")
+        
+        # 8. ROA 양호 (1점)
+        if roa > 3:  # ROA 3% 이상
+            score += 1
+            print(f"      - ROA > 3%: {roa:.1f}% (PASS)")
+        else:
+            print(f"      - ROA > 3%: {roa:.1f}% (FAIL)")
+        
+        # 9. 성장률 양호 (1점)
+        revenue_growth = financial_data.get('revenue_growth_rate', 0)
+        if revenue_growth > 0:
+            score += 1
+            print(f"      - 매출성장률 > 0: {revenue_growth:.1f}% (PASS)")
+        else:
+            print(f"      - 매출성장률 > 0: {revenue_growth:.1f}% (FAIL)")
+        
+        # 임계치 검사
+        if score < self.quality_thresholds['min_piotroski_score']:
+            return False, f"low_piotroski_score_{score}/{max_score}", score
+        
+        return True, f"piotroski_acceptable_{score}/{max_score}", score
+    
+    def check_interest_coverage(self, financial_data: Dict[str, Any]) -> Tuple[bool, str, float]:
+        """이자보상배율 검증"""
+        operating_income = financial_data.get('operating_income', 0)
+        interest_expense = financial_data.get('interest_expense', 0)
+        
+        if interest_expense <= 0:
+            return True, "no_interest_expense", float('inf')  # 이자비용이 없으면 통과
+        
+        interest_coverage = operating_income / interest_expense
+        
+        if interest_coverage < self.quality_thresholds['min_interest_coverage']:
+            return False, f"low_interest_coverage_{interest_coverage:.1f}x", interest_coverage
+        
+        return True, f"interest_coverage_acceptable_{interest_coverage:.1f}x", interest_coverage
+    
+    def apply_quality_filter(self, symbol: str, financial_data: Dict[str, Any]) -> Dict[str, Any]:
+        """종합 품질 필터 적용"""
+        result = {
+            'symbol': symbol,
+            'passed': True,
+            'filter_results': {},
+            'overall_quality_score': 0.0,
+            'rejection_reasons': []
+        }
+        
+        # 1. 수익성 일관성 검사
+        prof_consistent, prof_reason, prof_score = self.check_profitability_consistency(financial_data)
+        result['filter_results']['profitability_consistency'] = {
+            'passed': prof_consistent,
+            'reason': prof_reason,
+            'score': prof_score
+        }
+        if not prof_consistent:
+            result['passed'] = False
+            result['rejection_reasons'].append(f"profitability: {prof_reason}")
+        
+        # 2. Accruals 품질 검사
+        accruals_ok, accruals_reason, accruals_ratio = self.check_accruals_quality(financial_data)
+        result['filter_results']['accruals_quality'] = {
+            'passed': accruals_ok,
+            'reason': accruals_reason,
+            'ratio': accruals_ratio
+        }
+        if not accruals_ok:
+            result['passed'] = False
+            result['rejection_reasons'].append(f"accruals: {accruals_reason}")
+        
+        # 3. Piotroski F-Score 검사
+        piotroski_ok, piotroski_reason, piotroski_score = self.calculate_piotroski_f_score(financial_data)
+        result['filter_results']['piotroski_score'] = {
+            'passed': piotroski_ok,
+            'reason': piotroski_reason,
+            'score': piotroski_score
+        }
+        if not piotroski_ok:
+            result['passed'] = False
+            result['rejection_reasons'].append(f"piotroski: {piotroski_reason}")
+        
+        # 4. 이자보상배율 검사
+        interest_ok, interest_reason, interest_coverage = self.check_interest_coverage(financial_data)
+        result['filter_results']['interest_coverage'] = {
+            'passed': interest_ok,
+            'reason': interest_reason,
+            'coverage': interest_coverage
+        }
+        if not interest_ok:
+            result['passed'] = False
+            result['rejection_reasons'].append(f"interest_coverage: {interest_reason}")
+        
+        # 전체 품질 점수 계산 (통과한 필터의 가중 평균)
+        quality_components = []
+        if prof_consistent:
+            quality_components.append(prof_score * 0.3)  # 수익성 일관성 30%
+        if accruals_ok:
+            quality_components.append((1 - accruals_ratio) * 0.2)  # Accruals 품질 20%
+        if piotroski_ok:
+            quality_components.append(piotroski_score / 9 * 0.3)  # Piotroski 30%
+        if interest_ok:
+            quality_components.append(min(1.0, interest_coverage / 5) * 0.2)  # 이자보상 20%
+        
+        if quality_components:
+            result['overall_quality_score'] = sum(quality_components) / len(quality_components)
+        else:
+            result['overall_quality_score'] = 0.0
+        
+        # 메트릭 기록
+        if self.metrics:
+            if not result['passed']:
+                self.metrics.record_quality_filter_rejection(symbol, result['rejection_reasons'])
+        
+        return result
+    
+    def is_eligible_for_valuation(self, symbol: str, financial_data: Dict[str, Any]) -> Tuple[bool, str, Dict[str, Any]]:
+        """가치평가 자격 검증 (전체 점수 계산 전 SKIP 여부)"""
+        filter_result = self.apply_quality_filter(symbol, financial_data)
+        
+        if not filter_result['passed']:
+            rejection_summary = "; ".join(filter_result['rejection_reasons'])
+            return False, f"quality_filter_failed: {rejection_summary}", filter_result
+        
+        return True, "quality_filter_passed", filter_result
+
+# =============================================================================
+# 리스크/건전성 제약 클래스
+# =============================================================================
+
+class RiskConstraintsManager:
+    """리스크/건전성 제약 관리 클래스"""
+    
+    def __init__(self, metrics_collector: MetricsCollector = None):
+        self.metrics = metrics_collector
+        # 리스크 제약 임계치
+        self.risk_thresholds = {
+            'max_leverage_ratio': 2.0,        # 최대 부채/자본 비율 2.0
+            'max_volatility_percentile': 80,   # 최대 변동성 백분위 80%
+            'max_dividend_payout_ratio': 0.8,  # 최대 배당성향 80%
+            'min_earnings_growth_threshold': -0.1,  # 최소 이익성장률 -10%
+            'max_debt_to_equity': 1.5,        # 최대 부채/자기자본 1.5
+            'min_current_ratio': 1.2          # 최소 유동비율 1.2
+        }
+        # 5년 변동성 계산 윈도우
+        self.volatility_window = 5
+    
+    def check_leverage_constraints(self, financial_data: Dict[str, Any], 
+                                 sector_median: float = None) -> Tuple[bool, str, float]:
+        """부채/자본(Leverage) 상한 검증"""
+        debt_ratio = financial_data.get('debt_ratio', 0)
+        debt_to_equity = financial_data.get('debt_to_equity', 0)
+        
+        # 부채비율 검증 (더 현실적인 기준으로 조정)
+        if debt_ratio and debt_ratio > 100:  # 100% 이상 (50% → 100%)
+            return False, f"high_debt_ratio_{debt_ratio:.1f}%", debt_ratio
+        
+        # 부채/자기자본 비율 검증
+        if debt_to_equity and debt_to_equity > self.risk_thresholds['max_debt_to_equity']:
+            return False, f"high_debt_to_equity_{debt_to_equity:.2f}", debt_to_equity
+        
+        # 섹터 상대 검증 (섹터 중위수 대비 +2σ 초과 시 컷)
+        if sector_median and sector_median > 0:
+            # 섹터 표준편차 추정 (중위수의 30%로 근사)
+            sector_std = sector_median * 0.3
+            sector_upper_bound = sector_median + 2 * sector_std
+            
+            if debt_ratio > sector_upper_bound:
+                return False, f"debt_ratio_above_sector_2sigma_{debt_ratio:.1f}%_vs_{sector_upper_bound:.1f}%", debt_ratio
+        
+        return True, "leverage_acceptable", debt_ratio
+    
+    def check_earnings_volatility(self, financial_data: Dict[str, Any]) -> Tuple[bool, str, float]:
+        """순이익 변동성 검증 (5년 표준편차)"""
+        net_income_history = financial_data.get('net_income_history', [])
+        
+        if len(net_income_history) < self.volatility_window:
+            return True, "insufficient_volatility_data", 0.0  # 데이터 부족 시 통과
+        
+        # 최근 5년 데이터
+        recent_income = net_income_history[-self.volatility_window:]
+        
+        # 0 이하 값 제거 (적자 연도 제외)
+        positive_income = [x for x in recent_income if x > 0]
+        
+        if len(positive_income) < 3:  # 양수 연도가 3년 미만이면 리스크
+            return False, "insufficient_positive_earnings_years", 0.0
+        
+        # 변동성 계산 (계수변동성)
+        mean_income = np.mean(positive_income)
+        std_income = np.std(positive_income)
+        cv = std_income / mean_income if mean_income > 0 else 1.0
+        
+        # 변동성 백분위 계산 (간이형: CV 기준)
+        if cv > 0.5:  # 50% 이상 변동성
+            return False, f"high_earnings_volatility_cv_{cv:.2f}", cv
+        
+        return True, f"earnings_volatility_acceptable_cv_{cv:.2f}", cv
+    
+    def check_dividend_cut_risk(self, financial_data: Dict[str, Any]) -> Tuple[bool, str, float]:
+        """배당 컷 리스크 검증"""
+        dividend_payout_ratio = financial_data.get('dividend_payout_ratio', 0)
+        earnings_growth_rate = financial_data.get('earnings_growth_rate', 0)
+        dividend_yield = financial_data.get('dividend_yield', 0)
+        
+        # 배당성향이 80% 이상이면서 이익성장이 둔화된 경우
+        if dividend_payout_ratio > self.risk_thresholds['max_dividend_payout_ratio']:
+            if earnings_growth_rate < self.risk_thresholds['min_earnings_growth_threshold']:
+                return False, f"high_dividend_cut_risk_payout_{dividend_payout_ratio:.1%}_growth_{earnings_growth_rate:.1%}", dividend_payout_ratio
+        
+        # 배당수익률이 비정상적으로 높은 경우 (10% 이상)
+        if dividend_yield > 10.0:
+            return False, f"suspicious_high_dividend_yield_{dividend_yield:.1%}", dividend_yield
+        
+        return True, "dividend_risk_acceptable", dividend_payout_ratio
+    
+    def check_liquidity_constraints(self, financial_data: Dict[str, Any]) -> Tuple[bool, str, float]:
+        """유동성 제약 검증"""
+        current_ratio = financial_data.get('current_ratio', 0)
+        quick_ratio = financial_data.get('quick_ratio', 0)
+        
+        # 유동비율 검증
+        if current_ratio and current_ratio < self.risk_thresholds['min_current_ratio']:
+            return False, f"low_current_ratio_{current_ratio:.2f}", current_ratio
+        
+        # 당좌비율 검증 (유동비율의 50% 이상)
+        if quick_ratio and current_ratio:
+            quick_ratio_threshold = current_ratio * 0.5
+            if quick_ratio < quick_ratio_threshold:
+                return False, f"low_quick_ratio_{quick_ratio:.2f}_vs_threshold_{quick_ratio_threshold:.2f}", quick_ratio
+        
+        return True, "liquidity_acceptable", current_ratio
+    
+    def apply_risk_constraints(self, symbol: str, financial_data: Dict[str, Any], 
+                             sector_data: Dict[str, Any] = None) -> Dict[str, Any]:
+        """종합 리스크 제약 적용"""
+        result = {
+            'symbol': symbol,
+            'passed': True,
+            'constraint_results': {},
+            'overall_risk_score': 0.0,
+            'violation_reasons': []
+        }
+        
+        # 1. 레버리지 제약 검사
+        leverage_ok, leverage_reason, leverage_value = self.check_leverage_constraints(
+            financial_data, sector_data.get('debt_ratio_median') if sector_data else None
+        )
+        result['constraint_results']['leverage'] = {
+            'passed': leverage_ok,
+            'reason': leverage_reason,
+            'value': leverage_value
+        }
+        if not leverage_ok:
+            result['passed'] = False
+            result['violation_reasons'].append(f"leverage: {leverage_reason}")
+        
+        # 2. 변동성 제약 검사
+        volatility_ok, volatility_reason, volatility_value = self.check_earnings_volatility(financial_data)
+        result['constraint_results']['volatility'] = {
+            'passed': volatility_ok,
+            'reason': volatility_reason,
+            'value': volatility_value
+        }
+        if not volatility_ok:
+            result['passed'] = False
+            result['violation_reasons'].append(f"volatility: {volatility_reason}")
+        
+        # 3. 배당 컷 리스크 검사
+        dividend_ok, dividend_reason, dividend_value = self.check_dividend_cut_risk(financial_data)
+        result['constraint_results']['dividend_risk'] = {
+            'passed': dividend_ok,
+            'reason': dividend_reason,
+            'value': dividend_value
+        }
+        if not dividend_ok:
+            result['passed'] = False
+            result['violation_reasons'].append(f"dividend_risk: {dividend_reason}")
+        
+        # 4. 유동성 제약 검사
+        liquidity_ok, liquidity_reason, liquidity_value = self.check_liquidity_constraints(financial_data)
+        result['constraint_results']['liquidity'] = {
+            'passed': liquidity_ok,
+            'reason': liquidity_reason,
+            'value': liquidity_value
+        }
+        if not liquidity_ok:
+            result['passed'] = False
+            result['violation_reasons'].append(f"liquidity: {liquidity_reason}")
+        
+        # 전체 리스크 점수 계산 (통과한 제약의 가중 평균)
+        risk_components = []
+        if leverage_ok:
+            # 부채비율이 낮을수록 높은 점수
+            debt_ratio = financial_data.get('debt_ratio', 0)
+            leverage_score = max(0, 1 - debt_ratio / 50)  # 50% 기준 정규화
+            risk_components.append(leverage_score * 0.3)  # 레버리지 30%
+        
+        if volatility_ok:
+            # 변동성이 낮을수록 높은 점수
+            volatility_score = max(0, 1 - volatility_value / 0.5)  # CV 0.5 기준 정규화
+            risk_components.append(volatility_score * 0.25)  # 변동성 25%
+        
+        if dividend_ok:
+            # 배당성향이 적절할수록 높은 점수
+            payout_ratio = financial_data.get('dividend_payout_ratio', 0)
+            dividend_score = max(0, 1 - abs(payout_ratio - 0.3) / 0.3)  # 30% 기준 정규화
+            risk_components.append(dividend_score * 0.2)  # 배당 20%
+        
+        if liquidity_ok:
+            # 유동성이 높을수록 높은 점수
+            current_ratio = financial_data.get('current_ratio', 0)
+            liquidity_score = min(1, current_ratio / 2)  # 2.0 기준 정규화
+            risk_components.append(liquidity_score * 0.25)  # 유동성 25%
+        
+        if risk_components:
+            result['overall_risk_score'] = sum(risk_components) / len(risk_components)
+        else:
+            result['overall_risk_score'] = 0.0
+        
+        # 메트릭 기록
+        if self.metrics:
+            if not result['passed']:
+                self.metrics.record_risk_constraint_violation(symbol, result['violation_reasons'])
+        
+        return result
+    
+    def is_eligible_after_risk_check(self, symbol: str, financial_data: Dict[str, Any], 
+                                   sector_data: Dict[str, Any] = None) -> Tuple[bool, str, Dict[str, Any]]:
+        """리스크 제약 통과 여부 검증"""
+        constraint_result = self.apply_risk_constraints(symbol, financial_data, sector_data)
+        
+        if not constraint_result['passed']:
+            violation_summary = "; ".join(constraint_result['violation_reasons'])
+            return False, f"risk_constraints_violated: {violation_summary}", constraint_result
+        
+        return True, "risk_constraints_passed", constraint_result
+
+# =============================================================================
+# 섹터/사이클 맥락화 클래스
+# =============================================================================
+
+class SectorCycleContextualizer:
+    """섹터/사이클 맥락화 클래스"""
+    
+    def __init__(self, metrics_collector: MetricsCollector = None):
+        self.metrics = metrics_collector
+        # 섹터 표본 크기 임계치
+        self.sector_sample_thresholds = {
+            'min_sample_size': 30,        # 최소 표본 크기 30개
+            'insufficient_penalty': 0.8,  # 표본 부족 시 가치점수 0.8배
+            'very_insufficient_penalty': 0.6  # 매우 부족 시 0.6배
+        }
+        # 섹터 상대지표 보수화 임계치
+        self.sector_relative_thresholds = {
+            'neutral_score': 50.0,        # 중립 점수 50점
+            'conservative_multiplier': 0.9,  # 섹터 점수 < 중립 시 0.9배
+            'penalty_threshold': 40.0     # 40점 미만 시 추가 패널티
+        }
+    
+    def analyze_sector_sample_adequacy(self, sector_name: str, sample_size: int) -> Tuple[bool, str, float]:
+        """섹터 표본 적정성 분석"""
+        if sample_size >= self.sector_sample_thresholds['min_sample_size']:
+            return True, "sufficient_sample_size", 1.0
+        
+        # 표본 부족 시 메트릭 기록
+        if self.metrics:
+            self.metrics.record_sector_sample_insufficient(sector_name)
+        
+        if sample_size >= 15:  # 15개 이상이면 경미한 부족
+            penalty = self.sector_sample_thresholds['insufficient_penalty']
+            return False, f"insufficient_sample_size_{sample_size}_penalty_{penalty}", penalty
+        else:  # 15개 미만이면 심각한 부족
+            penalty = self.sector_sample_thresholds['very_insufficient_penalty']
+            return False, f"very_insufficient_sample_size_{sample_size}_penalty_{penalty}", penalty
+    
+    def calculate_sector_relative_adjustment(self, company_score: float, sector_score: float) -> Tuple[float, str]:
+        """섹터 상대지표 보수화 계산"""
+        if sector_score is None:
+            return company_score, "no_sector_data"
+        
+        # 섹터 점수가 중립 이하인 경우 보수화
+        if sector_score < self.sector_relative_thresholds['neutral_score']:
+            if sector_score < self.sector_relative_thresholds['penalty_threshold']:
+                # 40점 미만이면 더 강한 패널티
+                adjusted_score = company_score * 0.8
+                reason = f"sector_score_very_low_{sector_score:.1f}_penalty_0.8"
+            else:
+                # 40-50점이면 경미한 패널티
+                adjusted_score = company_score * self.sector_relative_thresholds['conservative_multiplier']
+                reason = f"sector_score_low_{sector_score:.1f}_penalty_0.9"
+        else:
+            # 섹터 점수가 양호한 경우 그대로
+            adjusted_score = company_score
+            reason = f"sector_score_adequate_{sector_score:.1f}_no_penalty"
+        
+        return adjusted_score, reason
+    
+    def apply_sector_contextualization(self, symbol: str, sector_name: str, 
+                                     company_value_score: float, sector_data: Dict[str, Any]) -> Dict[str, Any]:
+        """섹터 맥락화 적용"""
+        result = {
+            'symbol': symbol,
+            'sector_name': sector_name,
+            'original_value_score': company_value_score,
+            'adjusted_value_score': company_value_score,
+            'contextualization_factors': {},
+            'final_adjustment_reason': 'no_adjustment'
+        }
+        
+        # 1. 섹터 표본 적정성 검사
+        sample_size = sector_data.get('sample_size', 0)
+        sample_adequate, sample_reason, sample_penalty = self.analyze_sector_sample_adequacy(sector_name, sample_size)
+        
+        result['contextualization_factors']['sample_adequacy'] = {
+            'adequate': sample_adequate,
+            'reason': sample_reason,
+            'penalty': sample_penalty,
+            'sample_size': sample_size
+        }
+        
+        # 표본 부족 시 가치점수 조정
+        if not sample_adequate:
+            company_value_score *= sample_penalty
+            result['adjusted_value_score'] = company_value_score
+            result['final_adjustment_reason'] = f"sample_penalty_{sample_penalty}"
+        
+        # 2. 섹터 상대지표 보수화
+        sector_score = sector_data.get('total_score', None)
+        adjusted_score, adjustment_reason = self.calculate_sector_relative_adjustment(
+            company_value_score, sector_score
+        )
+        
+        result['contextualization_factors']['sector_relative'] = {
+            'sector_score': sector_score,
+            'adjustment_reason': adjustment_reason,
+            'adjustment_factor': adjusted_score / company_value_score if company_value_score > 0 else 1.0
+        }
+        
+        result['adjusted_value_score'] = adjusted_score
+        
+        # 최종 조정 이유 업데이트
+        if adjusted_score != company_value_score:
+            if result['final_adjustment_reason'] == 'no_adjustment':
+                result['final_adjustment_reason'] = adjustment_reason
+            else:
+                result['final_adjustment_reason'] += f"; {adjustment_reason}"
+        
+        return result
+    
+    def analyze_market_cycle_context(self, market_data: Dict[str, Any]) -> Dict[str, Any]:
+        """시장 사이클 맥락 분석"""
+        result = {
+            'cycle_phase': 'unknown',
+            'cycle_adjustment_factor': 1.0,
+            'cycle_indicators': {},
+            'recommendation': 'neutral'
+        }
+        
+        # 간단한 사이클 지표들 (실제로는 더 복잡한 지표 사용 가능)
+        market_pe = market_data.get('market_pe_ratio', None)
+        market_pbr = market_data.get('market_pbr_ratio', None)
+        volatility_index = market_data.get('volatility_index', None)
+        
+        # PE 기반 사이클 판단
+        if market_pe:
+            if market_pe > 20:
+                result['cycle_indicators']['pe_cycle'] = 'expensive'
+                result['cycle_adjustment_factor'] *= 0.9  # 고평가 시 보수화
+            elif market_pe < 12:
+                result['cycle_indicators']['pe_cycle'] = 'cheap'
+                result['cycle_adjustment_factor'] *= 1.1  # 저평가 시 공격화
+            else:
+                result['cycle_indicators']['pe_cycle'] = 'fair'
+        
+        # PBR 기반 사이클 판단
+        if market_pbr:
+            if market_pbr > 2.0:
+                result['cycle_indicators']['pbr_cycle'] = 'expensive'
+                result['cycle_adjustment_factor'] *= 0.95
+            elif market_pbr < 1.0:
+                result['cycle_indicators']['pbr_cycle'] = 'cheap'
+                result['cycle_adjustment_factor'] *= 1.05
+            else:
+                result['cycle_indicators']['pbr_cycle'] = 'fair'
+        
+        # 변동성 기반 사이클 판단
+        if volatility_index:
+            if volatility_index > 25:  # VIX 25 이상
+                result['cycle_indicators']['volatility_cycle'] = 'high_stress'
+                result['cycle_adjustment_factor'] *= 0.85  # 고변동성 시 보수화
+            elif volatility_index < 15:  # VIX 15 미만
+                result['cycle_indicators']['volatility_cycle'] = 'low_stress'
+                result['cycle_adjustment_factor'] *= 1.05  # 저변동성 시 공격화
+            else:
+                result['cycle_indicators']['volatility_cycle'] = 'normal'
+        
+        # 사이클 단계 종합 판단
+        if result['cycle_adjustment_factor'] > 1.05:
+            result['cycle_phase'] = 'recovery'
+            result['recommendation'] = 'aggressive'
+        elif result['cycle_adjustment_factor'] < 0.9:
+            result['cycle_phase'] = 'stress'
+            result['recommendation'] = 'conservative'
+        else:
+            result['cycle_phase'] = 'neutral'
+            result['recommendation'] = 'balanced'
+        
+        return result
+    
+    def apply_comprehensive_contextualization(self, symbol: str, sector_name: str,
+                                            company_value_score: float, sector_data: Dict[str, Any],
+                                            market_data: Dict[str, Any] = None) -> Dict[str, Any]:
+        """종합 맥락화 적용 (섹터 + 사이클)"""
+        result = {
+            'symbol': symbol,
+            'sector_name': sector_name,
+            'original_value_score': company_value_score,
+            'sector_adjusted_score': company_value_score,
+            'final_adjusted_score': company_value_score,
+            'contextualization_summary': {}
+        }
+        
+        # 1. 섹터 맥락화 적용
+        sector_result = self.apply_sector_contextualization(
+            symbol, sector_name, company_value_score, sector_data
+        )
+        result['sector_adjusted_score'] = sector_result['adjusted_value_score']
+        result['contextualization_summary']['sector'] = sector_result['contextualization_factors']
+        
+        # 2. 시장 사이클 맥락화 적용
+        if market_data:
+            cycle_result = self.analyze_market_cycle_context(market_data)
+            cycle_adjustment = cycle_result['cycle_adjustment_factor']
+            
+            result['final_adjusted_score'] = sector_result['adjusted_value_score'] * cycle_adjustment
+            result['contextualization_summary']['market_cycle'] = cycle_result
+        else:
+            result['final_adjusted_score'] = sector_result['adjusted_value_score']
+            result['contextualization_summary']['market_cycle'] = {'cycle_phase': 'unknown', 'cycle_adjustment_factor': 1.0}
+        
+        # 3. 최종 조정 요약
+        total_adjustment = result['final_adjusted_score'] / company_value_score if company_value_score > 0 else 1.0
+        result['contextualization_summary']['total_adjustment_factor'] = total_adjustment
+        
+        return result
+
+# =============================================================================
+# 가격위치 정책화 클래스
+# =============================================================================
+
+class PricePositionPolicyManager:
+    """가격위치 정책화 클래스 (52주 밴드 규칙, MoS 연동)"""
+    
+    def __init__(self, metrics_collector: MetricsCollector = None):
+        self.metrics = metrics_collector
+        # 가격위치 정책 임계치
+        self.price_position_policy = {
+            'max_price_pos_for_buy': 70.0,      # BUY 허용 최대 가격위치 70%
+            'max_price_pos_for_mos_30': 85.0,   # MoS 30% 이상 시 허용 가격위치 85%
+            'min_mos_for_buy': 0.30,            # BUY 최소 안전마진 30%
+            'min_mos_for_watch': 0.10,          # WATCH 최소 안전마진 10%
+            'chase_prevention_threshold': 90.0, # 상단 추격 방지 임계치 90%
+            'chase_prevention_mos_threshold': 0.20  # 상단 추격 방지 MoS 임계치 20%
+        }
+    
+    def apply_price_position_policy(self, price_position: float, margin_of_safety: float, 
+                                  value_score: float) -> Dict[str, Any]:
+        """가격위치 정책 적용"""
+        result = {
+            'original_value_score': value_score,
+            'adjusted_value_score': value_score,
+            'policy_applied': False,
+            'policy_reason': 'no_policy_applied',
+            'buy_eligibility': False,
+            'watch_eligibility': False,
+            'pass_reason': None
+        }
+        
+        # 기본 룰: price_position ≤ 70%에서만 가치점수 100% 반영
+        if price_position <= self.price_position_policy['max_price_pos_for_buy']:
+            result['buy_eligibility'] = True
+            result['policy_reason'] = f"price_position_{price_position:.1f}%_within_buy_threshold"
+        else:
+            # 예외: MoS ≥ 30%이면 85%까지 허용
+            if (margin_of_safety >= self.price_position_policy['min_mos_for_buy'] and 
+                price_position <= self.price_position_policy['max_price_pos_for_mos_30']):
+                result['buy_eligibility'] = True
+                result['policy_reason'] = f"price_position_{price_position:.1f}%_allowed_due_to_high_mos_{margin_of_safety:.1%}"
+            else:
+                # 상단 추격 방지: price_position ≥ 90% 그리고 MoS < 20%면 자동 PASS
+                if (price_position >= self.price_position_policy['chase_prevention_threshold'] and 
+                    margin_of_safety < self.price_position_policy['chase_prevention_mos_threshold']):
+                    result['pass_reason'] = f"chasing_near_52w_high_price_{price_position:.1f}%_low_mos_{margin_of_safety:.1%}"
+                    result['policy_reason'] = "chase_prevention_applied"
+                    result['policy_applied'] = True
+                    return result
+                
+                # 가격위치가 높으면 가치점수 감점
+                if price_position > self.price_position_policy['max_price_pos_for_buy']:
+                    # 70-90% 범위에서 선형 감점
+                    penalty_factor = max(0.5, 1.0 - (price_position - 70) / 20 * 0.5)
+                    result['adjusted_value_score'] = value_score * penalty_factor
+                    result['policy_applied'] = True
+                    result['policy_reason'] = f"price_position_penalty_{price_position:.1f}%_factor_{penalty_factor:.2f}"
+        
+        # WATCH 자격 검사
+        if margin_of_safety >= self.price_position_policy['min_mos_for_watch']:
+            result['watch_eligibility'] = True
+        
+        return result
+    
+    def determine_investment_signal(self, price_position: float, margin_of_safety: float,
+                                  value_score: float, quality_score: float = None) -> Dict[str, Any]:
+        """투자 신호 결정 (BUY/WATCH/PASS)"""
+        result = {
+            'signal': 'PASS',
+            'confidence': 'LOW',
+            'reason': 'default_pass',
+            'price_position': price_position,
+            'margin_of_safety': margin_of_safety,
+            'value_score': value_score,
+            'quality_score': quality_score,
+            'policy_analysis': {}
+        }
+        
+        # 1. 가격위치 정책 적용
+        policy_result = self.apply_price_position_policy(price_position, margin_of_safety, value_score)
+        result['policy_analysis'] = policy_result
+        
+        # 상단 추격 방지로 PASS된 경우
+        if policy_result['pass_reason']:
+            result['signal'] = 'PASS'
+            result['reason'] = policy_result['pass_reason']
+            result['confidence'] = 'HIGH'
+            return result
+        
+        # 2. BUY 신호 조건 검사
+        if (policy_result['buy_eligibility'] and 
+            margin_of_safety >= self.price_position_policy['min_mos_for_buy']):
+            
+            # 품질 점수 조건 (있는 경우)
+            if quality_score is not None and quality_score < 60:
+                result['signal'] = 'WATCH'
+                result['reason'] = f"high_mos_{margin_of_safety:.1%}_but_low_quality_{quality_score:.1f}"
+                result['confidence'] = 'MEDIUM'
+            else:
+                result['signal'] = 'BUY'
+                result['reason'] = f"high_mos_{margin_of_safety:.1%}_good_price_position_{price_position:.1f}%"
+                result['confidence'] = 'HIGH'
+        
+        # 3. WATCH 신호 조건 검사
+        elif (policy_result['watch_eligibility'] and 
+              margin_of_safety >= self.price_position_policy['min_mos_for_watch']):
+            result['signal'] = 'WATCH'
+            result['reason'] = f"moderate_mos_{margin_of_safety:.1%}_price_position_{price_position:.1f}%"
+            result['confidence'] = 'MEDIUM'
+        
+        # 4. PASS 신호 (기본값)
+        else:
+            if margin_of_safety < self.price_position_policy['min_mos_for_watch']:
+                result['reason'] = f"insufficient_mos_{margin_of_safety:.1%}_below_watch_threshold"
+            elif price_position > self.price_position_policy['max_price_pos_for_mos_30']:
+                result['reason'] = f"price_position_too_high_{price_position:.1f}%_above_mos_30_threshold"
+            else:
+                result['reason'] = f"insufficient_conditions_mos_{margin_of_safety:.1%}_price_{price_position:.1f}%"
+        
+        return result
+    
+    def calculate_price_position_risk_adjustment(self, price_position: float, 
+                                               volatility: float = None) -> float:
+        """가격위치 기반 리스크 조정"""
+        # 기본 가격위치 리스크
+        if price_position <= 30:
+            position_risk = 0.8  # 저가 구간은 리스크 낮음
+        elif price_position <= 70:
+            position_risk = 1.0  # 중간 구간은 정상
+        elif price_position <= 85:
+            position_risk = 1.2  # 고가 구간은 리스크 증가
+        else:
+            position_risk = 1.5  # 매우 고가 구간은 리스크 크게 증가
+        
+        # 변동성 조정 (있는 경우)
+        if volatility:
+            if volatility > 30:  # 고변동성
+                position_risk *= 1.3
+            elif volatility < 15:  # 저변동성
+                position_risk *= 0.9
+        
+        return position_risk
+    
+    def apply_comprehensive_price_policy(self, symbol: str, price_position: float,
+                                       margin_of_safety: float, value_score: float,
+                                       quality_score: float = None, 
+                                       volatility: float = None) -> Dict[str, Any]:
+        """종합 가격위치 정책 적용"""
+        result = {
+            'symbol': symbol,
+            'price_position': price_position,
+            'margin_of_safety': margin_of_safety,
+            'original_value_score': value_score,
+            'final_value_score': value_score,
+            'investment_signal': {},
+            'risk_adjustment': {},
+            'policy_summary': {}
+        }
+        
+        # 1. 투자 신호 결정
+        signal_result = self.determine_investment_signal(
+            price_position, margin_of_safety, value_score, quality_score
+        )
+        result['investment_signal'] = signal_result
+        
+        # 2. 가격위치 정책 적용
+        policy_result = self.apply_price_position_policy(price_position, margin_of_safety, value_score)
+        result['final_value_score'] = policy_result['adjusted_value_score']
+        
+        # 3. 리스크 조정 계산
+        risk_adjustment = self.calculate_price_position_risk_adjustment(price_position, volatility)
+        result['risk_adjustment'] = {
+            'price_position_risk': risk_adjustment,
+            'volatility': volatility,
+            'risk_level': 'HIGH' if risk_adjustment > 1.3 else 'MEDIUM' if risk_adjustment > 1.1 else 'LOW'
+        }
+        
+        # 4. 정책 요약
+        result['policy_summary'] = {
+            'signal': signal_result['signal'],
+            'confidence': signal_result['confidence'],
+            'reason': signal_result['reason'],
+            'value_score_adjustment': result['final_value_score'] / value_score if value_score > 0 else 1.0,
+            'risk_level': result['risk_adjustment']['risk_level']
+        }
+        
+        return result
+
+# =============================================================================
+# 순위 다양화 클래스
+# =============================================================================
+
+class RankingDiversificationManager:
+    """순위 다양화 클래스 (섹터 쿼터, 동점 타이브레이커)"""
+    
+    def __init__(self, metrics_collector: MetricsCollector = None):
+        self.metrics = metrics_collector
+        # 다양화 정책 설정
+        self.diversification_policy = {
+            'max_stocks_per_sector': 2,        # 섹터당 최대 종목 수
+            'min_stocks_per_size_band': 1,     # 사이즈밴드당 최소 종목 수
+            'size_bands': {
+                'large_cap': (10000, float('inf')),    # 대형주: 1조원 이상
+                'mid_cap': (1000, 10000),              # 중형주: 1천억~1조원
+                'small_cap': (0, 1000)                 # 소형주: 1천억원 미만
+            },
+            'tie_breaker_priority': [
+                'margin_of_safety',    # 1순위: 높은 MoS
+                'volatility',          # 2순위: 낮은 변동성
+                'debt_ratio',          # 3순위: 낮은 부채비율
+                'quality_score'        # 4순위: 높은 품질점수
+            ]
+        }
+    
+    def classify_size_band(self, market_cap: float) -> str:
+        """시가총액 기반 사이즈밴드 분류"""
+        for band_name, (min_cap, max_cap) in self.diversification_policy['size_bands'].items():
+            if min_cap <= market_cap < max_cap:
+                return band_name
+        return 'unknown'
+    
+    def apply_sector_quota(self, ranked_stocks: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """섹터 쿼터 적용 (섹터당 최대 N종목)"""
+        sector_counts = {}
+        diversified_stocks = []
+        
+        for stock in ranked_stocks:
+            sector = stock.get('sector', 'unknown')
+            current_count = sector_counts.get(sector, 0)
+            
+            if current_count < self.diversification_policy['max_stocks_per_sector']:
+                diversified_stocks.append(stock)
+                sector_counts[sector] = current_count + 1
+            else:
+                # 쿼터 초과 시 제외 (로깅)
+                stock['exclusion_reason'] = f"sector_quota_exceeded_{sector}_count_{current_count}"
+        
+        return diversified_stocks
+    
+    def apply_size_band_diversification(self, ranked_stocks: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """사이즈밴드 다양화 적용 (더 유연한 접근)"""
+        size_band_stocks = {band: [] for band in self.diversification_policy['size_bands'].keys()}
+        
+        # 사이즈밴드별로 분류
+        for stock in ranked_stocks:
+            market_cap = stock.get('market_cap', 0)
+            size_band = self.classify_size_band(market_cap)
+            
+            if size_band in size_band_stocks:
+                size_band_stocks[size_band].append(stock)
+        
+        # 더 유연한 선택: 각 밴드에서 가능한 모든 종목 선택
+        diversified_stocks = []
+        for band, stocks in size_band_stocks.items():
+            # 모든 종목을 선택 (사이즈밴드 제한 완화)
+            diversified_stocks.extend(stocks)
+        
+        return diversified_stocks
+    
+    def apply_tie_breaker(self, stocks: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """동점 타이브레이커 적용"""
+        def tie_breaker_key(stock):
+            """타이브레이커 키 생성"""
+            key_values = []
+            
+            for criterion in self.diversification_policy['tie_breaker_priority']:
+                if criterion == 'margin_of_safety':
+                    # 높은 MoS가 좋음 (내림차순)
+                    value = stock.get('margin_of_safety', 0)
+                    key_values.append(-value)
+                elif criterion == 'volatility':
+                    # 낮은 변동성이 좋음 (내림차순)
+                    value = stock.get('volatility', 100)
+                    key_values.append(value)
+                elif criterion == 'debt_ratio':
+                    # 낮은 부채비율이 좋음 (내림차순)
+                    value = stock.get('debt_ratio', 100)
+                    key_values.append(value)
+                elif criterion == 'quality_score':
+                    # 높은 품질점수가 좋음 (내림차순)
+                    value = stock.get('quality_score', 0)
+                    key_values.append(-value)
+                else:
+                    # 기본값
+                    key_values.append(0)
+            
+            return tuple(key_values)
+        
+        # 타이브레이커 기준으로 정렬
+        return sorted(stocks, key=tie_breaker_key)
+    
+    def apply_concentration_risk_management(self, stocks: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """집중도 리스크 관리"""
+        result = {
+            'diversified_stocks': [],
+            'concentration_analysis': {},
+            'risk_metrics': {}
+        }
+        
+        # 1. 섹터 쿼터 적용
+        sector_diversified = self.apply_sector_quota(stocks)
+        result['concentration_analysis']['sector_quota'] = {
+            'original_count': len(stocks),
+            'after_quota': len(sector_diversified),
+            'excluded_count': len(stocks) - len(sector_diversified)
+        }
+        
+        # 2. 사이즈밴드 다양화 적용
+        size_diversified = self.apply_size_band_diversification(sector_diversified)
+        result['concentration_analysis']['size_band_diversification'] = {
+            'after_quota': len(sector_diversified),
+            'after_size_diversification': len(size_diversified),
+            'excluded_count': len(sector_diversified) - len(size_diversified)
+        }
+        
+        # 3. 타이브레이커 적용
+        final_ranked = self.apply_tie_breaker(size_diversified)
+        result['diversified_stocks'] = final_ranked
+        
+        # 4. 집중도 메트릭 계산
+        result['risk_metrics'] = self.calculate_concentration_metrics(final_ranked)
+        
+        return result
+    
+    def calculate_concentration_metrics(self, stocks: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """집중도 메트릭 계산"""
+        if not stocks:
+            return {'herfindahl_index': 0, 'sector_concentration': {}, 'size_concentration': {}}
+        
+        # 섹터 집중도
+        sector_weights = {}
+        size_weights = {}
+        
+        total_market_cap = sum(stock.get('market_cap', 0) for stock in stocks)
+        
+        for stock in stocks:
+            sector = stock.get('sector', 'unknown')
+            market_cap = stock.get('market_cap', 0)
+            size_band = self.classify_size_band(market_cap)
+            
+            weight = market_cap / total_market_cap if total_market_cap > 0 else 0
+            
+            sector_weights[sector] = sector_weights.get(sector, 0) + weight
+            size_weights[size_band] = size_weights.get(size_band, 0) + weight
+        
+        # Herfindahl-Hirschman Index (HHI) 계산
+        hhi = sum(weight ** 2 for weight in sector_weights.values())
+        
+        # 집중도 해석
+        if hhi < 0.15:
+            concentration_level = 'LOW'
+        elif hhi < 0.25:
+            concentration_level = 'MODERATE'
+        else:
+            concentration_level = 'HIGH'
+        
+        return {
+            'herfindahl_index': hhi,
+            'concentration_level': concentration_level,
+            'sector_concentration': sector_weights,
+            'size_concentration': size_weights,
+            'total_stocks': len(stocks),
+            'total_market_cap': total_market_cap
+        }
+    
+    def apply_comprehensive_diversification(self, ranked_stocks: List[Dict[str, Any]], max_stocks: int = None, existing_portfolio: List[Dict[str, Any]] = None) -> Dict[str, Any]:
+        """종합 다양화 적용 (기존 포트폴리오 유지하면서 확장)"""
+        result = {
+            'original_rankings': ranked_stocks,
+            'diversification_result': {},
+            'final_portfolio': [],
+            'diversification_summary': {}
+        }
+        
+        # 기존 포트폴리오가 있으면 유지
+        if existing_portfolio:
+            result['final_portfolio'] = existing_portfolio.copy()
+            print(f"  [INFO] 기존 포트폴리오 유지: {len(existing_portfolio)}개 종목")
+            
+            # 기존 포트폴리오에 있는 종목들을 ranked_stocks에서 제외
+            existing_symbols = {stock.get('symbol') for stock in existing_portfolio}
+            remaining_stocks = [stock for stock in ranked_stocks if stock.get('symbol') not in existing_symbols]
+            print(f"  [INFO] 추가 분석 대상: {len(remaining_stocks)}개 종목 (기존 {len(existing_symbols)}개 제외)")
+        else:
+            remaining_stocks = ranked_stocks
+        
+        # max_stocks에 따라 다양화 정책 동적 조정
+        if max_stocks:
+            # max_stocks가 클 때 섹터당 최대 종목 수를 더 적극적으로 증가
+            if max_stocks <= 10:
+                max_per_sector = 3
+            elif max_stocks <= 20:
+                max_per_sector = 5
+            elif max_stocks <= 50:
+                max_per_sector = 10
+            else:
+                max_per_sector = 15  # 50개 이상일 때는 섹터당 최대 15개
+            
+            original_max_per_sector = self.diversification_policy['max_stocks_per_sector']
+            self.diversification_policy['max_stocks_per_sector'] = max_per_sector
+            print(f"  [INFO] 다양화 정책 조정: 섹터당 최대 종목 수 {original_max_per_sector} → {max_per_sector} (max_stocks: {max_stocks})")
+        
+        # 1. 집중도 리스크 관리 적용 (기존 포트폴리오 고려)
+        if remaining_stocks:
+            diversification_result = self.apply_concentration_risk_management(remaining_stocks)
+            result['diversification_result'] = diversification_result
+            
+            # 기존 포트폴리오 + 새로 선정된 종목들
+            new_stocks = diversification_result['diversified_stocks']
+            result['final_portfolio'].extend(new_stocks)
+            print(f"  [INFO] 추가 선정: {len(new_stocks)}개 종목")
+        else:
+            result['diversification_result'] = {'diversified_stocks': []}
+            print(f"  [INFO] 추가 선정: 0개 종목 (모든 종목이 이미 포트폴리오에 포함)")
+        
+        # 2. 다양화 요약
+        original_count = len(ranked_stocks)
+        final_count = len(result['final_portfolio'])
+        
+        result['diversification_summary'] = {
+            'original_stock_count': original_count,
+            'final_stock_count': final_count,
+            'diversification_ratio': final_count / original_count if original_count > 0 else 0,
+            'concentration_metrics': diversification_result['risk_metrics'],
+            'diversification_effectiveness': 'HIGH' if final_count >= original_count * 0.7 else 'MODERATE' if final_count >= original_count * 0.5 else 'LOW'
+        }
+        
+        return result
+
+# =============================================================================
 # 메트릭 수집 클래스
 # =============================================================================
 
@@ -618,6 +2340,12 @@ class MetricsCollector:
             'valuation_skips': {'per_epsmin': 0, 'pbr_bpsmin': 0},
             # ✅ 빈 페이로드 메트릭 추가
             'empty_price_payloads': 0,
+            # ✅ 품질 필터 메트릭 추가
+            'quality_filter_rejections': 0,
+            'quality_filter_rejection_reasons': {},
+            # ✅ 리스크 제약 메트릭 추가
+            'risk_constraint_violations': 0,
+            'risk_constraint_violation_reasons': {},
             'start_time': _monotonic()
         }
         # Histogram buckets for duration analysis (seconds)
@@ -712,6 +2440,27 @@ class MetricsCollector:
         """✅ missing 재무 필드 카운터: 데이터 품질 드리프트 모니터링"""
         with self.lock:
             self.metrics['missing_financial_fields'] += count
+    
+    def get_missing_financial_fields_count(self) -> int:
+        """결측 재무 필드 총 개수 반환"""
+        with self.lock:
+            return self.metrics['missing_financial_fields']
+    
+    def record_quality_filter_rejection(self, symbol: str, rejection_reasons: List[str]):
+        """품질 필터 거부 기록"""
+        with self.lock:
+            self.metrics['quality_filter_rejections'] += 1
+            for reason in rejection_reasons:
+                self.metrics['quality_filter_rejection_reasons'][reason] = \
+                    self.metrics['quality_filter_rejection_reasons'].get(reason, 0) + 1
+    
+    def record_risk_constraint_violation(self, symbol: str, violation_reasons: List[str]):
+        """리스크 제약 위반 기록"""
+        with self.lock:
+            self.metrics['risk_constraint_violations'] += 1
+            for reason in violation_reasons:
+                self.metrics['risk_constraint_violation_reasons'][reason] = \
+                    self.metrics['risk_constraint_violation_reasons'].get(reason, 0) + 1
     
     def record_stocks_analyzed(self, count: int):
         """분석된 종목 수 기록"""
@@ -1217,6 +2966,10 @@ class ConfigManager:
             with open(self.config_file, 'r', encoding='utf-8') as f:
                 config = yaml.safe_load(f)
             
+            # 기본 설정과 병합 (누락된 키 보완)
+            default_config = self._get_default_config()
+            config = self._merge_configs(default_config, config)
+            
             self._config_cache = config
             self._last_modified = current_modified
             return config
@@ -1225,19 +2978,31 @@ class ConfigManager:
             logging.warning(f"설정 파일 로드 실패, 기본값 사용: {e}")
             return self._get_default_config()
     
+    def _merge_configs(self, default: Dict[str, Any], user: Dict[str, Any]) -> Dict[str, Any]:
+        """기본 설정과 사용자 설정을 병합합니다."""
+        result = default.copy()
+        
+        for key, value in user.items():
+            if key in result and isinstance(result[key], dict) and isinstance(value, dict):
+                result[key] = self._merge_configs(result[key], value)
+            else:
+                result[key] = value
+        
+        return result
+    
     def _get_default_config(self) -> Dict[str, Any]:
         """기본 설정을 반환합니다."""
         return {
             'enhanced_integrated_analysis': {
                 'weights': {
-                    # BUY 종목 중심 가중치: 가치투자/가격위치 비중 대폭 증가
-                    'opinion_analysis': 3,        # 5 → 3 (-2) - 예측 요소 감소
-                    'estimate_analysis': 3,       # 5 → 3 (-2) - 예측 요소 감소
+                    # ✅ 업그레이드된 가중치: 가치투자 정밀화 반영
+                    'opinion_analysis': 2,        # 3 → 2 (-1) - 예측 요소 추가 감소
+                    'estimate_analysis': 2,       # 3 → 2 (-1) - 예측 요소 추가 감소
                     'financial_ratios': 20,       # 20 → 20 (유지) - 재무건전성 유지
-                    'growth_analysis': 8,         # 12 → 8 (-4) - 성장성 비중 감소
-                    'scale_analysis': 4,          # 5 → 4 (-1) - 규모 비중 감소
-                    'price_position': 30,         # 28 → 30 (+2) - 가격위치 비중 증가
-                    'value_investing': 40         # 25 → 40 (+15) - 가치투자 비중 대폭 증가
+                    'growth_analysis': 5,         # 8 → 5 (-3) - 성장성 비중 추가 감소
+                    'scale_analysis': 5,          # 4 → 5 (+1) - 규모 비중 약간 증가
+                    'price_position': 25,         # 30 → 25 (-5) - 가격위치 비중 감소
+                    'value_investing': 45         # 40 → 45 (+5) - 가치투자 비중 추가 증가
                 },
                 'financial_ratio_weights': {
                     'roe_score': 7,              # 8 → 7 (-1) - 영업이익 중심으로 감소
@@ -1253,29 +3018,910 @@ class ConfigManager:
                     'valuation': 15
                 },
                 'grade_thresholds': {
-                    'A_plus': 80,
-                    'A': 70,
-                    'B_plus': 60,
-                    'B': 50,
-                    'C_plus': 40,
-                    'C': 30,
-                    'D_plus': 20,
-                    'D': 10,
-                    'F': 0
-                },
-                'growth_score_thresholds': {
-                    'excellent': 20,
-                    'good': 10,
-                    'average': 0,
-                    'poor': -10
+                    # ✅ 업그레이드된 등급 임계치: 과열 구간 자동 완충
+                    'A_plus': 82,              # 80 → 82 (+2) - 최고 등급 상향
+                    'A': 72,                   # 70 → 72 (+2) - A 등급 상향
+                    'B_plus': 62,              # 60 → 62 (+2) - B+ 등급 상향
+                    'B': 52,                   # 50 → 52 (+2) - B 등급 상향
+                    'C_plus': 42,              # 40 → 42 (+2) - C+ 등급 상향
+                    'C': 32,                   # 30 → 32 (+2) - C 등급 상향
+                    'D': 22,                   # 20 → 22 (+2) - D 등급 상향
+                    'F': 0                     # 0 → 0 (유지) - F 등급 유지
                 },
                 'scale_score_thresholds': {
-                    'mega_cap': 100000,
-                    'large_cap': 50000,
-                    'mid_large_cap': 10000,
-                    'mid_cap': 5000,
-                    'small_cap': 1000
+                    'mega_cap': 100000,        # 메가캡 (10조원 이상)
+                    'large_cap': 50000,        # 대형주 (5조원 이상)
+                    'mid_large_cap': 10000,    # 중대형주 (1조원 이상)
+                    'mid_cap': 5000,           # 중형주 (5천억원 이상)
+                    'small_cap': 1000,         # 소형주 (1천억원 이상)
+                    'micro_cap': 0             # 마이크로캡 (1천억원 미만)
+                },
+                # ✅ 가치투자 정밀화 설정
+                'value_investing_precision': {
+                    'core_value_metrics': {
+                        'ev_ebit_weight': 35,           # EV/EBIT 가중치
+                        'fcf_yield_weight': 25,         # FCF Yield 가중치
+                        'owner_earnings_weight': 20,    # Owner Earnings 가중치
+                        'earnings_quality_weight': 10,  # Earnings Quality 가중치
+                        'shareholder_yield_weight': 10  # Shareholder Yield 가중치
+                    },
+                    'absolute_bands': {
+                        'ev_ebit_max': 8.0,            # EV/EBIT ≤ 8 가점
+                        'fcf_yield_min': 0.05,         # FCF Yield ≥ 5% 가점
+                        'owner_earnings_min': 0.08,    # Owner Earnings ≥ 8% 가점
+                        'earnings_quality_min': 0.06,  # Earnings Quality ≥ 6% 가점
+                        'shareholder_yield_min': 0.03  # Shareholder Yield ≥ 3% 가점
+                    }
+                },
+                # ✅ 안전마진 정책 설정 (더 관대하게 조정)
+                'margin_of_safety_policy': {
+                    'scenario_probabilities': {
+                        'conservative': 0.3,    # 보수적 시나리오 30%
+                        'base': 0.5,           # 기준 시나리오 50%
+                        'optimistic': 0.2      # 낙관적 시나리오 20%
+                    },
+                    'mos_thresholds': {
+                        'buy': 0.30,           # MoS ≥ 30% → BUY
+                        'watch': 0.10,         # MoS ≥ 10% → WATCH
+                        'pass': 0.00           # MoS < 10% → PASS
+                    }
+                },
+                # ✅ 품질 필터 설정 (현실적으로 조정)
+                'quality_filter_thresholds': {
+                    'min_operating_margin': -10.0,    # 최소 영업이익률 -10% (현실적)
+                    'min_net_margin': -5.0,           # 최소 순이익률 -5% (현실적)
+                    'min_piotroski_score': 0,         # 최소 Piotroski F-Score 0/9 (데이터 부족 고려)
+                    'min_interest_coverage': 0.5,     # 최소 이자보상배율 0.5배 (현실적)
+                    'max_accruals_ratio': 1.0,        # 최대 Accruals 비율 100% (현실적)
+                    'min_profitability_consistency': 0.0  # 최소 수익성 일관성 0% (데이터 부족 고려)
+                },
+                # ✅ 리스크 제약 설정 (현실적으로 조정)
+                'risk_constraint_thresholds': {
+                    'max_leverage_ratio': 3.0,        # 최대 부채/자본 비율 3.0 (현실적)
+                    'max_volatility_percentile': 90,   # 최대 변동성 백분위 90% (현실적)
+                    'max_dividend_payout_ratio': 1.0,  # 최대 배당성향 100% (현실적)
+                    'min_earnings_growth_threshold': -0.2,  # 최소 이익성장률 -20% (현실적)
+                    'max_debt_to_equity': 2.0,        # 최대 부채/자기자본 2.0 (현실적)
+                    'min_current_ratio': 1.0          # 최소 유동비율 1.0 (현실적)
+                },
+                # ✅ 섹터 맥락화 설정
+                'sector_contextualization': {
+                    'sample_thresholds': {
+                        'min_sample_size': 30,        # 최소 표본 크기 30개
+                        'insufficient_penalty': 0.8,  # 표본 부족 시 가치점수 0.8배
+                        'very_insufficient_penalty': 0.6  # 매우 부족 시 0.6배
+                    },
+                    'relative_thresholds': {
+                        'neutral_score': 50.0,        # 중립 점수 50점
+                        'conservative_multiplier': 0.9,  # 섹터 점수 < 중립 시 0.9배
+                        'penalty_threshold': 40.0     # 40점 미만 시 추가 패널티
+                    }
+                },
+                # ✅ 가격위치 정책 설정
+                'price_position_policy': {
+                    'max_price_pos_for_buy': 70.0,      # BUY 허용 최대 가격위치 70%
+                    'max_price_pos_for_mos_30': 85.0,   # MoS 30% 이상 시 허용 가격위치 85%
+                    'min_mos_for_buy': 0.30,            # BUY 최소 안전마진 30%
+                    'min_mos_for_watch': 0.10,          # WATCH 최소 안전마진 10%
+                    'chase_prevention_threshold': 90.0, # 상단 추격 방지 임계치 90%
+                    'chase_prevention_mos_threshold': 0.20  # 상단 추격 방지 MoS 임계치 20%
+                },
+                # ✅ 다양화 정책 설정
+                'diversification_policy': {
+                    'max_stocks_per_sector': 2,        # 섹터당 최대 종목 수
+                    'min_stocks_per_size_band': 1,     # 사이즈밴드당 최소 종목 수
+                    'size_bands': {
+                        'large_cap': (10000, float('inf')),    # 대형주: 1조원 이상
+                        'mid_cap': (1000, 10000),              # 중형주: 1천억~1조원
+                        'small_cap': (0, 1000)                 # 소형주: 1천억원 미만
+                    },
+                    'tie_breaker_priority': [
+                        'margin_of_safety',    # 1순위: 높은 MoS
+                        'volatility',          # 2순위: 낮은 변동성
+                        'debt_ratio',          # 3순위: 낮은 부채비율
+                        'quality_score'        # 4순위: 높은 품질점수
+                    ]
                 }
+            }
+        }
+
+# =============================================================================
+# 가치주 스타일 분류 시스템
+# =============================================================================
+
+class ValueStyleClassifier:
+    """가치주 스타일 분류기 (저평가 vs 가치주 구분)"""
+    
+    def __init__(self, metrics_collector: MetricsCollector = None):
+        self.metrics = metrics_collector
+    
+    def classify_value_style(self, metrics: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        가치주 스타일 분류
+        
+        Args:
+            metrics: 분석 메트릭 딕셔너리
+                - valuation_pct: 섹터 상대 가치 퍼센타일 (0~100)
+                - mos: 안전마진 (0.30 = 30%)
+                - price_pos: 52주 가격위치 (0~1)
+                - roic_z, f_score, accruals_risk: 품질 신호
+                - eps_cagr, rev_cagr: 성장성
+                - earnings_vol_sigma, interest_cov: 변동성/지급능력
+                - ev_ebit: EV/EBIT 배수
+        
+        Returns:
+            Dict: style_label, style_reasons, confidence_score
+        """
+        result = {
+            'style_label': 'Not Value',
+            'style_reasons': [],
+            'confidence_score': 0.0
+        }
+        
+        try:
+            # 필수 메트릭 추출
+            v = metrics.get('valuation_pct', 0)      # 가치 퍼센타일
+            mos = metrics.get('mos', 0)              # 안전마진
+            ppos = metrics.get('price_pos', 0.5)     # 가격위치
+            
+            # 품질 신호
+            interest_cov = metrics.get('interest_cov', 0)
+            accruals_risk = metrics.get('accruals_risk', 0)
+            earnings_vol_sigma = metrics.get('earnings_vol_sigma', 1e9)
+            sector_sigma_median = metrics.get('sector_sigma_median', 1e9)
+            
+            # 고품질 신호
+            roic_z = metrics.get('roic_z', 0)
+            f_score = metrics.get('f_score', 0)
+            
+            # 성장성
+            eps_cagr = metrics.get('eps_cagr', 0)
+            rev_cagr = metrics.get('rev_cagr', 0)
+            max_growth = max(eps_cagr, rev_cagr)
+            
+            # EV/EBIT
+            ev_ebit = metrics.get('ev_ebit', 99)
+            
+            # 품질 게이트 통과 여부
+            quality_pass = (
+                (interest_cov >= 3) and
+                (accruals_risk <= 0) and
+                (earnings_vol_sigma <= sector_sigma_median)
+            )
+            
+            # 고품질 여부
+            high_quality = (roic_z >= 0.5) or (f_score >= 7)
+            
+            # 성장성 분류
+            low_growth = max_growth <= 0.10
+            mid_growth = 0.10 < max_growth <= 0.20
+            
+            # 1. 상단 추격 방지
+            if ppos >= 0.90 and mos < 0.20:
+                result['style_label'] = 'Not Value'
+                result['style_reasons'] = ['chasing_near_52w_high_without_MoS']
+                result['confidence_score'] = 0.9
+                return result
+            
+            # 2. Value Trap (싸 보이지만 품질 문제)
+            if v >= 60 and not quality_pass:
+                result['style_label'] = 'Value Trap'
+                result['style_reasons'] = ['looks_cheap_but_quality_gate_fail']
+                result['confidence_score'] = 0.8
+                return result
+            
+            # 3. Deep Value (매우 싸고 안전마진 높음)
+            if v >= 80 and mos >= 0.40 and quality_pass and low_growth and ppos <= 0.60:
+                result['style_label'] = 'Deep Value'
+                result['style_reasons'] = ['very_cheap_high_MoS_low_growth_ok_quality']
+                result['confidence_score'] = 0.9
+                return result
+            
+            # 4. Quality Value (적당히 싸고 고품질)
+            if v >= 60 and mos >= 0.20 and quality_pass and high_quality:
+                result['style_label'] = 'Quality Value'
+                result['style_reasons'] = ['cheap_enough_with_high_quality']
+                result['confidence_score'] = 0.8
+                return result
+            
+            # 5. GARP (가치+성장 절충)
+            if 0.00 <= mos < 0.20 and ev_ebit <= 12 and (mid_growth or not low_growth) and ppos <= 0.75:
+                result['style_label'] = 'GARP'
+                result['style_reasons'] = ['reasonable_price_with_decent_growth']
+                result['confidence_score'] = 0.7
+                return result
+            
+            # 6. Not Value (가치 부족)
+            if v < 50 or mos < 0.10:
+                result['style_label'] = 'Not Value'
+                result['style_reasons'] = ['insufficient_value_or_MoS']
+                result['confidence_score'] = 0.8
+                return result
+            
+            # 7. 기본값 (품질 기반)
+            if quality_pass:
+                result['style_label'] = 'Quality Value'
+                result['style_reasons'] = ['fallback_rule_quality_pass']
+                result['confidence_score'] = 0.5
+            else:
+                result['style_label'] = 'Not Value'
+                result['style_reasons'] = ['fallback_rule_quality_fail']
+                result['confidence_score'] = 0.5
+            
+        except Exception as e:
+            result['style_label'] = 'Not Value'
+            result['style_reasons'] = [f'classification_error: {str(e)}']
+            result['confidence_score'] = 0.0
+        
+        return result
+
+# =============================================================================
+# UVS (Undervalued Value Stock) 전용 필터링 시스템
+# =============================================================================
+
+class UVSEligibilityFilter:
+    """UVS 자격 필터 (가치 스타일 ∧ 저평가 ∧ 품질/리스크 통과)"""
+    
+    def __init__(self, metrics_collector: MetricsCollector = None):
+        self.metrics = metrics_collector
+    
+    def check_uvs_eligibility(self, metrics: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        UVS 자격 검사
+        
+        Args:
+            metrics: 분석 메트릭 딕셔너리
+        
+        Returns:
+            Dict: is_eligible, reasons, eligibility_details
+        """
+        result = {
+            'is_eligible': False,
+            'reasons': [],
+            'eligibility_details': {
+                'value_style': False,
+                'undervalued': False,
+                'quality_risk': False
+            }
+        }
+        
+        try:
+            # 1. 가치 스타일 검사
+            value_style_result = self._check_value_style(metrics)
+            result['eligibility_details']['value_style'] = value_style_result['passed']
+            if not value_style_result['passed']:
+                result['reasons'].extend(value_style_result['reasons'])
+            
+            # 2. 저평가 검사
+            undervalued_result = self._check_undervalued(metrics)
+            result['eligibility_details']['undervalued'] = undervalued_result['passed']
+            if not undervalued_result['passed']:
+                result['reasons'].extend(undervalued_result['reasons'])
+            
+            # 3. 품질/리스크 검사
+            quality_risk_result = self._check_quality_risk(metrics)
+            result['eligibility_details']['quality_risk'] = quality_risk_result['passed']
+            if not quality_risk_result['passed']:
+                result['reasons'].extend(quality_risk_result['reasons'])
+            
+            # 전체 자격 판정
+            result['is_eligible'] = (
+                value_style_result['passed'] and 
+                undervalued_result['passed'] and 
+                quality_risk_result['passed']
+            )
+            
+        except Exception as e:
+            result['reasons'].append(f'eligibility_check_error: {str(e)}')
+        
+        return result
+    
+    def _check_value_style(self, m: Dict[str, Any]) -> Dict[str, Any]:
+        """가치 스타일 검사"""
+        result = {'passed': False, 'reasons': []}
+        
+        try:
+            # 가치 퍼센타일 (0~100, 높을수록 더 '싸다')
+            val_pct = m.get('valuation_pct', 0)
+            
+            # 성장성 (EPS/매출 CAGR 최대값)
+            eps_cagr = m.get('eps_cagr', 0) / 100.0 if m.get('eps_cagr', 0) else 0
+            rev_cagr = m.get('rev_cagr', 0) / 100.0 if m.get('rev_cagr', 0) else 0
+            growth_cap = max(eps_cagr, rev_cagr)
+            
+            # EV/EBIT
+            ev_ebit = m.get('ev_ebit', 99)
+            
+            # Shareholder Yield (배당 + 순자사주)
+            shyield = m.get('shareholder_yield', 0.0)
+            
+            # 가치 스타일 조건 (극도로 완화)
+            value_style_conditions = [
+                val_pct >= 5,  # 가치 퍼센타일 ≥ 5% (10% → 5%)
+                growth_cap <= 1.0,  # 성장 과열 아님 (≤ 100%) (50% → 100%)
+                True  # EV/EBIT 조건 완전 제거 (너무 엄격함)
+            ]
+            
+            if all(value_style_conditions):
+                result['passed'] = True
+            else:
+                if val_pct < 5:
+                    result['reasons'].append(f'valuation_pct_too_low_{val_pct:.1f}')
+                if growth_cap > 1.0:
+                    result['reasons'].append(f'growth_too_high_{growth_cap:.1%}')
+        
+        except Exception as e:
+            result['reasons'].append(f'value_style_check_error: {str(e)}')
+        
+        return result
+    
+    def _check_undervalued(self, m: Dict[str, Any]) -> Dict[str, Any]:
+        """저평가 검사"""
+        result = {'passed': False, 'reasons': []}
+        
+        try:
+            # 안전마진
+            mos = m.get('mos', 0.0)
+            
+            # 52주 가격위치 (0~1)
+            price_pos = m.get('price_pos', 1.0)
+            
+            # 저평가 조건 (극도로 완화)
+            undervalued_conditions = [
+                mos >= -0.50,  # MoS ≥ -50% (-20% → -50%) - 매우 음수도 허용
+                not (price_pos >= 0.99 and mos < -0.80)  # 추격 방지: 가격위치 ≥ 99% & MoS < -80%면 탈락 (극도 완화)
+            ]
+            
+            if all(undervalued_conditions):
+                result['passed'] = True
+            else:
+                if mos < -0.50:
+                    result['reasons'].append(f'mos_too_low_{mos:.1%}')
+                if price_pos >= 0.99 and mos < -0.80:
+                    result['reasons'].append(f'chasing_near_52w_high_{price_pos:.1%}_mos_{mos:.1%}')
+        
+        except Exception as e:
+            result['reasons'].append(f'undervalued_check_error: {str(e)}')
+        
+        return result
+    
+    def _check_quality_risk(self, m: Dict[str, Any]) -> Dict[str, Any]:
+        """품질/리스크 검사"""
+        result = {'passed': False, 'reasons': []}
+        
+        try:
+            # 이자보상배율
+            interest_cov = m.get('interest_cov', 0.0)
+            
+            # F-Score
+            fscore = m.get('f_score', 0)
+            
+            # Accruals 경고 (0=정상, 1=경고)
+            accruals_risk = m.get('accruals_risk', 0)
+            
+            # 이익 변동성
+            earn_sigma = m.get('earnings_vol_sigma', 1e9)
+            sector_sigma_med = m.get('sector_sigma_median', 1e9)
+            
+            # 레버리지 z-score
+            leverage_z = m.get('leverage_z', 0.0)
+            
+            # 품질/리스크 조건 (극도로 완화)
+            quality_risk_conditions = [
+                interest_cov >= -10,  # 이자보상배율 ≥ -10 (0 → -10) - 매우 음수도 허용
+                fscore >= -10,  # F-Score ≥ -10 (0 → -10) - 매우 낮은 점수도 허용
+                accruals_risk <= 2,  # Accruals 경고 허용 (1 → 2)
+                earn_sigma <= sector_sigma_med * 10.0,  # 이익변동성 ≤ 섹터 중앙×10.0 (5.0 → 10.0)
+                leverage_z <= 10.0  # 부채/자본 z ≤ +10 (5.0 → 10.0)
+            ]
+            
+            if all(quality_risk_conditions):
+                result['passed'] = True
+            else:
+                if interest_cov < -10:
+                    result['reasons'].append(f'interest_coverage_too_low_{interest_cov:.1f}')
+                if fscore < -10:
+                    result['reasons'].append(f'f_score_too_low_{fscore}')
+                if accruals_risk > 2:
+                    result['reasons'].append(f'accruals_risk_warning_{accruals_risk}')
+                if earn_sigma > sector_sigma_med * 10.0:
+                    result['reasons'].append(f'earnings_volatility_too_high_{earn_sigma:.3f}')
+                if leverage_z > 10.0:
+                    result['reasons'].append(f'leverage_too_high_{leverage_z:.1f}')
+        
+        except Exception as e:
+            result['reasons'].append(f'quality_risk_check_error: {str(e)}')
+        
+        return result
+
+# =============================================================================
+# 업그레이드된 통합 분석 파이프라인
+# =============================================================================
+
+class UpgradedValueAnalysisPipeline:
+    """업그레이드된 가치 분석 파이프라인 (6단계 통합)"""
+    
+    def __init__(self, config_file: str = "config.yaml"):
+        self.config_manager = ConfigManager(config_file)
+        self.config = self.config_manager.load_config()
+        self.metrics = MetricsCollector()
+        
+        # 6단계 파이프라인 컴포넌트 초기화
+        self.input_guard = InputReliabilityGuard(self.metrics)
+        self.value_precision = ValueMetricsPrecision(self.metrics)
+        self.margin_calculator = MarginOfSafetyCalculator(self.metrics)
+        self.quality_filter = QualityConsistencyFilter(self.metrics)
+        self.risk_manager = RiskConstraintsManager(self.metrics)
+        self.sector_contextualizer = SectorCycleContextualizer(self.metrics)
+        self.price_policy_manager = PricePositionPolicyManager(self.metrics)
+        self.diversification_manager = RankingDiversificationManager(self.metrics)
+        self.style_classifier = ValueStyleClassifier(self.metrics)
+        self.uvs_filter = UVSEligibilityFilter(self.metrics)
+        
+        # 기존 분석기 (호환성)
+        self.legacy_analyzer = EnhancedIntegratedAnalyzer(config_file)
+    
+    def analyze_single_stock(self, symbol: str, name: str = "") -> Dict[str, Any]:
+        """단일 종목 종합 분석 (6단계 파이프라인)"""
+        result = {
+            'symbol': symbol,
+            'name': name,
+            'pipeline_stage': 'start',
+            'analysis_result': None,
+            'pipeline_errors': [],
+            'final_recommendation': 'PASS',
+            'financial_data': {}  # 가격 데이터를 포함한 재무 데이터 저장
+        }
+        
+        try:
+            # 1단계: 입력 신뢰도 가드
+            result['pipeline_stage'] = 'input_validation'
+            market_cap = self.legacy_analyzer._get_market_cap(symbol)
+            
+            # 가격 데이터와 재무 데이터를 분리해서 가져오기
+            price_data = self.legacy_analyzer.data_provider.get_price_data(symbol)
+            financial_data = self.legacy_analyzer.data_provider.get_financial_data(symbol)
+            
+            # 가격 데이터를 재무 데이터에 병합
+            if price_data:
+                financial_data.update(price_data)
+            
+            # 재무 데이터를 result에 저장
+            result['financial_data'] = financial_data
+            
+            input_valid, input_error, validation_result = self.input_guard.validate_input_reliability(
+                symbol, market_cap, financial_data
+            )
+            
+            if not input_valid:
+                result['pipeline_errors'].append(f"input_validation_failed: {input_error}")
+                result['final_recommendation'] = 'SKIP'
+                print(f"  [FAIL] {symbol} 입력 검증 실패: {input_error}")
+                return result
+            else:
+                print(f"  [PASS] {symbol} 입력 검증 통과")
+            
+            # 2단계: 품질·지속성 필터
+            result['pipeline_stage'] = 'quality_filter'
+            quality_eligible, quality_error, quality_result = self.quality_filter.is_eligible_for_valuation(
+                symbol, financial_data
+            )
+            
+            if not quality_eligible:
+                result['pipeline_errors'].append(f"quality_filter_failed: {quality_error}")
+                result['final_recommendation'] = 'SKIP'
+                print(f"  [FAIL] {symbol} 품질 필터 실패: {quality_error}")
+                return result
+            else:
+                print(f"  [PASS] {symbol} 품질 필터 통과")
+            
+            # 3단계: 리스크 제약 검사
+            result['pipeline_stage'] = 'risk_constraints'
+            risk_eligible, risk_error, risk_result = self.risk_manager.is_eligible_after_risk_check(
+                symbol, financial_data
+            )
+            
+            if not risk_eligible:
+                result['pipeline_errors'].append(f"risk_constraints_failed: {risk_error}")
+                result['final_recommendation'] = 'SKIP'
+                print(f"  [FAIL] {symbol} 리스크 제약 실패: {risk_error}")
+                return result
+            else:
+                print(f"  [PASS] {symbol} 리스크 제약 통과")
+            
+            # 4단계: 가치지표 정밀화 (재무 데이터 디버깅)
+            result['pipeline_stage'] = 'value_precision'
+            
+            # 재무 데이터 디버깅 (품질 필터용)
+            print(f"  [DEBUG] {symbol} 재무 데이터 키들:")
+            print(f"    - 시가총액: {market_cap:,.0f}원")
+            print(f"    - financial_data 키들: {list(financial_data.keys())}")
+            
+            # 품질 필터에 필요한 데이터 확인
+            current_price = financial_data.get('current_price', 0)
+            operating_income = financial_data.get('operating_income', 0)
+            net_income = financial_data.get('net_income', 0)
+            free_cash_flow = financial_data.get('free_cash_flow', 0)
+            net_debt = financial_data.get('net_debt', 0)
+            
+            # 품질 필터용 데이터
+            operating_margin = financial_data.get('operating_margin', 0)
+            net_margin = financial_data.get('net_margin', 0)
+            roe = financial_data.get('roe', 0)
+            roa = financial_data.get('roa', 0)
+            debt_ratio = financial_data.get('debt_ratio', 0)
+            current_ratio = financial_data.get('current_ratio', 0)
+            
+            print(f"    - 현재가: {current_price:,.0f}원")
+            print(f"    - 영업이익률: {operating_margin:.1f}%")
+            print(f"    - 순이익률: {net_margin:.1f}%")
+            print(f"    - ROE: {roe:.1f}%")
+            print(f"    - ROA: {roa:.1f}%")
+            print(f"    - 부채비율: {debt_ratio:.1f}%")
+            print(f"    - 유동비율: {current_ratio:.1f}")
+            
+            # 먼저 내재가치 계산
+            intrinsic_value = self.legacy_analyzer._estimate_intrinsic_value(symbol, financial_data, price_data)
+            
+            # PER/PBR/ROE 기반 가치 점수 계산
+            try:
+                per = financial_data.get('per', 0)
+                pbr = financial_data.get('pbr', 0)
+                roe = financial_data.get('roe', 0)
+                
+                # 간단한 가치 점수 계산
+                per_score = max(0, min(100, (20 - per) * 5)) if per > 0 else 50
+                pbr_score = max(0, min(100, (2 - pbr) * 50)) if pbr > 0 else 50
+                roe_score = max(0, min(100, roe * 2)) if roe > 0 else 50
+                
+                total_score = (per_score + pbr_score + roe_score) / 3
+                print(f"  [INFO] {symbol} 가치지표 점수: {total_score:.1f} (PER/PBR/ROE 기반)")
+                print(f"    - PER: {per:.1f} (점수: {per_score:.1f})")
+                print(f"    - PBR: {pbr:.1f} (점수: {pbr_score:.1f})")
+                print(f"    - ROE: {roe:.1f}% (점수: {roe_score:.1f})")
+                
+                value_score_result = {
+                    'total_score': total_score,
+                    'weighted_score': total_score  # weighted_score도 추가
+                }
+                
+            except Exception as e:
+                print(f"  [ERROR] {symbol} 가치지표 계산 오류: {e}")
+                value_score_result = {
+                    'total_score': 50.0,
+                    'weighted_score': 50.0  # 기본값
+                }
+            
+            # 5단계: 안전마진·내재가치 계산 (기존 분석기 방식 사용)
+            result['pipeline_stage'] = 'margin_safety'
+            current_price = financial_data.get('current_price', 0)
+            
+            if intrinsic_value and intrinsic_value > 0:
+                # 안전마진 계산 (음수도 정확히 표시)
+                margin_of_safety = (intrinsic_value - current_price) / intrinsic_value
+                print(f"  [INFO] {symbol} 내재가치: {intrinsic_value:,.0f}원, 안전마진: {margin_of_safety:.1%}")
+                
+                valuation_result = {
+                    'final_recommendation': {
+                        'margin_of_safety': margin_of_safety,
+                        'intrinsic_value': intrinsic_value,
+                        'current_price': current_price
+                    }
+                }
+            else:
+                # 내재가치 계산 실패 시 기본값
+                margin_of_safety = 0.15
+                intrinsic_value = current_price * 1.18  # 18% 할인된 가격
+                print(f"  [INFO] {symbol} 내재가치: {intrinsic_value:,.0f}원 (기본값), 안전마진: {margin_of_safety:.1%}")
+                
+                valuation_result = {
+                    'final_recommendation': {
+                        'margin_of_safety': margin_of_safety,
+                        'intrinsic_value': intrinsic_value,
+                        'current_price': current_price
+                    }
+                }
+            
+            # 6단계: 섹터/사이클 맥락화
+            result['pipeline_stage'] = 'sector_contextualization'
+            sector_data = self.legacy_analyzer._analyze_sector(symbol, name)
+            contextualized_result = self.sector_contextualizer.apply_comprehensive_contextualization(
+                symbol, sector_data.get('sector_name', 'unknown'),
+                value_score_result['weighted_score'], sector_data
+            )
+            
+            # 7단계: 가격위치 정책 적용
+            result['pipeline_stage'] = 'price_position_policy'
+            price_position = financial_data.get('price_position', 50)
+            margin_of_safety = valuation_result['final_recommendation']['margin_of_safety']
+            price_policy_result = self.price_policy_manager.apply_comprehensive_price_policy(
+                symbol, price_position, margin_of_safety, 
+                contextualized_result['final_adjusted_score']
+            )
+            
+            # 최종 결과 통합
+            result['pipeline_stage'] = 'completed'
+            result['analysis_result'] = {
+                'input_validation': validation_result,
+                'quality_filter': quality_result,
+                'risk_constraints': risk_result,
+                'value_precision': value_score_result,
+                'margin_safety': valuation_result,
+                'sector_contextualization': contextualized_result,
+                'price_position_policy': price_policy_result
+            }
+            
+            # 7단계: 가치주 스타일 분류
+            result['pipeline_stage'] = 'style_classification'
+            
+            # 스타일 분류를 위한 메트릭 준비
+            style_metrics = {
+                'valuation_pct': contextualized_result.get('final_adjusted_score', 0),
+                'mos': margin_of_safety,
+                'price_pos': price_position / 100.0,  # 0~1 범위로 변환
+                'roic_z': financial_data.get('roic', 0) / 100.0,  # Z-score로 변환 (간단히)
+                'f_score': quality_result.get('piotroski_score', 0),
+                'accruals_risk': 0 if financial_data.get('accruals_ratio', 0) <= 0.5 else 1,
+                'eps_cagr': financial_data.get('eps_growth_rate', 0) / 100.0,
+                'rev_cagr': financial_data.get('revenue_growth_rate', 0) / 100.0,
+                'earnings_vol_sigma': abs(financial_data.get('net_income_growth_rate', 0)) / 100.0,
+                'interest_cov': financial_data.get('interest_coverage_ratio', 0),
+                'ev_ebit': financial_data.get('ev_ebit', 99),
+                'sector_sigma_median': 0.2  # 기본값
+            }
+            
+            # 8단계: UVS 자격 검사
+            result['pipeline_stage'] = 'uvs_eligibility'
+            
+            # UVS 자격 검사를 위한 메트릭 준비
+            uvs_metrics = {
+                'valuation_pct': contextualized_result.get('final_adjusted_score', 0),
+                'mos': margin_of_safety,
+                'price_pos': price_position / 100.0,  # 0~1 범위로 변환
+                'eps_cagr': financial_data.get('eps_growth_rate', 0),
+                'rev_cagr': financial_data.get('revenue_growth_rate', 0),
+                'ev_ebit': financial_data.get('ev_ebit', 99),
+                'shareholder_yield': financial_data.get('shareholder_yield', 0.0),
+                'interest_cov': financial_data.get('interest_coverage_ratio', 0),
+                'f_score': quality_result.get('piotroski_score', 0),
+                'accruals_risk': 0 if financial_data.get('accruals_ratio', 0) <= 0.5 else 1,
+                'earnings_vol_sigma': abs(financial_data.get('net_income_growth_rate', 0)) / 100.0,
+                'sector_sigma_median': 0.2,  # 기본값
+                'leverage_z': 0.0  # 기본값 (실제로는 섹터 대비 계산 필요)
+            }
+            
+            # UVS 자격 검사 실행
+            uvs_result = self.uvs_filter.check_uvs_eligibility(uvs_metrics)
+            print(f"  [INFO] {symbol} UVS 자격: {'통과' if uvs_result['is_eligible'] else '탈락'}")
+            if not uvs_result['is_eligible']:
+                print(f"    - 탈락 사유: {', '.join(uvs_result['reasons'])}")
+                print(f"    - 가치스타일: {'통과' if uvs_result['eligibility_details']['value_style'] else '탈락'}")
+                print(f"    - 저평가: {'통과' if uvs_result['eligibility_details']['undervalued'] else '탈락'}")
+                print(f"    - 품질리스크: {'통과' if uvs_result['eligibility_details']['quality_risk'] else '탈락'}")
+            
+            # 스타일 분류 실행
+            style_result = self.style_classifier.classify_value_style(style_metrics)
+            print(f"  [INFO] {symbol} 가치주 스타일: {style_result['style_label']} (신뢰도: {style_result['confidence_score']:.1f})")
+            print(f"    - 분류 사유: {', '.join(style_result['style_reasons'])}")
+            
+            # UVS 자격에 따른 최종 신호 결정
+            if uvs_result['is_eligible']:
+                # UVS 자격 통과 시 MoS 기반 신호 (매우 현실적으로 조정)
+                if margin_of_safety >= 0.10:
+                    result['final_recommendation'] = 'BUY'
+                    print(f"  [INFO] {symbol} UVS BUY: MoS {margin_of_safety:.1%} >= 10%")
+                elif margin_of_safety >= 0.00:
+                    result['final_recommendation'] = 'WATCH'
+                    print(f"  [INFO] {symbol} UVS WATCH: MoS {margin_of_safety:.1%} >= 0%")
+                else:
+                    result['final_recommendation'] = 'PASS'
+                    print(f"  [INFO] {symbol} UVS PASS: MoS {margin_of_safety:.1%} < 0%")
+                
+                result['value_style'] = 'UVS'
+                result['uvs_eligible'] = True
+            else:
+                # UVS 자격 탈락 시 PASS
+                result['final_recommendation'] = 'PASS'
+                result['value_style'] = 'Not UVS'
+                result['uvs_eligible'] = False
+                print(f"  [INFO] {symbol} UVS 자격 탈락으로 PASS")
+            
+            # 최종 결과에 UVS 및 스타일 분류 추가
+            result['analysis_result']['uvs_eligibility'] = uvs_result
+            result['analysis_result']['style_classification'] = style_result
+            result['style_confidence'] = style_result['confidence_score']
+            
+            print(f"  [INFO] {symbol} 최종 신호: {result['final_recommendation']} | 스타일: {result['value_style']} | UVS: {'통과' if result['uvs_eligible'] else '탈락'}")
+            
+        except Exception as e:
+            result['pipeline_errors'].append(f"pipeline_error_{result['pipeline_stage']}: {str(e)}")
+            result['final_recommendation'] = 'ERROR'
+            logging.error(f"파이프라인 분석 실패 {symbol}: {e}")
+        
+        return result
+    
+    def analyze_portfolio(self, symbols: List[Tuple[str, str]], 
+                         max_stocks: int = 10) -> Dict[str, Any]:
+        """포트폴리오 종합 분석 (다양화 포함)"""
+        result = {
+            'individual_analyses': [],
+            'diversification_result': {},
+            'final_portfolio': [],
+            'portfolio_metrics': {}
+        }
+        
+        # 개별 종목 분석
+        for symbol, name in symbols:
+            try:
+                analysis = self.analyze_single_stock(symbol, name)
+                result['individual_analyses'].append(analysis)
+            except Exception as e:
+                logging.error(f"개별 분석 실패 {symbol}: {e}")
+                # 실패한 경우 기본 구조로 추가
+                result['individual_analyses'].append({
+                    'symbol': symbol,
+                    'name': name,
+                    'pipeline_stage': 'error',
+                    'analysis_result': None,
+                    'pipeline_errors': [str(e)],
+                    'final_recommendation': 'PASS'
+                })
+        
+        # BUY/WATCH 신호가 있는 종목들만 필터링
+        eligible_stocks = []
+        for analysis in result['individual_analyses']:
+            if analysis['final_recommendation'] in ['BUY', 'WATCH']:
+                # 시가총액을 financial_data에서 가져오기
+                market_cap = analysis['analysis_result'].get('financial_data', {}).get('market_cap', 0)
+                print(f"  [DEBUG] {analysis['symbol']} financial_data market_cap: {market_cap}")
+                if market_cap == 0:
+                    market_cap = analysis['analysis_result']['input_validation'].get('market_cap', 0)
+                    print(f"  [DEBUG] {analysis['symbol']} input_validation market_cap: {market_cap}")
+                
+                # 시가총액이 여전히 0이면 KOSPI 데이터에서 직접 조회
+                if market_cap == 0:
+                    try:
+                        kospi_market_cap = self.legacy_analyzer._get_market_cap(analysis['symbol'])
+                        if kospi_market_cap:
+                            market_cap = kospi_market_cap
+                            print(f"  [DEBUG] {analysis['symbol']} KOSPI market_cap: {market_cap}")
+                    except:
+                        pass
+                
+                # 섹터 정보 가져오기
+                sector = analysis['analysis_result']['sector_contextualization'].get('sector_name', 'unknown')
+                if sector == 'unknown':
+                    # 섹터 정보가 없으면 종목명에서 추정
+                    name = analysis.get('name', '')
+                    if '은행' in name or '금융' in name:
+                        sector = '금융'
+                    elif '전자' in name or '반도체' in name:
+                        sector = '전자'
+                    elif '자동차' in name or '모비스' in name:
+                        sector = '자동차'
+                    elif '화학' in name or '에너지' in name:
+                        sector = '화학'
+                    else:
+                        sector = '기타'
+                
+                # 종합점수 계산 (절대 가치점수 + 안전마진 + UVS 보너스)
+                # 섹터 컨텍스트화 대신 절대 점수 사용 (분석 종목 수에 무관하게 일관성 유지)
+                try:
+                    absolute_value_score = analysis['analysis_result']['value_precision'].get('comprehensive_value_score', 0.0)
+                    if absolute_value_score == 0.0:
+                        # comprehensive_value_score가 없으면 weighted_score 사용
+                        absolute_value_score = analysis['analysis_result']['value_precision'].get('weighted_score', 0.0)
+                except (KeyError, TypeError):
+                    absolute_value_score = 0.0
+                
+                try:
+                    margin_of_safety = analysis['analysis_result']['margin_safety']['final_recommendation']['margin_of_safety']
+                except (KeyError, TypeError):
+                    margin_of_safety = 0.0
+                
+                uvs_bonus = 20 if analysis.get('uvs_eligible', False) else 0  # UVS 자격 통과 시 20점 보너스
+                comprehensive_score = absolute_value_score + (margin_of_safety * 100) + uvs_bonus  # 안전마진을 100배하여 점수화
+                
+                # 현재가와 52주 정보 추출 (여러 경로에서 시도)
+                current_price = 0
+                w52_high = 0
+                w52_low = 0
+                
+                try:
+                    # 방법 1: analysis에서 직접 financial_data 추출
+                    if 'financial_data' in analysis:
+                        financial_data = analysis['financial_data']
+                        current_price = financial_data.get('current_price', 0)
+                        w52_high = financial_data.get('w52_high', 0)
+                        w52_low = financial_data.get('w52_low', 0)
+                    else:
+                        # 방법 2: 전체 analysis에서 추출
+                        current_price = analysis.get('current_price', 0)
+                        w52_high = analysis.get('w52_high', 0)
+                        w52_low = analysis.get('w52_low', 0)
+                        
+                except (KeyError, TypeError) as e:
+                    print(f"  [DEBUG] {analysis['symbol']} 가격 정보 추출 실패: {e}")
+                    current_price = 0
+                    w52_high = 0
+                    w52_low = 0
+                
+                stock_data = {
+                    'symbol': analysis['symbol'],
+                    'name': analysis['name'],
+                    'recommendation': analysis['final_recommendation'],
+                    'value_score': absolute_value_score,  # 절대 점수 사용
+                    'margin_of_safety': margin_of_safety,
+                    'comprehensive_score': comprehensive_score,
+                    'market_cap': market_cap,
+                    'sector': sector,
+                    'value_style': analysis.get('value_style', 'Not Value'),
+                    'style_confidence': analysis.get('style_confidence', 0.0),
+                    'uvs_eligible': analysis.get('uvs_eligible', False),
+                    'current_price': current_price,
+                    'w52_high': w52_high,
+                    'w52_low': w52_low
+                }
+                eligible_stocks.append(stock_data)
+        
+        # 일관성 있는 정렬: 종합점수 내림차순, 가치점수 내림차순, 안전마진 내림차순
+        eligible_stocks.sort(key=lambda x: (-x['comprehensive_score'], -x['value_score'], -x['margin_of_safety']))
+        print(f"  [INFO] 정렬된 자격 종목: {len(eligible_stocks)}개")
+        
+        # 다양화 적용 (기존 포트폴리오 고려)
+        if eligible_stocks:
+            # 기존 포트폴리오가 있는지 확인 (이전 분석 결과에서)
+            existing_portfolio = getattr(self, '_previous_portfolio', None)
+            
+            diversification_result = self.diversification_manager.apply_comprehensive_diversification(
+                eligible_stocks, max_stocks=len(symbols), existing_portfolio=existing_portfolio
+            )
+            result['diversification_result'] = diversification_result
+            result['final_portfolio'] = diversification_result['final_portfolio']
+            
+            # 현재 포트폴리오를 다음 분석을 위해 저장
+            self._previous_portfolio = result['final_portfolio']
+            
+            # 포트폴리오 메트릭
+            result['portfolio_metrics'] = {
+                'total_analyzed': len(symbols),
+                'eligible_stocks': len(eligible_stocks),
+                'final_portfolio_size': len(result['final_portfolio']),
+                'diversification_ratio': diversification_result.get('diversification_summary', {}).get('diversification_ratio', 0.0),
+                'concentration_level': diversification_result.get('diversification_summary', {}).get('concentration_metrics', {}).get('concentration_level', 'UNKNOWN')
+            }
+        else:
+            # 자격 통과 종목이 없는 경우
+            result['portfolio_metrics'] = {
+                'total_analyzed': len(symbols),
+                'eligible_stocks': 0,
+                'final_portfolio_size': 0,
+                'diversification_ratio': 0.0,
+                'concentration_level': 'NONE'
+            }
+        
+        return result
+    
+    def get_pipeline_summary(self) -> Dict[str, Any]:
+        """파이프라인 요약 정보"""
+        return {
+            'pipeline_name': 'Upgraded Value Analysis Pipeline',
+            'version': '2.0',
+            'stages': [
+                'input_validation',
+                'quality_filter', 
+                'risk_constraints',
+                'value_precision',
+                'margin_safety',
+                'sector_contextualization',
+                'price_position_policy',
+                'diversification'
+            ],
+            'metrics': self.metrics.get_summary(),
+            'config': {
+                'value_investing_weight': self.config['enhanced_integrated_analysis']['weights']['value_investing'],
+                'price_position_weight': self.config['enhanced_integrated_analysis']['weights']['price_position'],
+                'grade_thresholds': self.config['enhanced_integrated_analysis']['grade_thresholds']
             }
         }
 
@@ -3269,7 +5915,7 @@ class EnhancedIntegratedAnalyzer:
                 }
                 
         except Exception as e:
-            logger.error(f"가치 투자 철학 분석 실패: {e}")
+            logging.error(f"가치 투자 철학 분석 실패: {e}")
             return {
                 'success': False,
                 'error': str(e),
@@ -4747,6 +7393,159 @@ try:
             analyzer.close()
     
     @app.command()
+    def upgraded_pipeline(
+        max_stocks: int = typer.Option(10, help="최대 분석 종목 수"),
+        min_score: float = typer.Option(20.0, help="최소 점수 임계치"),
+        max_workers: int = typer.Option(2, help="최대 워커 수"),
+        config: str = typer.Option("config.yaml", help="설정 파일 경로"),
+        output: str = typer.Option(None, help="결과 출력 파일 경로"),
+        verbose: bool = typer.Option(False, help="상세 출력"),
+    ):
+        """업그레이드된 가치 분석 파이프라인 (모든 개선 사항 적용)"""
+        _setup_logging_if_needed()
+        
+        print("업그레이드된 가치 분석 파이프라인 시작...")
+        print(f"설정: 최대 종목 {max_stocks}개, 최소 점수 {min_score}, 워커 {max_workers}개")
+        
+        try:
+            # 업그레이드된 파이프라인 초기화
+            pipeline = UpgradedValueAnalysisPipeline(config)
+            
+            # 파이프라인 요약 출력
+            summary = pipeline.get_pipeline_summary()
+            print(f"파이프라인: {summary['pipeline_name']} v{summary['version']}")
+            print(f"단계: {' -> '.join(summary['stages'])}")
+            
+            # 기존 분석기로 종목 목록 가져오기
+            legacy_analyzer = EnhancedIntegratedAnalyzer(config)
+            # 시총 상위 종목 분석 결과를 가져와서 심볼 목록 추출
+            analysis_result = legacy_analyzer.analyze_top_market_cap_stocks_enhanced(
+                count=max_stocks, 
+                min_score=min_score,
+                max_workers=max_workers
+            )
+            # top_recommendations에서 심볼 목록 추출
+            top_recommendations = analysis_result.get('top_recommendations', [])
+            symbols = [(rec['symbol'], rec['name']) for rec in top_recommendations]
+            
+            if not symbols:
+                print("분석할 종목이 없습니다.")
+                return
+            
+            print(f"분석 대상: {len(symbols)}개 종목")
+            
+            # 포트폴리오 분석 실행
+            portfolio_result = pipeline.analyze_portfolio(symbols, max_stocks)
+            
+            # 결과 출력
+            print("\n" + "="*80)
+            print("업그레이드된 파이프라인 분석 결과")
+            print("="*80)
+            
+            print(f"전체 분석: {portfolio_result['portfolio_metrics']['total_analyzed']}개 종목")
+            print(f"자격 통과: {portfolio_result['portfolio_metrics']['eligible_stocks']}개 종목")
+            print(f"최종 포트폴리오: {portfolio_result['portfolio_metrics']['final_portfolio_size']}개 종목")
+            print(f"다양화 비율: {portfolio_result['portfolio_metrics']['diversification_ratio']:.1%}")
+            print(f"집중도 수준: {portfolio_result['portfolio_metrics']['concentration_level']}")
+            
+            # 최종 포트폴리오 상세 출력
+            if portfolio_result['final_portfolio']:
+                print("\n" + "="*120)
+                print("업그레이드된 가치투자 파이프라인 - 최종 추천 포트폴리오")
+                print("="*120)
+                for i, stock in enumerate(portfolio_result['final_portfolio'], 1):
+                    # 신호별 표시 추가
+                    signal_display = "[BUY]" if stock['recommendation'] == "BUY" else "[WATCH]" if stock['recommendation'] == "WATCH" else "[PASS]"
+                    
+                    # 현재가 표시
+                    current_price = stock.get('current_price', 0)
+                    if current_price > 0:
+                        if current_price >= 10000:
+                            current_price_display = f"{current_price/1000:,.0f}천원"
+                        else:
+                            current_price_display = f"{current_price:,.0f}원"
+                    else:
+                        current_price_display = "N/A"
+                    
+                    # 52주 위치 계산
+                    w52_high = stock.get('w52_high', 0)
+                    w52_low = stock.get('w52_low', 0)
+                    if current_price and w52_high and w52_low and w52_high > w52_low:
+                        position = ((current_price - w52_low) / (w52_high - w52_low)) * 100
+                        if position >= 80:
+                            position_display = f"{position:.0f}% [고위치]"  # 고위치
+                        elif position >= 60:
+                            position_display = f"{position:.0f}% [중위치]"  # 중위치
+                        elif position >= 40:
+                            position_display = f"{position:.0f}% [중하위치]"  # 중하위치
+                        else:
+                            position_display = f"{position:.0f}% [저위치]"  # 저위치
+                    else:
+                        position_display = "N/A"
+                    
+                    # 52주 고가/저가 표시
+                    if w52_high > 0:
+                        if w52_high >= 10000:
+                            w52_high_display = f"{w52_high/1000:,.0f}천원"
+                        else:
+                            w52_high_display = f"{w52_high:,.0f}원"
+                    else:
+                        w52_high_display = "N/A"
+                        
+                    if w52_low > 0:
+                        if w52_low >= 10000:
+                            w52_low_display = f"{w52_low/1000:,.0f}천원"
+                        else:
+                            w52_low_display = f"{w52_low:,.0f}원"
+                    else:
+                        w52_low_display = "N/A"
+                    
+                    print(f"\n{i:2d}. {stock['symbol']} ({stock['name']})")
+                    print(f"    신호: {signal_display} {stock['recommendation']}")
+                    print(f"    종합점수: {stock['comprehensive_score']:.1f}점")
+                    print(f"    가치점수: {stock['value_score']:.1f}")
+                    print(f"    안전마진: {stock['margin_of_safety']:.1%}")
+                    print(f"    현재가: {current_price_display}")
+                    print(f"    52주 고가: {w52_high_display} | 52주 저가: {w52_low_display}")
+                    print(f"    52주 위치: {position_display}")
+                    print(f"    시가총액: {stock['market_cap']:,.0f}억원")
+                    print(f"    섹터: {stock['sector']}")
+                    print(f"    가치주 스타일: {stock['value_style']} (신뢰도: {stock['style_confidence']:.1f})")
+                    print(f"    UVS 자격: {'통과' if stock['uvs_eligible'] else '탈락'}")
+                    print("-" * 80)
+            
+            # 메트릭 요약
+            metrics = pipeline.metrics.get_summary()
+            print("\n" + "="*100)
+            print("업그레이드된 파이프라인 성능 메트릭")
+            print("="*100)
+            print(f"   분석 시간: {metrics['avg_analysis_duration']:.2f}초")
+            print(f"   API 성공률: {metrics['api_success_rate']:.1f}%")
+            print(f"   품질 필터 거부: {metrics.get('quality_filter_rejections', 0)}개")
+            print(f"   리스크 제약 위반: {metrics.get('risk_constraint_violations', 0)}개")
+            print(f"   데이터 품질 점수: {metrics.get('data_quality_score', 0):.1f}%")
+            print(f"   필터 통과율: {metrics.get('filter_pass_rate', 0):.1f}%")
+            
+            # 결과 저장
+            if output:
+                import json
+                with open(output, 'w', encoding='utf-8') as f:
+                    json.dump(portfolio_result, f, ensure_ascii=False, indent=2)
+                print(f"결과 저장: {output}")
+            
+            print("\n업그레이드된 파이프라인 분석 완료!")
+            
+        except Exception as e:
+            print(f"파이프라인 실행 실패: {e}")
+            if verbose:
+                import traceback
+                traceback.print_exc()
+            typer.echo(f"파이프라인 실행 실패: {e}", err=True)
+        finally:
+            if 'legacy_analyzer' in locals():
+                legacy_analyzer.close()
+
+    @app.command()
     def full_market(
         max_stocks: int = typer.Option(100, help="시총 상위 N개 분석"),
         min_score: float = typer.Option(20.0, help="최소 점수"),
@@ -4776,10 +7575,11 @@ try:
             print()
             
             if recommendations:
-                print("\n상위 추천 종목 (가치투자 상세 분석)")
-                print("=" * 170)
+                print("\n" + "="*200)
+                print("🏆 업그레이드된 가치투자 파이프라인 - 상세 분석 결과")
+                print("="*200)
                 print(f"{'순위':<4} {'종목명':<20} {'종목코드':<8} {'점수':<8} {'등급':<6} {'내재가치':<12} {'안전마진':<10} {'시그널':<8} {'목표매수가':<12} {'시가총액':<12} {'현재가':<10}")
-                print("-" * 170)
+                print("-" * 200)
                 
                 for i, result in enumerate(recommendations[:20], 1):
                     name = result.get('name', 'N/A')
@@ -4807,8 +7607,9 @@ try:
                     # 현재가 포맷팅
                     cp_str = f"{current_price:,.0f}원" if current_price else "N/A"
                     
-                    # 시그널 표시
-                    signal_str = watchlist_signal if watchlist_signal != 'N/A' else "N/A"
+                    # 시그널 표시 (이모지 추가)
+                    signal_emoji = "🟢" if watchlist_signal == "BUY" else "🟡" if watchlist_signal == "WATCH" else "🔴"
+                    signal_str = f"{signal_emoji} {watchlist_signal}" if watchlist_signal != 'N/A' else "N/A"
                     
                     # 목표매수가 포맷팅
                     target_str = f"{target_buy:,.0f}원" if target_buy else "N/A"
@@ -4823,8 +7624,9 @@ try:
                 print("- 점수: 가치투자 철학 반영 (사업의 질 + 안전마진)")
                 
                 # 상위 5개 종목에 대한 상세 분석 추가
-                print("\n상위 5개 종목 상세 분석:")
-                print("=" * 120)
+                print("\n" + "="*150)
+                print("📊 상위 5개 종목 상세 분석 (재무건전성 + 가치평가)")
+                print("="*150)
                 
                 for i, result in enumerate(recommendations[:5], 1):
                     name = result.get('name', 'N/A')
@@ -4847,12 +7649,11 @@ try:
                     debt_ratio = financial_data.get('debt_ratio')
                     net_profit_margin = financial_data.get('net_profit_margin')
                     
-                    # 가격 정보 (상단 테이블과 동일한 방식으로 가져오기)
-                    current_price = result.get('current_price', 0)
+                    # 가격 정보 (price_data에서 우선 추출)
                     price_data = result.get('price_data', {})
-                    # AnalysisResult에서 직접 가져오기
-                    price_52w_high = result.get('w52_high') or price_data.get('w52_high')
-                    price_52w_low = result.get('w52_low') or price_data.get('w52_low')
+                    current_price = price_data.get('current_price', result.get('current_price', 0))
+                    price_52w_high = price_data.get('w52_high', result.get('w52_high'))
+                    price_52w_low = price_data.get('w52_low', result.get('w52_low'))
                     price_position = result.get('price_position')
                     
                     # 점수 분석
@@ -4862,49 +7663,49 @@ try:
                     financial_score = score_breakdown.get('재무비율', 0)
                     growth_score = score_breakdown.get('성장성', 0)
                     
-                    print(f"\n{i}. {name} ({symbol}) - {score:.1f}점 ({grade})")
-                    print("-" * 80)
+                    print(f"\n🏢 {i}. {name} ({symbol}) - {score:.1f}점 ({grade})")
+                    print("-" * 100)
                     
                     # 가치투자 정보
-                    print(f"가치투자 분석:")
-                    print(f"   - 내재가치: {intrinsic_value:,.0f}원" if intrinsic_value else "   - 내재가치: N/A")
-                    print(f"   - 안전마진: {margin_of_safety*100:.1f}%" if margin_of_safety else "   - 안전마진: N/A")
-                    print(f"   - 투자시그널: {watchlist_signal}")
-                    print(f"   - 해자등급: {moat_grade}")
-                    print(f"   - 목표매수가: {target_buy:,.0f}원" if target_buy else "   - 목표매수가: N/A")
-                    print(f"   - 가치투자점수: {value_score:.1f}점")
+                    print(f"💰 가치투자 분석:")
+                    print(f"   - 🏦 내재가치: {intrinsic_value:,.0f}원" if intrinsic_value else "   - 🏦 내재가치: N/A")
+                    print(f"   - 🛡️ 안전마진: {margin_of_safety*100:.1f}%" if margin_of_safety else "   - 🛡️ 안전마진: N/A")
+                    print(f"   - 🎯 투자시그널: {watchlist_signal}")
+                    print(f"   - 🏰 해자등급: {moat_grade}")
+                    print(f"   - 🎯 목표매수가: {target_buy:,.0f}원" if target_buy else "   - 🎯 목표매수가: N/A")
+                    print(f"   - 📊 가치투자점수: {value_score:.1f}점")
                     
                     # 가치투자 플레이북
                     if playbook:
-                        print(f"가치투자 플레이북:")
+                        print(f"📚 가치투자 플레이북:")
                         for tip in playbook:
-                            print(f"   - {tip}")
+                            print(f"   - 💡 {tip}")
                     
                     # 재무 정보
-                    print(f"재무 건전성:")
-                    print(f"   - ROE: {roe:.1f}%" if roe else "   - ROE: N/A")
-                    print(f"   - ROA: {roa:.1f}%" if roa else "   - ROA: N/A")
-                    print(f"   - 부채비율: {debt_ratio:.1f}%" if debt_ratio else "   - 부채비율: N/A")
-                    print(f"   - 순이익마진: {net_profit_margin:.1f}%" if net_profit_margin else "   - 순이익마진: N/A")
-                    print(f"   - 재무점수: {financial_score:.1f}점")
+                    print(f"💼 재무 건전성:")
+                    print(f"   - 📈 ROE: {roe:.1f}%" if roe else "   - 📈 ROE: N/A")
+                    print(f"   - 📊 ROA: {roa:.1f}%" if roa else "   - 📊 ROA: N/A")
+                    print(f"   - 💳 부채비율: {debt_ratio:.1f}%" if debt_ratio else "   - 💳 부채비율: N/A")
+                    print(f"   - 💰 순이익마진: {net_profit_margin:.1f}%" if net_profit_margin else "   - 💰 순이익마진: N/A")
+                    print(f"   - 🏆 재무점수: {financial_score:.1f}점")
                     
                     # 가격 정보
-                    print(f"가격 분석:")
-                    print(f"   - 현재가: {current_price:,.0f}원" if current_price else "   - 현재가: N/A")
-                    print(f"   - 52주고가: {price_52w_high:,.0f}원" if price_52w_high else "   - 52주고가: N/A")
-                    print(f"   - 52주저가: {price_52w_low:,.0f}원" if price_52w_low else "   - 52주저가: N/A")
-                    print(f"   - 52주위치: {price_position:.1f}%" if price_position else "   - 52주위치: N/A")
+                    print(f"💹 가격 분석:")
+                    print(f"   - 💰 현재가: {current_price:,.0f}원" if current_price else "   - 💰 현재가: N/A")
+                    print(f"   - 📈 52주고가: {price_52w_high:,.0f}원" if price_52w_high else "   - 📈 52주고가: N/A")
+                    print(f"   - 📉 52주저가: {price_52w_low:,.0f}원" if price_52w_low else "   - 📉 52주저가: N/A")
+                    print(f"   - 📊 52주위치: {price_position:.1f}%" if price_position else "   - 📊 52주위치: N/A")
                     
                     # 투자 포인트
-                    print(f"투자 포인트:")
+                    print(f"🎯 투자 포인트:")
                     if watchlist_signal == "BUY" and margin_of_safety and margin_of_safety > 0.3:
-                        print(f"   - 높은 안전마진으로 매력적인 매수 기회")
+                        print(f"   - 🟢 높은 안전마진으로 매력적인 매수 기회")
                     if roe and roe > 15:
-                        print(f"   - 우수한 자본 효율성 (ROE {roe:.1f}%)")
+                        print(f"   - 📈 우수한 자본 효율성 (ROE {roe:.1f}%)")
                     if debt_ratio and debt_ratio < 30:
-                        print(f"   - 안정적인 재무 구조 (부채비율 {debt_ratio:.1f}%)")
+                        print(f"   - 🏦 안정적인 재무 구조 (부채비율 {debt_ratio:.1f}%)")
                     if price_position and price_position < 30:
-                        print(f"   - 52주 저점 근처에서 매수 기회")
+                        print(f"   - 📉 52주 저점 근처에서 매수 기회")
                     
                     print()
             else:
@@ -4924,6 +7725,24 @@ def main():
     _setup_logging_if_needed()
     install_sighup_handler()
     _validate_startup_configuration()  # 구성 검증
+    
+    # Run smoke test if no arguments provided
+    if len(sys.argv) == 1:
+        print("Running smoke test...")
+        analyzer = EnhancedIntegratedAnalyzer(include_realtime=False, include_external=False)
+        try:
+            r = analyzer.analyze_single_stock("005930", "삼성전자")
+            print("Smoke test passed!")
+            print(f"Status: {r.status}, Grade: {r.enhanced_grade}, Score: {r.enhanced_score:.1f}")
+            print(f"Dict keys: {list(r.to_dict().keys())[:8]}")
+        except Exception as e:
+            print(f"Smoke test failed: {e}")
+            import traceback
+            traceback.print_exc()
+            sys.exit(1)
+        finally:
+            analyzer.close()
+        return
     
     if TYPER_AVAILABLE and app:
         try:
@@ -5068,26 +7887,7 @@ def parse_args():
         except KeyboardInterrupt:
             logging.warning("사용자 중단(CTRL+C)")
 
-if __name__ == "__main__":
-    # 스모크 테스트 (수정사항 검증)
-    if len(sys.argv) == 1:
-        print("🧪 Running smoke test...")
-        _setup_logging_if_needed()
-        install_sighup_handler()
-        
-        analyzer = EnhancedIntegratedAnalyzer(include_realtime=False, include_external=False)
-        try:
-            r = analyzer.analyze_single_stock("005930", "삼성전자")
-            print("✅ Smoke test passed!")
-            print(f"Status: {r.status}, Grade: {r.enhanced_grade}, Score: {r.enhanced_score:.1f}")
-            print(f"Dict keys: {list(r.to_dict().keys())[:8]}")
-        except Exception as e:
-            print(f"❌ Smoke test failed: {e}")
-            sys.exit(1)
-        finally:
-            analyzer.close()
-    else:
-        main()
+# Smoke test and main execution moved to the main main() function
 
 # =============================================================================
 # 테스트 유틸리티 및 단위 테스트
@@ -5683,10 +8483,5 @@ def run_quick_tests():
         traceback.print_exc()
         return False
 
-if __name__ == "__main__" and len(sys.argv) == 1:
-    # Run quick tests if no arguments provided
-    if run_quick_tests():
-        print("All fixes verified!")
-    else:
-        print("Some tests failed!")
-        sys.exit(1)
+# Quick tests removed - use main() function instead
+

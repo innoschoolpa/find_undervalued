@@ -1,0 +1,175 @@
+{
+  "validation_timestamp": "2025-10-03T18:43:16.072742",
+  "config": {
+    "start_date": "2009-01-01",
+    "end_date": "2025-01-01",
+    "rebalance_frequency": "quarterly",
+    "benchmark": "KOSPI",
+    "max_positions": 20,
+    "min_positions": 5,
+    "transaction_cost": 0.0015,
+    "slippage": 0.0005,
+    "base_mos_threshold": 0.2,
+    "base_quality_threshold": 0.6,
+    "base_value_threshold": 50.0,
+    "sensitivity_ranges": {
+      "mos_threshold": [
+        0.15,
+        0.2,
+        0.25,
+        0.3
+      ],
+      "quality_threshold": [
+        0.5,
+        0.6,
+        0.7,
+        0.8
+      ],
+      "value_threshold": [
+        40.0,
+        50.0,
+        60.0,
+        70.0
+      ]
+    }
+  },
+  "checks": {
+    "consistent_excess_return": {
+      "passed": false,
+      "error": "'numpy.ndarray' object has no attribute 'expanding'"
+    },
+    "walkforward_consistency": {
+      "passed": false,
+      "error": "'numpy.ndarray' object has no attribute 'expanding'"
+    },
+    "sensitivity_stability": {
+      "passed": false,
+      "error": "'numpy.ndarray' object has no attribute 'expanding'"
+    },
+    "alternative_metrics": {
+      "passed": false,
+      "error": "'numpy.ndarray' object has no attribute 'expanding'"
+    },
+    "data_robustness": {
+      "passed": false,
+      "error": "'numpy.ndarray' object has no attribute 'expanding'"
+    },
+    "transaction_capacity": {
+      "passed": false,
+      "error": "'numpy.ndarray' object has no attribute 'expanding'"
+    },
+    "risk_concentration": {
+      "passed": false,
+      "error": "'numpy.ndarray' object has no attribute 'expanding'"
+    },
+    "counterfactual_guards": {
+      "passed": false,
+      "error": "'numpy.ndarray' object has no attribute 'expanding'"
+    },
+    "factor_neutrality": {
+      "passed": true,
+      "factor_exposures": {
+        "market_beta": 0.95,
+        "size_factor": 0.15,
+        "value_factor": 0.8,
+        "quality_factor": 0.7,
+        "momentum_factor": -0.1
+      },
+      "factor_neutrality": {
+        "market_neutral": true,
+        "size_neutral": true,
+        "value_positive": true,
+        "quality_positive": true,
+        "momentum_neutral": true
+      },
+      "residual_alpha": 0.035,
+      "alpha_t_stat": 2.8,
+      "thresholds": {
+        "min_t_stat": 2.0,
+        "min_alpha": 0.02
+      }
+    },
+    "live_shadow_tracking": {
+      "passed": false,
+      "tracking_results": {
+        "1M": {
+          "backtest_return": 0.08,
+          "live_return": 0.006246575342465753,
+          "tracking_error": 0.9219178082191781,
+          "acceptable": false
+        },
+        "3M": {
+          "backtest_return": 0.08,
+          "live_return": 0.01873972602739726,
+          "tracking_error": 0.7657534246575343,
+          "acceptable": false
+        },
+        "6M": {
+          "backtest_return": 0.08,
+          "live_return": 0.03747945205479452,
+          "tracking_error": 0.5315068493150685,
+          "acceptable": false
+        },
+        "12M": {
+          "backtest_return": 0.08,
+          "live_return": 0.076,
+          "tracking_error": 0.050000000000000044,
+          "acceptable": true
+        }
+      },
+      "average_tracking_error": 0.5672945205479452,
+      "thresholds": {
+        "max_tracking_error": 0.1,
+        "max_avg_error": 0.08
+      }
+    }
+  },
+  "overall_assessment": {
+    "overall_grade": "미흡 (C)",
+    "pass_rate": 0.1,
+    "passed_checks": 1,
+    "total_checks": 10,
+    "recommendation": "근본적 재설계 권고",
+    "detailed_scores": {
+      "consistent_excess_return": false,
+      "walkforward_consistency": false,
+      "sensitivity_stability": false,
+      "alternative_metrics": false,
+      "data_robustness": false,
+      "transaction_capacity": false,
+      "risk_concentration": false,
+      "counterfactual_guards": false,
+      "factor_neutrality": true,
+      "live_shadow_tracking": false
+    }
+  },
+  "improvement_roadmap": {
+    "immediate_actions": [
+      {
+        "action": "초과수익 최적화",
+        "description": "MoS 임계치 조정 및 가치 지표 가중치 재검토",
+        "expected_impact": "high"
+      },
+      {
+        "action": "데이터 신뢰도 점수화",
+        "description": "데이터 품질 모니터링 및 가중치 조정 시스템 구축",
+        "expected_impact": "high"
+      }
+    ],
+    "short_term_improvements": [
+      {
+        "action": "민감도 분석 강화",
+        "description": "베이지안 MoS 업데이트 및 레짐 적응형 임계치 도입",
+        "expected_impact": "medium"
+      }
+    ],
+    "long_term_enhancements": [],
+    "priority_ranking": [
+      "데이터 신뢰도 점수화",
+      "초과수익 최적화",
+      "민감도 분석 강화",
+      "실행 가능성 필터 추가",
+      "멀티-모델 합의 시스템"
+    ]
+  }
+}

@@ -619,10 +619,10 @@ class InputReliabilityGuard:
         if self.market_cap_strict_mode and 1e7 <= market_cap < 1e11:
             return False, "market_cap_ambiguous_strict_mode"
         
-        # 이상치 검증 (너무 작거나 큰 값) - 완화
-        if market_cap < 1e4:  # 1만원 미만 (100만원 → 1만원)
+        # 이상치 검증 (너무 작거나 큰 값) - 억원 단위 기준
+        if market_cap < 1e-2:  # 0.01억원 미만 (100만원 미만)
             return False, "market_cap_too_small"
-        if market_cap > 1e9:  # 10억원 초과 (1억원 → 10억원)
+        if market_cap > 1e6:  # 100만억원 초과 (100조원 초과)
             return False, "market_cap_too_large"
         
         return True, "valid"
@@ -1283,77 +1283,77 @@ class QualityConsistencyFilter:
         max_score = 9
         
         # 디버깅 정보
-        print(f"    [DEBUG] Piotroski F-Score 계산:")
+        logging.debug("Piotroski F-Score 계산 시작")
         
         # 1. 순이익 > 0 (1점) - ROE로 대체
         roe = financial_data.get('roe', 0)
         if roe > 0:
             score += 1
-            print(f"      - ROE > 0: {roe:.1f}% (PASS)")
+            logging.debug(f"ROE > 0: {roe:.1f}% (PASS)")
         else:
-            print(f"      - ROE > 0: {roe:.1f}% (FAIL)")
+            logging.debug(f"ROE > 0: {roe:.1f}% (FAIL)")
         
         # 2. 영업현금흐름 > 0 (1점) - ROA로 대체
         roa = financial_data.get('roa', 0)
         if roa > 0:
             score += 1
-            print(f"      - ROA > 0: {roa:.1f}% (PASS)")
+            logging.debug(f"ROA > 0: {roa:.1f}% (PASS)")
         else:
-            print(f"      - ROA > 0: {roa:.1f}% (FAIL)")
+            logging.debug(f"ROA > 0: {roa:.1f}% (FAIL)")
         
         # 3. 부채비율 적정 (1점)
         debt_ratio = financial_data.get('debt_ratio', 0)
         if debt_ratio < 50:  # 부채비율 50% 미만
             score += 1
-            print(f"      - 부채비율 < 50%: {debt_ratio:.1f}% (PASS)")
+            logging.debug(f"부채비율 < 50%: {debt_ratio:.1f}% (PASS)")
         else:
-            print(f"      - 부채비율 < 50%: {debt_ratio:.1f}% (FAIL)")
+            logging.debug(f"부채비율 < 50%: {debt_ratio:.1f}% (FAIL)")
         
         # 4. 유동비율 적정 (1점)
         current_ratio = financial_data.get('current_ratio', 0)
         if current_ratio > 1.0:  # 유동비율 1.0 이상
             score += 1
-            print(f"      - 유동비율 > 1.0: {current_ratio:.1f} (PASS)")
+            logging.debug(f"유동비율 > 1.0: {current_ratio:.1f} (PASS)")
         else:
-            print(f"      - 유동비율 > 1.0: {current_ratio:.1f} (FAIL)")
+            logging.debug(f"유동비율 > 1.0: {current_ratio:.1f} (FAIL)")
         
         # 5. 매출총이익률 양호 (1점)
         gross_margin = financial_data.get('gross_profit_margin', 0)
         if gross_margin > 0:
             score += 1
-            print(f"      - 매출총이익률 > 0: {gross_margin:.1f}% (PASS)")
+            logging.debug(f"매출총이익률 > 0: {gross_margin:.1f}% (PASS)")
         else:
-            print(f"      - 매출총이익률 > 0: {gross_margin:.1f}% (FAIL)")
+            logging.debug(f"매출총이익률 > 0: {gross_margin:.1f}% (FAIL)")
         
         # 6. 순이익률 양호 (1점)
         net_margin = financial_data.get('net_profit_margin', 0)
         if net_margin > 0:
             score += 1
-            print(f"      - 순이익률 > 0: {net_margin:.1f}% (PASS)")
+            logging.debug(f"순이익률 > 0: {net_margin:.1f}% (PASS)")
         else:
-            print(f"      - 순이익률 > 0: {net_margin:.1f}% (FAIL)")
+            logging.debug(f"순이익률 > 0: {net_margin:.1f}% (FAIL)")
         
         # 7. ROE 양호 (1점)
         if roe > 5:  # ROE 5% 이상
             score += 1
-            print(f"      - ROE > 5%: {roe:.1f}% (PASS)")
+            logging.debug(f"ROE > 5%: {roe:.1f}% (PASS)")
         else:
-            print(f"      - ROE > 5%: {roe:.1f}% (FAIL)")
+            logging.debug(f"ROE > 5%: {roe:.1f}% (FAIL)")
         
         # 8. ROA 양호 (1점)
         if roa > 3:  # ROA 3% 이상
             score += 1
-            print(f"      - ROA > 3%: {roa:.1f}% (PASS)")
+            logging.debug(f"ROA > 3%: {roa:.1f}% (PASS)")
         else:
-            print(f"      - ROA > 3%: {roa:.1f}% (FAIL)")
+            logging.debug(f"ROA > 3%: {roa:.1f}% (FAIL)")
         
         # 9. 성장률 양호 (1점)
         revenue_growth = financial_data.get('revenue_growth_rate', 0)
         if revenue_growth > 0:
             score += 1
-            print(f"      - 매출성장률 > 0: {revenue_growth:.1f}% (PASS)")
+            logging.debug(f"매출성장률 > 0: {revenue_growth:.1f}% (PASS)")
         else:
-            print(f"      - 매출성장률 > 0: {revenue_growth:.1f}% (FAIL)")
+            logging.debug(f"매출성장률 > 0: {revenue_growth:.1f}% (FAIL)")
         
         # 임계치 검사
         if score < self.quality_thresholds['min_piotroski_score']:
@@ -1483,6 +1483,9 @@ class RiskConstraintsManager:
         }
         # 5년 변동성 계산 윈도우
         self.volatility_window = 5
+        # 섹터 z-컷 설정 (기본 활성화)
+        self.sector_z_cut_enabled = safe_env_bool("SECTOR_Z_CUT_ENABLED", True)
+        self.sector_z_cut_threshold = safe_env_float("SECTOR_Z_CUT_THRESHOLD", -2.0, -5.0)  # -2.0 z-score 이하 컷
     
     def check_leverage_constraints(self, financial_data: Dict[str, Any], 
                                  sector_median: float = None) -> Tuple[bool, str, float]:
@@ -1570,6 +1573,31 @@ class RiskConstraintsManager:
         
         return True, "liquidity_acceptable", current_ratio
     
+    def check_sector_z_score_constraints(self, financial_data: Dict[str, Any], 
+                                       sector_data: Dict[str, Any] = None) -> Tuple[bool, str, float]:
+        """섹터 z-컷 검사 (섹터 특성 반영)"""
+        if not self.sector_z_cut_enabled or not sector_data:
+            return True, "sector_z_cut_disabled", 0.0
+        
+        # 섹터 평균 및 표준편차 가져오기
+        sector_mean = sector_data.get('debt_ratio_mean', None)
+        sector_std = sector_data.get('debt_ratio_std', None)
+        
+        if sector_mean is None or sector_std is None or sector_std <= 0:
+            return True, "insufficient_sector_data", 0.0
+        
+        # 회사 부채비율
+        company_debt_ratio = financial_data.get('debt_ratio', 0)
+        
+        # z-score 계산
+        z_score = (company_debt_ratio - sector_mean) / sector_std
+        
+        # z-컷 임계치 검사
+        if z_score <= self.sector_z_cut_threshold:
+            return False, f"sector_z_cut_violated_z_{z_score:.2f}_threshold_{self.sector_z_cut_threshold}", z_score
+        
+        return True, "sector_z_cut_passed", z_score
+    
     def apply_risk_constraints(self, symbol: str, financial_data: Dict[str, Any], 
                              sector_data: Dict[str, Any] = None) -> Dict[str, Any]:
         """종합 리스크 제약 적용"""
@@ -1626,6 +1654,17 @@ class RiskConstraintsManager:
         if not liquidity_ok:
             result['passed'] = False
             result['violation_reasons'].append(f"liquidity: {liquidity_reason}")
+        
+        # 5. 섹터 z-컷 검사 (새로 추가)
+        sector_z_ok, sector_z_reason, sector_z_value = self.check_sector_z_score_constraints(financial_data, sector_data)
+        result['constraint_results']['sector_z_cut'] = {
+            'passed': sector_z_ok,
+            'reason': sector_z_reason,
+            'value': sector_z_value
+        }
+        if not sector_z_ok:
+            result['passed'] = False
+            result['violation_reasons'].append(f"sector_z_cut: {sector_z_reason}")
         
         # 전체 리스크 점수 계산 (통과한 제약의 가중 평균)
         risk_components = []
@@ -1684,11 +1723,13 @@ class SectorCycleContextualizer:
     
     def __init__(self, metrics_collector: MetricsCollector = None):
         self.metrics = metrics_collector
-        # 섹터 표본 크기 임계치
+        # 섹터 표본 크기 임계치 (개선된 가중 축소 정책)
         self.sector_sample_thresholds = {
             'min_sample_size': 30,        # 최소 표본 크기 30개
             'insufficient_penalty': 0.8,  # 표본 부족 시 가치점수 0.8배
-            'very_insufficient_penalty': 0.6  # 매우 부족 시 0.6배
+            'very_insufficient_penalty': 0.6,  # 매우 부족 시 0.6배
+            'critical_penalty': 0.4,      # 극도로 부족 시 0.4배 (새로 추가)
+            'critical_threshold': 5       # 5개 미만은 극도로 부족
         }
         # 섹터 상대지표 보수화 임계치
         self.sector_relative_thresholds = {
@@ -1698,7 +1739,7 @@ class SectorCycleContextualizer:
         }
     
     def analyze_sector_sample_adequacy(self, sector_name: str, sample_size: int) -> Tuple[bool, str, float]:
-        """섹터 표본 적정성 분석"""
+        """섹터 표본 적정성 분석 (개선된 가중 축소 정책)"""
         if sample_size >= self.sector_sample_thresholds['min_sample_size']:
             return True, "sufficient_sample_size", 1.0
         
@@ -1706,12 +1747,16 @@ class SectorCycleContextualizer:
         if self.metrics:
             self.metrics.record_sector_sample_insufficient(sector_name)
         
+        # 개선된 3단계 가중 축소 정책
         if sample_size >= 15:  # 15개 이상이면 경미한 부족
             penalty = self.sector_sample_thresholds['insufficient_penalty']
             return False, f"insufficient_sample_size_{sample_size}_penalty_{penalty}", penalty
-        else:  # 15개 미만이면 심각한 부족
+        elif sample_size >= self.sector_sample_thresholds['critical_threshold']:  # 5-14개면 심각한 부족
             penalty = self.sector_sample_thresholds['very_insufficient_penalty']
             return False, f"very_insufficient_sample_size_{sample_size}_penalty_{penalty}", penalty
+        else:  # 5개 미만이면 극도로 부족
+            penalty = self.sector_sample_thresholds['critical_penalty']
+            return False, f"critical_sample_size_{sample_size}_penalty_{penalty}", penalty
     
     def calculate_sector_relative_adjustment(self, company_score: float, sector_score: float) -> Tuple[float, str]:
         """섹터 상대지표 보수화 계산"""
@@ -2524,6 +2569,15 @@ class MetricsCollector:
                 category = ErrorType.get_category(error_type)
                 errors_by_category[category] = errors_by_category.get(category, 0) + count
             
+            # 데이터 품질 점수 계산 (결측 필드 기반)
+            total_analyzed = self.metrics['stocks_analyzed']
+            missing_fields = self.metrics['missing_financial_fields']
+            data_quality_score = max(0, 100 - (missing_fields / max(1, total_analyzed)) * 10) if total_analyzed > 0 else 0
+            
+            # 필터 통과율 계산
+            total_failures = self.metrics['quality_filter_rejections'] + self.metrics['risk_constraint_violations']
+            filter_pass_rate = max(0, 100 - (total_failures / max(1, total_analyzed)) * 100) if total_analyzed > 0 else 0
+            
             return {
                 'runtime_seconds': _monotonic() - self.metrics['start_time'],
                 'stocks_analyzed': self.metrics['stocks_analyzed'],
@@ -2545,7 +2599,15 @@ class MetricsCollector:
                 'analysis_p95': p95,
                 'sector_p50': self.get_percentiles(self.sector_histogram, self.duration_buckets, 50),
                 'sector_p90': self.get_percentiles(self.sector_histogram, self.duration_buckets, 90),
-                'sector_p95': self.get_percentiles(self.sector_histogram, self.duration_buckets, 95)
+                'sector_p95': self.get_percentiles(self.sector_histogram, self.duration_buckets, 95),
+                # ✅ 누락된 메트릭 추가
+                'quality_filter_rejections': self.metrics['quality_filter_rejections'],
+                'quality_filter_rejection_reasons': self.metrics['quality_filter_rejection_reasons'].copy(),
+                'risk_constraint_violations': self.metrics['risk_constraint_violations'],
+                'risk_constraint_violation_reasons': self.metrics['risk_constraint_violation_reasons'].copy(),
+                'data_quality_score': data_quality_score,
+                'filter_pass_rate': filter_pass_rate,
+                'missing_financial_fields': self.metrics['missing_financial_fields']
             }
 
 # Safer price/52w checks
@@ -3463,6 +3525,8 @@ class UpgradedValueAnalysisPipeline:
     
     def analyze_single_stock(self, symbol: str, name: str = "") -> Dict[str, Any]:
         """단일 종목 종합 분석 (6단계 파이프라인)"""
+        start_time = _monotonic()
+        
         result = {
             'symbol': symbol,
             'name': name,
@@ -3737,18 +3801,27 @@ class UpgradedValueAnalysisPipeline:
             result['pipeline_errors'].append(f"pipeline_error_{result['pipeline_stage']}: {str(e)}")
             result['final_recommendation'] = 'ERROR'
             logging.error(f"파이프라인 분석 실패 {symbol}: {e}")
+        finally:
+            # 개별 종목 분석 시간 기록
+            analysis_duration = _monotonic() - start_time
+            self.metrics.record_analysis_duration(analysis_duration)
         
         return result
     
     def analyze_portfolio(self, symbols: List[Tuple[str, str]], 
                          max_stocks: int = 10) -> Dict[str, Any]:
         """포트폴리오 종합 분석 (다양화 포함)"""
+        start_time = _monotonic()
+        
         result = {
             'individual_analyses': [],
             'diversification_result': {},
             'final_portfolio': [],
             'portfolio_metrics': {}
         }
+        
+        # 메트릭 초기화
+        self.metrics.record_stocks_analyzed(len(symbols))
         
         # 개별 종목 분석
         for symbol, name in symbols:
@@ -3899,6 +3972,10 @@ class UpgradedValueAnalysisPipeline:
                 'diversification_ratio': 0.0,
                 'concentration_level': 'NONE'
             }
+        
+        # 분석 시간 기록
+        analysis_duration = _monotonic() - start_time
+        self.metrics.record_analysis_duration(analysis_duration)
         
         return result
     
@@ -4118,6 +4195,12 @@ class DataConverter:
         # DO NOT convert % units again after this point.
         # Any additional scaling will create double-scaling bugs (e.g., 0.03 -> 3 -> 300).
         """
+        # ✅ Fail-fast 가드: 중복 스케일 감지 시 즉시 예외
+        if data.get("_percent_canonicalized") is True:
+            raise ValueError("CRITICAL: Data already canonicalized! Duplicate scaling detected. "
+                           "This indicates a data processing pipeline bug. "
+                           "Check for multiple calls to standardize_financial_units().")
+        
         # 환경변수 기반 정책이 바뀌었을 수 있으므로 진입 시점에 캐시를 갱신
         try:
             _refresh_env_cache()

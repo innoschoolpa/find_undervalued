@@ -1,0 +1,239 @@
+# Enhanced Analyzer GitLab CI/CD Pipeline
+
+stages:
+  - quality
+  - test
+  - build
+  - deploy
+
+variables:
+  DOCKER_DRIVER: overlay2
+  DOCKER_TLS_CERTDIR: "/certs"
+  IMAGE_TAG: $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
+  LATEST_TAG: $CI_REGISTRY_IMAGE:latest
+
+# 코드 품질 검사
+quality-check:
+  stage: quality
+  image: python:3.11-slim
+  before_script:
+    - pip install --upgrade pip
+    - pip install -r requirements.txt
+    - pip install flake8 black mypy bandit safety
+  script:
+    - echo "Running code quality checks..."
+    - black --check .
+    - flake8 . --exclude=venv,env,.git,__pycache__,.pytest_cache --max-line-length=120
+    - mypy . --ignore-missing-imports --exclude=venv --exclude=env
+    - bandit -r . -x ./tests/
+    - safety check
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == "main"
+    - if: $CI_COMMIT_BRANCH == "develop"
+
+# 단위 테스트
+unit-tests:
+  stage: test
+  image: python:3.11-slim
+  before_script:
+    - pip install --upgrade pip
+    - pip install -r requirements.txt
+    - pip install pytest pytest-cov
+  script:
+    - echo "Running unit tests..."
+    - pytest tests/test_value_style_classifier.py tests/test_uvs_eligibility_filter.py tests/test_config_manager.py --cov=. --cov-report=xml --cov-report=html
+  coverage: '/TOTAL.*\s+(\d+%)$/'
+  artifacts:
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage.xml
+    paths:
+      - htmlcov/
+    expire_in: 1 week
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == "main"
+    - if: $CI_COMMIT_BRANCH == "develop"
+
+# 통합 테스트
+integration-tests:
+  stage: test
+  image: python:3.11-slim
+  services:
+    - name: redis:7-alpine
+      alias: redis
+    - name: postgres:15
+      alias: postgres
+      variables:
+        POSTGRES_PASSWORD: postgres
+        POSTGRES_DB: test_db
+  before_script:
+    - pip install --upgrade pip
+    - pip install -r requirements.txt
+    - pip install pytest
+  script:
+    - echo "Running integration tests..."
+    - pytest tests/test_integration.py -v
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == "main"
+    - if: $CI_COMMIT_BRANCH == "develop"
+
+# 성능 테스트
+performance-tests:
+  stage: test
+  image: python:3.11-slim
+  before_script:
+    - pip install --upgrade pip
+    - pip install -r requirements.txt
+  script:
+    - echo "Running performance benchmarks..."
+    - python benchmark.py --iterations 1000 --output benchmark_results.json
+  artifacts:
+    reports:
+      performance: benchmark_results.json
+    expire_in: 1 week
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+    - if: $CI_COMMIT_BRANCH == "develop"
+
+# Docker 이미지 빌드
+build-image:
+  stage: build
+  image: docker:24.0.5
+  services:
+    - docker:24.0.5-dind
+  before_script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  script:
+    - echo "Building Docker image..."
+    - docker build -t $IMAGE_TAG -f deploy/docker/Dockerfile .
+    - docker tag $IMAGE_TAG $LATEST_TAG
+    - docker push $IMAGE_TAG
+    - docker push $LATEST_TAG
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+    - if: $CI_COMMIT_BRANCH == "develop"
+    - if: $CI_COMMIT_TAG
+
+# 스테이징 배포
+deploy-staging:
+  stage: deploy
+  image: bitnami/kubectl:latest
+  environment:
+    name: staging
+    url: https://staging.analyzer.yourdomain.com
+  before_script:
+    - echo "$KUBE_CONFIG_STAGING" | base64 -d > kubeconfig
+    - export KUBECONFIG=kubeconfig
+  script:
+    - echo "Deploying to staging..."
+    - cd deploy/kubernetes
+    - kubectl apply -f configmap.yaml
+    - kubectl apply -f analyzer-deployment.yaml
+    - kubectl apply -f analyzer-service.yaml
+    - kubectl set image deployment/analyzer-deployment analyzer=$IMAGE_TAG
+    - kubectl rollout status deployment/analyzer-deployment -n enhanced-analyzer
+    - kubectl wait --for=condition=ready pod -l app=analyzer -n enhanced-analyzer --timeout=300s
+  rules:
+    - if: $CI_COMMIT_BRANCH == "develop"
+  when: manual
+
+# 프로덕션 배포
+deploy-production:
+  stage: deploy
+  image: bitnami/kubectl:latest
+  environment:
+    name: production
+    url: https://analyzer.yourdomain.com
+  before_script:
+    - echo "$KUBE_CONFIG_PRODUCTION" | base64 -d > kubeconfig
+    - export KUBECONFIG=kubeconfig
+  script:
+    - echo "Deploying to production..."
+    - cd deploy/kubernetes
+    - kubectl apply -f configmap.yaml
+    - kubectl apply -f analyzer-deployment.yaml
+    - kubectl apply -f analyzer-service.yaml
+    - kubectl apply -f ingress.yaml
+    - kubectl apply -f hpa.yaml
+    - kubectl set image deployment/analyzer-deployment analyzer=$IMAGE_TAG
+    - kubectl rollout status deployment/analyzer-deployment -n enhanced-analyzer
+    - kubectl wait --for=condition=ready pod -l app=analyzer -n enhanced-analyzer --timeout=300s
+    # 모니터링 설정
+    - kubectl apply -f ../monitoring/prometheus-config.yaml
+    - kubectl apply -f ../monitoring/alertmanager-config.yaml
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+  when: manual
+
+# 롤백 (수동)
+rollback-staging:
+  stage: deploy
+  image: bitnami/kubectl:latest
+  environment:
+    name: staging
+  before_script:
+    - echo "$KUBE_CONFIG_STAGING" | base64 -d > kubeconfig
+    - export KUBECONFIG=kubeconfig
+  script:
+    - echo "Rolling back staging deployment..."
+    - kubectl rollout undo deployment/analyzer-deployment -n enhanced-analyzer
+    - kubectl rollout status deployment/analyzer-deployment -n enhanced-analyzer
+  rules:
+    - if: $CI_COMMIT_BRANCH == "develop"
+  when: manual
+
+rollback-production:
+  stage: deploy
+  image: bitnami/kubectl:latest
+  environment:
+    name: production
+  before_script:
+    - echo "$KUBE_CONFIG_PRODUCTION" | base64 -d > kubeconfig
+    - export KUBECONFIG=kubeconfig
+  script:
+    - echo "Rolling back production deployment..."
+    - kubectl rollout undo deployment/analyzer-deployment -n enhanced-analyzer
+    - kubectl rollout status deployment/analyzer-deployment -n enhanced-analyzer
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+  when: manual
+
+# 알림
+notify-success:
+  stage: deploy
+  image: curlimages/curl:latest
+  script:
+    - echo "Deployment successful!"
+    - curl -X POST -H 'Content-type: application/json' --data '{"text":"✅ Enhanced Analyzer deployment successful!"}' $SLACK_WEBHOOK
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+    - if: $CI_COMMIT_BRANCH == "develop"
+  when: on_success
+
+notify-failure:
+  stage: deploy
+  image: curlimages/curl:latest
+  script:
+    - echo "Deployment failed!"
+    - curl -X POST -H 'Content-type: application/json' --data '{"text":"❌ Enhanced Analyzer deployment failed!"}' $SLACK_WEBHOOK
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+    - if: $CI_COMMIT_BRANCH == "develop"
+  when: on_failure
+
+
+
+
+
+
+
+
+
+
+
+
+

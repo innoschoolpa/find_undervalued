@@ -1,0 +1,176 @@
+# 리팩토링된 분석 시스템 Kubernetes 배포 설정
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: enhanced-analyzer
+  namespace: analyzer-system
+  labels:
+    app: enhanced-analyzer
+    version: "2.0.0"
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: enhanced-analyzer
+  template:
+    metadata:
+      labels:
+        app: enhanced-analyzer
+        version: "2.0.0"
+    spec:
+      containers:
+      - name: analyzer
+        image: enhanced-analyzer:2.0.0
+        ports:
+        - containerPort: 8000
+          name: http
+        env:
+        - name: PYTHONPATH
+          value: "/app"
+        - name: LOG_LEVEL
+          value: "INFO"
+        - name: API_TIMEOUT
+          value: "60"
+        - name: MAX_TPS
+          value: "20"
+        - name: CACHE_TTL_SECONDS
+          value: "3600"
+        - name: ENABLE_METRICS
+          value: "true"
+        - name: REDIS_HOST
+          value: "redis-service"
+        - name: POSTGRES_HOST
+          value: "postgres-service"
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "2Gi"
+            cpu: "1000m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 8000
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        volumeMounts:
+        - name: data-volume
+          mountPath: /app/data
+        - name: logs-volume
+          mountPath: /app/logs
+        - name: results-volume
+          mountPath: /app/results
+      volumes:
+      - name: data-volume
+        persistentVolumeClaim:
+          claimName: analyzer-data-pvc
+      - name: logs-volume
+        persistentVolumeClaim:
+          claimName: analyzer-logs-pvc
+      - name: results-volume
+        persistentVolumeClaim:
+          claimName: analyzer-results-pvc
+      restartPolicy: Always
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: analyzer-service
+  namespace: analyzer-system
+  labels:
+    app: enhanced-analyzer
+spec:
+  selector:
+    app: enhanced-analyzer
+  ports:
+  - name: http
+    port: 8000
+    targetPort: 8000
+    protocol: TCP
+  type: ClusterIP
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: analyzer-data-pvc
+  namespace: analyzer-system
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: analyzer-logs-pvc
+  namespace: analyzer-system
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: analyzer-results-pvc
+  namespace: analyzer-system
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 20Gi
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: analyzer-ingress
+  namespace: analyzer-system
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+spec:
+  tls:
+  - hosts:
+    - analyzer.example.com
+    secretName: analyzer-tls
+  rules:
+  - host: analyzer.example.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: analyzer-service
+            port:
+              number: 8000
+
+
+
+
+
+
+
+
+
+
+
+
+

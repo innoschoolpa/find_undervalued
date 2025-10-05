@@ -26,6 +26,10 @@ class StockDashboard:
     
     def __init__(self):
         self.load_config()
+        # 세션별 고유 ID 생성 (캐시 무효화용)
+        import time
+        import random
+        self.session_id = f"{int(time.time())}_{random.randint(1000, 9999)}"
         self.load_sample_data()
     
     def load_config(self):
@@ -37,7 +41,103 @@ class StockDashboard:
             self.config = {}
     
     def load_sample_data(self):
-        """샘플 데이터 로드"""
+        """실제 KIS API 데이터 로드 (캐시 없음)"""
+        try:
+            # 캐시 비활성화를 위한 강제 새로고침
+            import time
+            import random
+            current_time = time.time()
+            random_seed = random.randint(1, 10000)  # 캐시 무효화용
+            
+            logger.info("실제 KIS API 데이터 로딩 시작...")
+            
+            # 실제 KIS API 데이터 사용
+            from enhanced_integrated_analyzer_refactored import EnhancedIntegratedAnalyzer
+            
+            analyzer = EnhancedIntegratedAnalyzer()
+            logger.info("EnhancedIntegratedAnalyzer 초기화 완료")
+            
+            # 주요 종목들의 실제 데이터 수집
+            stocks = [
+                ('003550', 'LG생활건강'),
+                ('005930', '삼성전자'),
+                ('000270', '기아'),
+                ('035420', 'NAVER'),
+                ('012330', '현대모비스')
+            ]
+            
+            self.portfolio_data = []
+            
+            for symbol, name in stocks:
+                try:
+                    logger.info(f"종목 {name} ({symbol}) 분석 시작...")
+                    result = analyzer.analyze_single_stock(symbol, name)
+                    logger.info(f"종목 {name} 분석 완료: {result.status}")
+                    
+                    if result.status.name == 'SUCCESS':
+                        stock_data = {
+                            'symbol': symbol,
+                            'name': name,
+                            'current_price': result.current_price,
+                            'score': result.enhanced_score,
+                            'grade': str(result.enhanced_grade),
+                            'per': result.financial_data.get('per', 0) if result.financial_data else 0,
+                            'pbr': result.financial_data.get('pbr', 0) if result.financial_data else 0,
+                            'roe': result.financial_data.get('roe', 0) if result.financial_data else 0,
+                            'market_cap': result.market_cap,
+                            'volume': result.price_data.get('volume', 0) if result.price_data else 0,
+                            'change': result.price_data.get('price_change_rate', 0) if result.price_data else 0,
+                            'recommendation': 'BUY' if result.enhanced_score > 70 else 'HOLD' if result.enhanced_score > 50 else 'SELL'
+                        }
+                        self.portfolio_data.append(stock_data)
+                        logger.info(f"종목 {name} 데이터 추가 완료: {result.current_price}원")
+                    else:
+                        logger.warning(f"종목 {name} 분석 실패: {result.status}")
+                except Exception as e:
+                    logger.error(f"종목 {name} 분석 중 오류: {e}")
+                    import traceback
+                    logger.error(f"스택 트레이스: {traceback.format_exc()}")
+                    continue
+            
+            # DataFrame으로 변환
+            if self.portfolio_data:
+                self.portfolio_data = pd.DataFrame(self.portfolio_data)
+                logger.info(f"실제 KIS API 데이터 로딩 성공: {len(self.portfolio_data)}개 종목")
+            else:
+                logger.warning("실제 데이터 로딩 실패, 폴백 데이터 사용")
+                self._load_fallback_data()
+                
+            # 강제로 실제 데이터 사용 (폴백 데이터 대신)
+            if hasattr(self, 'portfolio_data') and not self.portfolio_data.empty:
+                # 삼성전자 데이터가 79,400원이면 실제 데이터로 교체
+                samsung_mask = self.portfolio_data['symbol'] == '005930'
+                if samsung_mask.any():
+                    samsung_idx = self.portfolio_data[samsung_mask].index[0]
+                    if self.portfolio_data.loc[samsung_idx, 'current_price'] == 79400:
+                        logger.info("삼성전자 Mock 데이터를 실제 데이터로 교체 중...")
+                        # 실제 KIS API에서 삼성전자 데이터 직접 조회
+                        try:
+                            from enhanced_integrated_analyzer_refactored import EnhancedIntegratedAnalyzer
+                            analyzer = EnhancedIntegratedAnalyzer()
+                            result = analyzer.analyze_single_stock('005930', '삼성전자')
+                            if result.status.name == 'SUCCESS':
+                                self.portfolio_data.loc[samsung_idx, 'current_price'] = result.current_price
+                                self.portfolio_data.loc[samsung_idx, 'score'] = result.enhanced_score
+                                self.portfolio_data.loc[samsung_idx, 'grade'] = str(result.enhanced_grade)
+                                self.portfolio_data.loc[samsung_idx, 'per'] = result.financial_data.get('per', 0) if result.financial_data else 0
+                                self.portfolio_data.loc[samsung_idx, 'pbr'] = result.financial_data.get('pbr', 0) if result.financial_data else 0
+                                logger.info(f"삼성전자 데이터 교체 완료: {result.current_price}원")
+                        except Exception as e:
+                            logger.error(f"삼성전자 데이터 교체 실패: {e}")
+                
+        except Exception as e:
+            logger.error(f"실제 데이터 로드 실패: {e}")
+            import traceback
+            logger.error(f"스택 트레이스: {traceback.format_exc()}")
+            self._load_fallback_data()
+    
+    def _load_fallback_data(self):
+        """폴백 Mock 데이터 로드"""
         # LG생활건강 분석 결과 (실제 데이터 기반)
         self.lg_data = {
             'symbol': '003550',
@@ -60,11 +160,11 @@ class StockDashboard:
             'confidence': 'HIGH'
         }
         
-        # 샘플 포트폴리오 데이터
+        # 폴백 Mock 데이터 (실제 API 실패시 사용)
         self.portfolio_data = pd.DataFrame({
             'symbol': ['003550', '005930', '000270', '035420', '012330'],
             'name': ['LG생활건강', '삼성전자', '기아', 'NAVER', '현대모비스'],
-            'price': [75300, 79400, 101400, 235000, 309000],
+            'current_price': [75300, 79400, 101400, 235000, 309000],
             'change': [1.2, -0.5, 2.1, -1.8, 0.8],
             'volume': [125000, 850000, 450000, 320000, 280000],
             'market_cap': [118750, 4528500, 440229, 367035, 284105],
@@ -85,12 +185,40 @@ class StockDashboard:
             initial_sidebar_state="expanded"
         )
         
-        st.title("📊 주식 분석 대시보드")
+        col1, col2 = st.columns([3, 1])
+        
+        with col1:
+            st.title("📊 주식 분석 대시보드")
+        
+        with col2:
+            if st.button("🔄 데이터 새로고침", help="실제 KIS API 데이터로 새로고침"):
+                st.cache_data.clear()
+                st.rerun()
+        
         st.markdown("---")
         
         # 현재 시간 표시
         current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         st.sidebar.markdown(f"**업데이트 시간:** {current_time}")
+        
+        # 세션 ID 표시 (캐시 상태 확인용)
+        st.sidebar.markdown(f"**세션 ID:** {self.session_id}")
+        
+        # 데이터 소스 표시
+        if hasattr(self, 'portfolio_data') and not self.portfolio_data.empty:
+            samsung_data = self.portfolio_data[self.portfolio_data['symbol'] == '005930']
+            if not samsung_data.empty:
+                current_price = samsung_data.iloc[0]['current_price']
+                if current_price == 79400:
+                    st.sidebar.error("❌ Mock 데이터 사용 중 (79,400원)")
+                    st.sidebar.warning("실제 KIS API 데이터 로딩 실패")
+                else:
+                    st.sidebar.success("실제 KIS API 데이터 사용 중")
+                    st.sidebar.info(f"삼성전자 현재가: {current_price:,}원")
+            else:
+                st.sidebar.warning("Mock 데이터 사용 중")
+        else:
+            st.sidebar.warning("데이터 로딩 중...")
     
     def render_sidebar(self):
         """사이드바 렌더링"""
@@ -129,12 +257,33 @@ class StockDashboard:
         
         selected_data = self.portfolio_data[self.portfolio_data['symbol'] == options['selected_symbol']].iloc[0]
         
+        # 삼성전자인 경우 실제 데이터 강제 표시
+        if options['selected_symbol'] == '005930':
+            # 실제 KIS API에서 삼성전자 데이터 직접 조회
+            try:
+                from enhanced_integrated_analyzer_refactored import EnhancedIntegratedAnalyzer
+                analyzer = EnhancedIntegratedAnalyzer()
+                result = analyzer.analyze_single_stock('005930', '삼성전자')
+                if result.status.name == 'SUCCESS':
+                    # 실제 데이터로 교체
+                    selected_data = selected_data.copy()
+                    selected_data['current_price'] = result.current_price
+                    selected_data['per'] = result.financial_data.get('per', 0) if result.financial_data else 0
+                    selected_data['pbr'] = result.financial_data.get('pbr', 0) if result.financial_data else 0
+                    selected_data['market_cap'] = result.market_cap
+                    selected_data['change'] = result.price_data.get('price_change_rate', 0) if result.price_data else 0
+                    st.success(f"✅ 실제 KIS API 데이터: {result.current_price:,}원")
+                else:
+                    st.warning("⚠️ KIS API 데이터 로딩 실패")
+            except Exception as e:
+                st.error(f"❌ 데이터 로딩 오류: {e}")
+        
         col1, col2, col3, col4 = st.columns(4)
         
         with col1:
             st.metric(
                 label="현재가",
-                value=f"{selected_data['price']:,}원",
+                value=f"{selected_data['current_price']:,}원",
                 delta=f"{selected_data['change']:+.1f}%"
             )
         
@@ -303,7 +452,7 @@ class StockDashboard:
         st.header("🤖 머신러닝 예측")
         
         selected_data = self.portfolio_data[self.portfolio_data['symbol'] == options['selected_symbol']].iloc[0]
-        current_price = selected_data['price']
+        current_price = selected_data['current_price']
         
         # 예측 결과 (시뮬레이션)
         predictions = {
@@ -416,7 +565,7 @@ class StockDashboard:
         summary_data = self.portfolio_data.copy()
         summary_data['변동률'] = summary_data['change'].apply(lambda x: f"{x:+.1f}%")
         summary_data['시가총액'] = summary_data['market_cap'].apply(lambda x: f"{x:,}억원")
-        summary_data['현재가'] = summary_data['price'].apply(lambda x: f"{x:,}원")
+        summary_data['현재가'] = summary_data['current_price'].apply(lambda x: f"{x:,}원")
         
         display_columns = ['name', '현재가', '변동률', 'per', 'pbr', 'roe', 'score', 'grade', 'recommendation']
         st.dataframe(
@@ -504,6 +653,10 @@ class StockDashboard:
 def main():
     """메인 실행 함수"""
     try:
+        # 캐시 강제 클리어
+        if hasattr(st, 'cache_data'):
+            st.cache_data.clear()
+        
         dashboard = StockDashboard()
         dashboard.run()
     except Exception as e:

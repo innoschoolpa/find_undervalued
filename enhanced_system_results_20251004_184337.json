@@ -1,0 +1,56 @@
+{
+  "diagnostics": {
+    "timestamp": "2025-10-04T18:43:37.480892",
+    "system_info": {
+      "cpu_count": 8,
+      "memory_gb": 15.54166030883789,
+      "available_memory_gb": 4.6436920166015625,
+      "cpu_percent": 25.3,
+      "memory_percent": 70.1,
+      "disk_usage_percent": 33.95607696770724
+    },
+    "config_summary": {
+      "system_info": {
+        "cpu_count": 8,
+        "memory_gb": 15.54166030883789,
+        "available_memory_gb": 4.6436920166015625,
+        "cpu_percent": 25.3,
+        "memory_percent": 70.1
+      },
+      "performance_config": {
+        "max_workers": 8,
+        "memory_limit_gb": 8.0,
+        "cpu_limit_percent": 80.0,
+        "cache_enabled": true,
+        "cache_size_mb": 0,
+        "cache_ttl_seconds": 3600,
+        "api_timeout": 30,
+        "api_retry_count": 3,
+        "api_rate_limit": 20,
+        "analysis_batch_size": 100,
+        "analysis_timeout": 300,
+        "max_concurrent_analyses": 5,
+        "chunk_size": 1000,
+        "compression_enabled": true,
+        "parallel_processing": true
+      },
+      "kis_api_configured": false,
+      "optimization_applied": true,
+      "config_file": null
+    },
+    "components_status": {
+      "kis_api": {
+        "status": "not_initialized"
+      },
+      "backtesting": {
+        "status": "not_initialized"
+      },
+      "portfolio_optimizer": {
+        "status": "not_initialized"
+      },
+      "analyzer": {
+        "status": "not_initialized"
+      }
+    }
+  }
+}

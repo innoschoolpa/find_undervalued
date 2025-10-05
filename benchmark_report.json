@@ -1,0 +1,58 @@
+{
+  "timestamp": "2025-10-04T17:13:12.541342",
+  "iterations": 100,
+  "system_memory_mb": 89.66015625,
+  "system_cpu_percent": 0.0,
+  "benchmarks": [
+    {
+      "module": "ConfigManager",
+      "iterations": 100,
+      "avg_time": 4.09078598022461e-05,
+      "min_time": 2.6226043701171875e-05,
+      "max_time": 0.00018715858459472656,
+      "std_time": 2.70502754713712e-05,
+      "avg_memory": 0.0003125,
+      "max_memory": 0.015625
+    },
+    {
+      "module": "MetricsCollector",
+      "iterations": 100,
+      "avg_time": 2.700328826904297e-05,
+      "min_time": 1.9073486328125e-05,
+      "max_time": 5.14984130859375e-05,
+      "std_time": 5.169082660061431e-06,
+      "avg_memory": 7.8125e-05,
+      "max_memory": 0.00390625
+    },
+    {
+      "module": "ValueStyleClassifier",
+      "iterations": 100,
+      "avg_time": 1.173257827758789e-05,
+      "min_time": 1.0728836059570312e-05,
+      "max_time": 3.337860107421875e-05,
+      "std_time": 2.4079799599688925e-06,
+      "avg_memory": 3.90625e-05,
+      "max_memory": 0.00390625
+    },
+    {
+      "module": "UVSEligibilityFilter",
+      "iterations": 100,
+      "avg_time": 1.2056827545166016e-05,
+      "min_time": 1.1205673217773438e-05,
+      "max_time": 2.9087066650390625e-05,
+      "std_time": 1.930464900699036e-06,
+      "avg_memory": 7.8125e-05,
+      "max_memory": 0.00390625
+    },
+    {
+      "module": "AnalysisModels",
+      "iterations": 100,
+      "avg_time": 1.2803077697753907e-05,
+      "min_time": 1.049041748046875e-05,
+      "max_time": 5.435943603515625e-05,
+      "std_time": 4.7505774006574145e-06,
+      "avg_memory": 7.8125e-05,
+      "max_memory": 0.00390625
+    }
+  ]
+}

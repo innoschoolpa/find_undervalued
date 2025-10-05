@@ -1,0 +1,132 @@
+# 리팩토링된 분석 시스템 Docker Compose 설정
+version: '3.8'
+
+services:
+  # 메인 분석 서비스
+  analyzer:
+    build:
+      context: ../..
+      dockerfile: deploy/docker/Dockerfile
+    container_name: enhanced-analyzer
+    ports:
+      - "8000:8000"
+    environment:
+      - PYTHONPATH=/app
+      - LOG_LEVEL=INFO
+      - API_TIMEOUT=60
+      - MAX_TPS=20
+      - CACHE_TTL_SECONDS=3600
+      - ENABLE_METRICS=true
+    volumes:
+      - ../../data:/app/data
+      - ../../logs:/app/logs
+      - ../../results:/app/results
+    restart: unless-stopped
+    depends_on:
+      - redis
+      - postgres
+    networks:
+      - analyzer-network
+
+  # Redis 캐시 서비스
+  redis:
+    image: redis:7-alpine
+    container_name: analyzer-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    networks:
+      - analyzer-network
+
+  # PostgreSQL 데이터베이스 서비스
+  postgres:
+    image: postgres:15-alpine
+    container_name: analyzer-postgres
+    environment:
+      - POSTGRES_DB=analyzer_db
+      - POSTGRES_USER=analyzer_user
+      - POSTGRES_PASSWORD=analyzer_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    restart: unless-stopped
+    networks:
+      - analyzer-network
+
+  # Prometheus 메트릭 수집 서비스
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: analyzer-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--web.enable-lifecycle'
+    restart: unless-stopped
+    networks:
+      - analyzer-network
+
+  # Grafana 대시보드 서비스
+  grafana:
+    image: grafana/grafana:latest
+    container_name: analyzer-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/dashboards:/etc/grafana/provisioning/dashboards
+      - ./grafana/datasources:/etc/grafana/provisioning/datasources
+    restart: unless-stopped
+    networks:
+      - analyzer-network
+
+  # Nginx 리버스 프록시 서비스
+  nginx:
+    image: nginx:alpine
+    container_name: analyzer-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+      - ./ssl:/etc/nginx/ssl
+    restart: unless-stopped
+    depends_on:
+      - analyzer
+    networks:
+      - analyzer-network
+
+volumes:
+  redis_data:
+  postgres_data:
+  prometheus_data:
+  grafana_data:
+
+networks:
+  analyzer-network:
+    driver: bridge
+
+
+
+
+
+
+
+
+
+
+
+
+

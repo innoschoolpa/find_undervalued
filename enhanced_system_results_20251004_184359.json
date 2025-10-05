@@ -1,0 +1,103 @@
+{
+  "diagnostics": {
+    "timestamp": "2025-10-04T18:43:59.065317",
+    "system_info": {
+      "cpu_count": 8,
+      "memory_gb": 15.54166030883789,
+      "available_memory_gb": 4.629364013671875,
+      "cpu_percent": 9.7,
+      "memory_percent": 70.2,
+      "disk_usage_percent": 33.9547620896741
+    },
+    "config_summary": {
+      "system_info": {
+        "cpu_count": 8,
+        "memory_gb": 15.54166030883789,
+        "available_memory_gb": 4.629364013671875,
+        "cpu_percent": 9.7,
+        "memory_percent": 70.2
+      },
+      "performance_config": {
+        "max_workers": 8,
+        "memory_limit_gb": 8.0,
+        "cpu_limit_percent": 80.0,
+        "cache_enabled": true,
+        "cache_size_mb": 0,
+        "cache_ttl_seconds": 3600,
+        "api_timeout": 30,
+        "api_retry_count": 3,
+        "api_rate_limit": 20,
+        "analysis_batch_size": 100,
+        "analysis_timeout": 300,
+        "max_concurrent_analyses": 5,
+        "chunk_size": 1000,
+        "compression_enabled": true,
+        "parallel_processing": true
+      },
+      "kis_api_configured": false,
+      "optimization_applied": true,
+      "config_file": null
+    },
+    "components_status": {
+      "kis_api": {
+        "status": "not_initialized"
+      },
+      "backtesting": {
+        "status": "not_initialized"
+      },
+      "portfolio_optimizer": {
+        "status": "not_initialized"
+      },
+      "analyzer": {
+        "status": "not_initialized"
+      }
+    }
+  },
+  "portfolio_optimization": {
+    "equal_weight": {
+      "expected_return": 0.4649703361892073,
+      "expected_volatility": 0.1192388362711322,
+      "sharpe_ratio": 3.647891490656169,
+      "diversification_ratio": 2.6345995213799855,
+      "concentration_risk": 0.14285714285714285,
+      "convergence_achieved": true,
+      "top_positions": {
+        "005930": 0.14285714285714285,
+        "000270": 0.14285714285714285,
+        "035420": 0.14285714285714285,
+        "012330": 0.14285714285714285,
+        "005380": 0.14285714285714285
+      }
+    },
+    "mean_variance": {
+      "expected_return": 0.4974873277754813,
+      "expected_volatility": 0.12033721187441862,
+      "sharpe_ratio": 3.8848110280578982,
+      "diversification_ratio": 2.6096399602644427,
+      "concentration_risk": 0.1449999999999845,
+      "convergence_achieved": true,
+      "top_positions": {
+        "005930": 0.15,
+        "000270": 0.15,
+        "035420": 0.1000000000000453,
+        "012330": 0.14999999999996075,
+        "005380": 0.14999999999999422
+      }
+    },
+    "risk_parity": {
+      "expected_return": 0.46019802647202657,
+      "expected_volatility": 0.12172169727463762,
+      "sharpe_ratio": 3.534275614818133,
+      "diversification_ratio": 2.5787498251996737,
+      "concentration_risk": 0.1449999999999999,
+      "convergence_achieved": true,
+      "top_positions": {
+        "005930": 0.1499999999999999,
+        "000270": 0.1499999999999999,
+        "035420": 0.14999999999999994,
+        "012330": 0.14999999999999972,
+        "005380": 0.1499999999999999
+      }
+    }
+  }
+}

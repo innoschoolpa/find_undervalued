@@ -58,12 +58,17 @@ class MCPKISIntegration:
             'Accept-Encoding': 'gzip, deflate'
         })
         
+        # ✅ 멀티스레드 안전성을 위한 Lock
+        self._lock = threading.Lock()
+        self._cache_lock = threading.Lock()
+        
         # Rate limiting 설정
         # KIS API 제한: 실전 20건/초, 모의 2건/초
         # 안전하게 실전 10건/초 (0.1초 간격) 사용
         self.last_request_time = 0
         self.request_interval = 0.1  # 0.1초 간격 (초당 10건)
         self.consecutive_500_errors = 0
+        self.max_consecutive_500_errors = 5  # ✅ 최대 연속 500 오류 횟수
         
         # 캐시 설정 (엔드포인트별 차등 TTL)
         self.cache = {}
@@ -76,17 +81,25 @@ class MCPKISIntegration:
         }
     
     def _rate_limit(self):
-        """API 요청 속도를 제어합니다 (KISDataProvider와 동일)"""
-        elapsed_time = time.time() - self.last_request_time
-        if elapsed_time < self.request_interval:
-            time.sleep(self.request_interval - elapsed_time)
-        self.last_request_time = time.time()
+        """API 요청 속도를 제어합니다 (멀티스레드 안전)"""
+        with self._lock:  # ✅ Lock으로 보호
+            elapsed_time = time.time() - self.last_request_time
+            if elapsed_time < self.request_interval:
+                time.sleep(self.request_interval - elapsed_time)
+            self.last_request_time = time.time()
     
     def _send_request(self, path: str, tr_id: str, params: dict, max_retries: int = 2) -> Optional[dict]:
         """
         KISDataProvider와 동일한 방식의 API 요청 메서드
         중앙 집중화된 API GET 요청 (재시도 로직 포함)
         """
+        # ✅ 연속 500 오류가 너무 많으면 조기 종료
+        if self.consecutive_500_errors >= self.max_consecutive_500_errors:
+            logger.error(f"❌ 연속 500 오류 {self.consecutive_500_errors}회 초과 - API 호출 중단")
+            time.sleep(10)  # 10초 대기 후 카운터 리셋
+            self.consecutive_500_errors = 0
+            return None
+        
         for attempt in range(max_retries + 1):
             try:
                 self._rate_limit()
@@ -182,6 +195,13 @@ class MCPKISIntegration:
         API 호출 래퍼 (캐시 지원, 엔드포인트별 차등 TTL)
         실제 호출은 _send_request 사용
         """
+        # ✅ 엔드포인트 검증: 절대경로가 들어오면 안 됨
+        if endpoint.startswith("/uapi/") or endpoint.startswith("uapi/"):
+            logger.error(f"❌ 엔드포인트 오류: 절대경로가 아닌 상대경로만 사용하세요: {endpoint}")
+            # 자동 수정 시도
+            endpoint = endpoint.replace("/uapi/domestic-stock/v1/", "").replace("uapi/domestic-stock/v1/", "")
+            logger.warning(f"⚠️ 자동 수정: {endpoint}")
+        
         cache_key = f"{endpoint}:{json.dumps(params or {}, sort_keys=True)}"
         
         # 캐시 TTL 결정 (엔드포인트 종류별)
@@ -196,21 +216,24 @@ class MCPKISIntegration:
         else:
             ttl = self.cache_ttl['default']
         
-        # 캐시 확인
-        if use_cache and cache_key in self.cache:
-            cached_data, timestamp = self.cache[cache_key]
-            if time.time() - timestamp < ttl:
-                logger.debug(f"✓ 캐시 사용: {endpoint} (TTL={ttl}초)")
-                return cached_data
+        # ✅ 캐시 확인 (Lock으로 보호)
+        if use_cache:
+            with self._cache_lock:
+                if cache_key in self.cache:
+                    cached_data, timestamp = self.cache[cache_key]
+                    if time.time() - timestamp < ttl:
+                        logger.debug(f"✓ 캐시 사용: {endpoint} (TTL={ttl}초)")
+                        return cached_data
         
         # KISDataProvider의 _send_request 방식 사용
         path = f"/uapi/domestic-stock/v1/{endpoint}"
         data = self._send_request(path, tr_id, params or {})
         
-        # 캐시 저장
+        # ✅ 캐시 저장 (Lock으로 보호)
         if data and use_cache:
-            self.cache[cache_key] = (data, time.time())
-            logger.debug(f"💾 캐시 저장: {endpoint} (TTL={ttl}초)")
+            with self._cache_lock:
+                self.cache[cache_key] = (data, time.time())
+                logger.debug(f"💾 캐시 저장: {endpoint} (TTL={ttl}초)")
         
         return data
     
@@ -369,8 +392,8 @@ class MCPKISIntegration:
             logger.error(f"대차대조표 조회 실패: {symbol}, {e}")
             return None
     
-    def get_dividend_info(self, symbol: str) -> Optional[Dict]:
-        """배당 정보 조회"""
+    def get_daily_prices(self, symbol: str) -> Optional[Dict]:
+        """일자별 시세 조회 (✅ 함수명 수정: dividend_info → daily_prices)"""
         try:
             data = self._make_api_call(
                 endpoint="quotations/inquire-daily-price",
@@ -386,7 +409,7 @@ class MCPKISIntegration:
                 return data['output']
             return None
         except Exception as e:
-            logger.error(f"배당 정보 조회 실패: {symbol}, {e}")
+            logger.error(f"일자별 시세 조회 실패: {symbol}, {e}")
             return None
     
     # === 시세분석 ===
@@ -439,7 +462,7 @@ class MCPKISIntegration:
                 start_date = (datetime.now() - timedelta(days=30)).strftime("%Y%m%d")
             
             data = self._make_api_call(
-                endpoint="uapi/domestic-stock/v1/quotations/inquire-daily-investorprice",
+                endpoint="quotations/inquire-daily-investorprice",  # ✅ 상대 경로만!
                 params={
                     "FID_COND_MRKT_DIV_CODE": "J",
                     "FID_INPUT_ISCD": symbol,
@@ -848,11 +871,15 @@ class MCPKISIntegration:
             # 장 운영 시간: 평일 09:00 ~ 15:30
             is_market_open = not is_weekend and ((9 <= hour < 15) or (hour == 15 and minute <= 30))
             
-            # 장전 시간외: 08:30 ~ 09:00
-            is_pre_market = not is_weekend and (hour == 8 and minute >= 30) or (hour == 9 and minute == 0)
+            # 장전 시간외: 08:30 ~ 09:00 (✅ 괄호로 명확화)
+            is_pre_market = (not is_weekend) and (
+                (hour == 8 and minute >= 30) or (hour == 9 and minute == 0)
+            )
             
-            # 장후 시간외: 15:40 ~ 16:00
-            is_after_market = not is_weekend and (hour == 15 and minute >= 40) or (hour == 16 and minute == 0)
+            # 장후 시간외: 15:40 ~ 16:00 (✅ 괄호로 명확화)
+            is_after_market = (not is_weekend) and (
+                (hour == 15 and minute >= 40) or (hour == 16 and minute == 0)
+            )
             
             if is_weekend:
                 status_text = "주말 휴장"
@@ -947,7 +974,7 @@ class MCPKISIntegration:
                 'symbol': symbol,
                 'name': basic_info.get('prdt_name', ''),
                 'current_price': float(current_price.get('stck_prpr', 0)),
-                'change_rate': float(current_price.get('prdy_vrss_cttr', 0)),
+                'change_rate': float(current_price.get('prdy_ctrt', 0)),  # ✅ prdy_ctrt 통일!
                 'market_cap': float(basic_info.get('hts_avls', 0)) * 100000000,  # 억원
                 'sector': basic_info.get('bstp_kor_isnm', ''),
                 
@@ -1013,14 +1040,15 @@ class MCPKISIntegration:
                 sentiment_score = 50
                 sentiment = 'neutral'
             
-                return {
+            # ✅ return을 else 블록 밖으로 이동!
+            return {
                 'sentiment': sentiment,
                 'score': sentiment_score,
                 'institutional_net': institutional,
                 'foreign_net': foreign,
                 'individual_net': individual,
                 'smart_money': smart_money
-                }
+            }
                 
         except Exception as e:
             logger.error(f"투자자 동향 분석 실패: {e}")

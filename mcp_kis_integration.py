@@ -19,8 +19,6 @@ from typing import Any, Dict, Optional, List, Tuple
 from collections import defaultdict, Counter
 
 import requests
-from requests.adapters import HTTPAdapter
-from urllib3.util.retry import Retry
 
 logger = logging.getLogger(__name__)
 
@@ -93,10 +91,30 @@ class MCPKISIntegration:
         KISDataProvider와 동일한 방식의 API 요청 메서드
         중앙 집중화된 API GET 요청 (재시도 로직 포함)
         """
-        # ✅ 연속 500 오류가 너무 많으면 조기 종료
+        # ✅ 연속 500 오류가 너무 많으면 세션 재생성
         if self.consecutive_500_errors >= self.max_consecutive_500_errors:
-            logger.error(f"❌ 연속 500 오류 {self.consecutive_500_errors}회 초과 - API 호출 중단")
-            time.sleep(10)  # 10초 대기 후 카운터 리셋
+            logger.error(f"❌ 연속 500 오류 {self.consecutive_500_errors}회 초과 - 세션 재생성")
+            time.sleep(10)  # 10초 대기
+            
+            # 세션 재생성
+            try:
+                self.session.close()
+                self.session = requests.Session()
+                adapter = requests.adapters.HTTPAdapter(
+                    pool_connections=10,
+                    pool_maxsize=20,
+                    max_retries=0
+                )
+                self.session.mount('https://', adapter)
+                self.session.headers.update({
+                    'User-Agent': 'KIS-API-Client/1.0',
+                    'Connection': 'keep-alive',
+                    'Accept-Encoding': 'gzip, deflate'
+                })
+                logger.info("✅ 세션 재생성 완료")
+            except Exception as e:
+                logger.error(f"❌ 세션 재생성 실패: {e}")
+            
             self.consecutive_500_errors = 0
             return None
         
@@ -196,10 +214,12 @@ class MCPKISIntegration:
         실제 호출은 _send_request 사용
         """
         # ✅ 엔드포인트 검증: 절대경로가 들어오면 안 됨
-        if endpoint.startswith("/uapi/") or endpoint.startswith("uapi/"):
-            logger.error(f"❌ 엔드포인트 오류: 절대경로가 아닌 상대경로만 사용하세요: {endpoint}")
+        assert not endpoint.startswith("/"), f"엔드포인트는 상대경로여야 합니다: {endpoint}"
+        
+        if endpoint.startswith("uapi/"):
+            logger.error(f"❌ 엔드포인트 오류: 'uapi/' 접두사 제거 필요: {endpoint}")
             # 자동 수정 시도
-            endpoint = endpoint.replace("/uapi/domestic-stock/v1/", "").replace("uapi/domestic-stock/v1/", "")
+            endpoint = endpoint.replace("uapi/domestic-stock/v1/", "")
             logger.warning(f"⚠️ 자동 수정: {endpoint}")
         
         cache_key = f"{endpoint}:{json.dumps(params or {}, sort_keys=True)}"
@@ -581,7 +601,7 @@ class MCPKISIntegration:
                                     results.append({
                                         'mksc_shrn_iscd': code,
                                         'hts_kor_isnm': name,  # ✨ 정리된 종목명
-                                        'hts_avls': market_cap / 100000000 if market_cap > 100000000 else market_cap,
+                                        'hts_avls': market_cap / 100_000_000.0,  # ✅ 항상 억원 단위
                                         'stck_prpr': row.get('기준가', 0),
                                         'acml_vol': row.get('전일거래량', 0),
                                         'prdy_ctrt': 0
@@ -871,10 +891,8 @@ class MCPKISIntegration:
             # 장 운영 시간: 평일 09:00 ~ 15:30
             is_market_open = not is_weekend and ((9 <= hour < 15) or (hour == 15 and minute <= 30))
             
-            # 장전 시간외: 08:30 ~ 09:00 (✅ 괄호로 명확화)
-            is_pre_market = (not is_weekend) and (
-                (hour == 8 and minute >= 30) or (hour == 9 and minute == 0)
-            )
+            # 장전 시간외: 08:30 ~ 08:59 (✅ 정확한 범위)
+            is_pre_market = (not is_weekend) and (hour == 8 and 30 <= minute <= 59)
             
             # 장후 시간외: 15:40 ~ 16:00 (✅ 괄호로 명확화)
             is_after_market = (not is_weekend) and (
@@ -970,22 +988,32 @@ class MCPKISIntegration:
                 return None
             
             # 분석 결과 구성
+            # ✅ 재무지표 출처 일관화: financial_ratios 우선, 없으면 basic_info
+            fin = financial_ratios or {}
+            price_val = float(current_price.get('stck_prpr', 0))
+            
+            # PER, PBR 계산 (가능하면 financial_ratios의 eps/bps 사용)
+            eps = float(fin.get('eps', 0) or 0)
+            bps = float(fin.get('bps', 0) or 0)
+            per = (price_val / eps) if eps > 0 else (float(basic_info.get('per', 0)) if basic_info.get('per') else None)
+            pbr = (price_val / bps) if bps > 0 else (float(basic_info.get('pbr', 0)) if basic_info.get('pbr') else None)
+            
             analysis = {
                 'symbol': symbol,
                 'name': basic_info.get('prdt_name', ''),
-                'current_price': float(current_price.get('stck_prpr', 0)),
+                'current_price': price_val,
                 'change_rate': float(current_price.get('prdy_ctrt', 0)),  # ✅ prdy_ctrt 통일!
                 'market_cap': float(basic_info.get('hts_avls', 0)) * 100000000,  # 억원
                 'sector': basic_info.get('bstp_kor_isnm', ''),
                 
-                # 기본 지표
+                # ✅ 기본 지표 (financial_ratios 우선)
                 'valuation_metrics': {
-                    'per': float(basic_info.get('per', 0)) if basic_info.get('per') else None,
-                    'pbr': float(basic_info.get('pbr', 0)) if basic_info.get('pbr') else None,
-                    'roe': float(basic_info.get('roe', 0)) if basic_info.get('roe') else None,
-                    'roa': float(basic_info.get('roa', 0)) if basic_info.get('roa') else None,
-                    'debt_ratio': float(basic_info.get('debt_ratio', 0)) if basic_info.get('debt_ratio') else None,
-                    'current_ratio': float(basic_info.get('current_ratio', 0)) if basic_info.get('current_ratio') else None,
+                    'per': per,
+                    'pbr': pbr,
+                    'roe': float(fin.get('roe_val', 0) or basic_info.get('roe', 0) or 0),
+                    'roa': float(fin.get('roa_val', 0) or basic_info.get('roa', 0) or 0),
+                    'debt_ratio': float(fin.get('debt_ratio', 0) or basic_info.get('debt_ratio', 0) or 0),
+                    'current_ratio': float(fin.get('current_ratio', 0) or basic_info.get('current_ratio', 0) or 0),
                     'dividend_yield': float(basic_info.get('dvyd', 0)) if basic_info.get('dvyd') else None
                 },
                 
@@ -1121,7 +1149,7 @@ class MCPKISIntegration:
                                      financial_ratios: Optional[Dict],
                                      investor_trend: Optional[Dict],
                                      chart_data: Optional[List[Dict]]) -> Dict:
-        """종합 점수 계산"""
+        """종합 점수 계산 (✅ 재무지표 출처 일관화: financial_ratios 우선)"""
         try:
             scores = {}
             weights = {
@@ -1132,10 +1160,18 @@ class MCPKISIntegration:
                 'sentiment': 0.1        # 투자자 감정 10%
             }
             
+            # ✅ 재무지표 우선 사용
+            fin = financial_ratios or {}
+            price_val = float(current_price.get('stck_prpr', 0))
+            
+            # PER, PBR 계산 (financial_ratios 우선)
+            eps = float(fin.get('eps', 0) or 0)
+            bps = float(fin.get('bps', 0) or 0)
+            per = (price_val / eps) if eps > 0 else (float(basic_info.get('per', 0)) if basic_info.get('per') else None)
+            pbr = (price_val / bps) if bps > 0 else (float(basic_info.get('pbr', 0)) if basic_info.get('pbr') else None)
+            
             # 밸류에이션 점수 (PER, PBR 기준)
             valuation_score = 50
-            per = float(basic_info.get('per', 0)) if basic_info.get('per') else None
-            pbr = float(basic_info.get('pbr', 0)) if basic_info.get('pbr') else None
             
             if per and per > 0:
                 if per < 15:
@@ -1153,10 +1189,10 @@ class MCPKISIntegration:
                 elif pbr > 5:
                     valuation_score -= 20
             
-            # 수익성 점수 (ROE, ROA 기준)
+            # 수익성 점수 (ROE, ROA 기준) - ✅ financial_ratios 우선
             profitability_score = 50
-            roe = float(basic_info.get('roe', 0)) if basic_info.get('roe') else None
-            roa = float(basic_info.get('roa', 0)) if basic_info.get('roa') else None
+            roe = float(fin.get('roe_val', 0) or basic_info.get('roe', 0) or 0)
+            roa = float(fin.get('roa_val', 0) or basic_info.get('roa', 0) or 0)
             
             if roe and roe > 0:
                 if roe > 15:
@@ -1168,12 +1204,12 @@ class MCPKISIntegration:
             else:
                 profitability_score = 40
             
-            # 안정성 점수 (부채비율, 유동비율 기준)
+            # 안정성 점수 (부채비율, 유동비율 기준) - ✅ financial_ratios 우선
             stability_score = 50
-            debt_ratio = float(basic_info.get('debt_ratio', 0)) if basic_info.get('debt_ratio') else None
-            current_ratio = float(basic_info.get('current_ratio', 0)) if basic_info.get('current_ratio') else None
+            debt_ratio = float(fin.get('debt_ratio', 0) or basic_info.get('debt_ratio', 0) or 0)
+            current_ratio = float(fin.get('current_ratio', 0) or basic_info.get('current_ratio', 0) or 0)
             
-            if debt_ratio is not None:
+            if debt_ratio > 0:  # ✅ 데이터가 있을 때만
                 if debt_ratio < 30:
                     stability_score = 80
                 elif debt_ratio < 50:
@@ -1183,9 +1219,9 @@ class MCPKISIntegration:
                 else:
                     stability_score = 40
             
-            if current_ratio and current_ratio > 2:
+            if current_ratio > 2:
                 stability_score += 10
-            elif current_ratio and current_ratio < 1:
+            elif current_ratio > 0 and current_ratio < 1:
                 stability_score -= 20
             
             # 성장성 점수 (매출/영업이익 증가율)
@@ -1620,6 +1656,7 @@ class MCPKISIntegration:
             return 0.0
     
     def clear_cache(self):
-        """캐시 초기화"""
-        self.cache.clear()
+        """캐시 초기화 (멀티스레드 안전)"""
+        with self._cache_lock:  # ✅ Lock으로 보호
+            self.cache.clear()
         logger.info("KIS API 캐시 초기화 완료")

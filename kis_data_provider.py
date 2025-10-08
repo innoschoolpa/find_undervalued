@@ -245,6 +245,13 @@ class KISDataProvider:
                     if not (code.startswith('F') or code.startswith('Q')):
                         major_stocks.append(code)
                         name = row.get('한글명', '')
+                        
+                        # ✨ "보통주" 제거, "우선주"는 "우"로 축약
+                        name = name.replace('보통주', '')
+                        if '우선주' in name:
+                            name = name.replace('우선주', '우')
+                        name = name.strip()  # 앞뒤 공백 제거
+                        
                         stock_names[code] = name  # 종목명 매핑 저장
                         
                         # 상위 3개 디버깅
@@ -298,6 +305,13 @@ class KISDataProvider:
                         # API 종목명이 종목코드와 같으면 무시
                         if api_name == symbol:
                             api_name = ''
+                        
+                        # API 종목명도 "보통주" 제거
+                        if api_name:
+                            api_name = api_name.replace('보통주', '')
+                            if '우선주' in api_name:
+                                api_name = api_name.replace('우선주', '우')
+                            api_name = api_name.strip()
                         
                         # 우선순위: 마스터 파일 > API > 폴백
                         stock_name = master_name or api_name or f'종목{symbol}'

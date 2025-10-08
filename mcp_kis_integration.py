@@ -548,9 +548,16 @@ class MCPKISIntegration:
                             if not (code.startswith('F') or code.startswith('Q')):
                                 market_cap = row.get('시가총액', 0)
                                 if market_cap and market_cap > 0:
+                                    # 종목명에서 "보통주" 제거, "우선주"는 "우"로 축약
+                                    name = row.get('한글명', '')
+                                    name = name.replace('보통주', '')
+                                    if '우선주' in name:
+                                        name = name.replace('우선주', '우')
+                                    name = name.strip()
+                                    
                                     results.append({
                                         'mksc_shrn_iscd': code,
-                                        'hts_kor_isnm': row.get('한글명', ''),
+                                        'hts_kor_isnm': name,  # ✨ 정리된 종목명
                                         'hts_avls': market_cap / 100000000 if market_cap > 100000000 else market_cap,
                                         'stck_prpr': row.get('기준가', 0),
                                         'acml_vol': row.get('전일거래량', 0),
@@ -1432,6 +1439,12 @@ class MCPKISIntegration:
                             stock_name = basic_info.get('prdt_name', '') or basic_info.get('prdt_abrv_name', '')
                     if not stock_name:
                         stock_name = f"종목{symbol}"  # 최후의 수단
+                    
+                    # ✨ "보통주" 제거, "우선주"는 "우"로 축약
+                    stock_name = stock_name.replace('보통주', '')
+                    if '우선주' in stock_name:
+                        stock_name = stock_name.replace('우선주', '우')
+                    stock_name = stock_name.strip()
                     
                     market_cap_억 = float(current_price_data.get('hts_avls', 0))
                     

@@ -22,6 +22,31 @@ import requests
 
 logger = logging.getLogger(__name__)
 
+# ✅ 섹터 보정 매핑 (KIS API 오류 수정)
+SECTOR_CORRECTION_MAP = {
+    # 지주회사 (KIS가 '금융'으로 잘못 분류하는 경우)
+    '034730': '지주회사',  # SK
+    '003550': '지주회사',  # LG
+    '267250': '지주회사',  # HD현대
+    '000080': '지주회사',  # 하이트진로홀딩스
+    '001680': '지주회사',  # 대상홀딩스
+    '016580': '지주회사',  # 환인제약
+    '003670': '철강',      # 포스코홀딩스 (지주회사이지만 철강 특성)
+    '071050': '지주회사',  # 한국금융지주
+    
+    # 기타 잘못 분류된 종목들
+    '402340': 'IT',        # SK스퀘어 (금융 아님, IT 투자회사)
+    '035720': 'IT',        # 카카오 (금융 아님)
+    '035420': 'IT',        # NAVER (금융 아님)
+    
+    # 참고: 금융지주는 금융이 맞음
+    # '055550': '금융',  # 신한지주 - 금융 OK
+    # '105560': '금융',  # KB금융 - 금융 OK  
+    # '086790': '금융',  # 하나금융지주 - 금융 OK
+    # '316140': '금융',  # 우리금융지주 - 금융 OK
+    # '138040': '금융',  # 메리츠금융지주 - 금융 OK
+}
+
 class MCPKISIntegration:
     """MCP 스타일의 KIS API 통합 클래스 (KISDataProvider 방식 사용)"""
     
@@ -998,13 +1023,18 @@ class MCPKISIntegration:
             per = (price_val / eps) if eps > 0 else (float(basic_info.get('per', 0)) if basic_info.get('per') else None)
             pbr = (price_val / bps) if bps > 0 else (float(basic_info.get('pbr', 0)) if basic_info.get('pbr') else None)
             
+            # ✅ 섹터 보정 적용
+            sector = basic_info.get('bstp_kor_isnm', '')
+            if symbol in SECTOR_CORRECTION_MAP:
+                sector = SECTOR_CORRECTION_MAP[symbol]
+            
             analysis = {
                 'symbol': symbol,
                 'name': basic_info.get('prdt_name', ''),
                 'current_price': price_val,
                 'change_rate': float(current_price.get('prdy_ctrt', 0)),  # ✅ prdy_ctrt 통일!
                 'market_cap': float(basic_info.get('hts_avls', 0)) * 100000000,  # 억원
-                'sector': basic_info.get('bstp_kor_isnm', ''),
+                'sector': sector,  # ✅ 보정된 섹터
                 
                 # ✅ 기본 지표 (financial_ratios 우선)
                 'valuation_metrics': {
@@ -1494,6 +1524,12 @@ class MCPKISIntegration:
                     # 섹터 정보 추출 (get_current_price에 업종명 포함)
                     sector = current_price_data.get('bstp_kor_isnm', '기타')
                     
+                    # ✅ 섹터 보정 (KIS API 오류 수정)
+                    if symbol in SECTOR_CORRECTION_MAP:
+                        corrected_sector = SECTOR_CORRECTION_MAP[symbol]
+                        logger.debug(f"📝 섹터 보정: {symbol} '{sector}' → '{corrected_sector}'")
+                        sector = corrected_sector
+                    
                     # 종목명 가져오기 (우선순위: current_price → stock → basic_info)
                     stock_name = current_price_data.get('hts_kor_isnm', '') or name
                     if not stock_name:
@@ -1731,6 +1767,13 @@ class MCPKISIntegration:
                     bonus += 6
                 if per < 12:
                     bonus += 4
+            
+            # ✅ 지주회사: 신규 추가
+            elif '지주' in sector:
+                if pbr < 1.0:
+                    bonus += 6
+                if per < 10:
+                    bonus += 5
             
             return bonus
         except:

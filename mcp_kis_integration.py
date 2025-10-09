@@ -5,18 +5,12 @@ MCP KIS API 통합 모듈
 실제 KIS API 호출을 MCP 스타일로 래핑
 """
 
-import os
-import re
-import math
 import json
 import time
 import logging
 import threading
 from datetime import datetime, timedelta
-from dataclasses import dataclass
-from functools import lru_cache
-from typing import Any, Dict, Optional, List, Tuple
-from collections import defaultdict, Counter
+from typing import Any, Dict, Optional, List
 
 import requests
 
@@ -30,9 +24,9 @@ SECTOR_CORRECTION_MAP = {
     '267250': '지주회사',  # HD현대
     '000080': '지주회사',  # 하이트진로홀딩스
     '001680': '지주회사',  # 대상홀딩스
-    '016580': '지주회사',  # 환인제약
     '003670': '철강',      # 포스코홀딩스 (지주회사이지만 철강 특성)
     '071050': '지주회사',  # 한국금융지주
+    '000270': '운송장비',  # 기아 (정확한 분류)
     
     # 기타 잘못 분류된 종목들
     '402340': 'IT',        # SK스퀘어 (금융 아님, IT 투자회사)
@@ -102,6 +96,44 @@ class MCPKISIntegration:
             'financial': 3600,   # 재무 1시간 (거의 변하지 않음)
             'dividend': 7200     # 배당 2시간 (거의 변하지 않음)
         }
+    
+    def _to_float(self, value: Any, default: float = 0.0) -> float:
+        """
+        안전한 float 변환 (콤마/공백/빈문자 방어)
+        KIS API 응답이 문자열("1,234.5")인 경우 대응
+        """
+        try:
+            if value is None:
+                return default
+            if isinstance(value, (int, float)):
+                return float(value)
+            s = str(value).strip().replace(',', '')
+            return float(s) if s else default
+        except (ValueError, TypeError):
+            return default
+    
+    def _normalize_sector(self, sector: str) -> str:
+        """
+        섹터명 표준화 (보정·보너스 일관성)
+        KIS 섹터명이 다양해서 정규화 필요
+        """
+        s = (sector or "").strip()
+        
+        # 표준화 매핑
+        replacements = {
+            '전기·전자': '전기전자',
+            '전기/전자': '전기전자',
+            '서비스업': '서비스',
+            '운수창고': '운송',
+            '운수/창고': '운송',
+            '운송·창고': '운송',
+            '운송장비·부품': '운송장비',
+        }
+        
+        for old, new in replacements.items():
+            s = s.replace(old, new)
+        
+        return s
     
     def _rate_limit(self):
         """API 요청 속도를 제어합니다 (멀티스레드 안전)"""
@@ -1015,18 +1047,19 @@ class MCPKISIntegration:
             # 분석 결과 구성
             # ✅ 재무지표 출처 일관화: financial_ratios 우선, 없으면 basic_info
             fin = financial_ratios or {}
-            price_val = float(current_price.get('stck_prpr', 0))
+            price_val = self._to_float(current_price.get('stck_prpr'), 0)  # ✅ 안전한 변환
             
             # PER, PBR 계산 (가능하면 financial_ratios의 eps/bps 사용)
-            eps = float(fin.get('eps', 0) or 0)
-            bps = float(fin.get('bps', 0) or 0)
-            per = (price_val / eps) if eps > 0 else (float(basic_info.get('per', 0)) if basic_info.get('per') else None)
-            pbr = (price_val / bps) if bps > 0 else (float(basic_info.get('pbr', 0)) if basic_info.get('pbr') else None)
+            eps = self._to_float(fin.get('eps'), 0)
+            bps = self._to_float(fin.get('bps'), 0)
+            per = (price_val / eps) if eps > 0 else self._to_float(basic_info.get('per'))
+            pbr = (price_val / bps) if bps > 0 else self._to_float(basic_info.get('pbr'))
             
-            # ✅ 섹터 보정 적용
+            # ✅ 섹터 보정 및 표준화 적용
             sector = basic_info.get('bstp_kor_isnm', '')
             if symbol in SECTOR_CORRECTION_MAP:
                 sector = SECTOR_CORRECTION_MAP[symbol]
+            sector = self._normalize_sector(sector)  # ✅ 표준화
             
             analysis = {
                 'symbol': symbol,
@@ -1153,7 +1186,7 @@ class MCPKISIntegration:
             avg_loss = sum(losses) / len(losses) if losses else 0
             
             if avg_loss == 0:
-                momentum_score = 100
+                momentum_score = 95  # ✅ 100 → 95 캡핑 (과도한 값 방지)
             else:
                 rs = avg_gain / avg_loss
                 rsi = 100 - (100 / (1 + rs))
@@ -1190,15 +1223,15 @@ class MCPKISIntegration:
                 'sentiment': 0.1        # 투자자 감정 10%
             }
             
-            # ✅ 재무지표 우선 사용
+            # ✅ 재무지표 우선 사용 (_to_float으로 안전하게)
             fin = financial_ratios or {}
-            price_val = float(current_price.get('stck_prpr', 0))
+            price_val = self._to_float(current_price.get('stck_prpr'), 0)
             
             # PER, PBR 계산 (financial_ratios 우선)
-            eps = float(fin.get('eps', 0) or 0)
-            bps = float(fin.get('bps', 0) or 0)
-            per = (price_val / eps) if eps > 0 else (float(basic_info.get('per', 0)) if basic_info.get('per') else None)
-            pbr = (price_val / bps) if bps > 0 else (float(basic_info.get('pbr', 0)) if basic_info.get('pbr') else None)
+            eps = self._to_float(fin.get('eps'), 0)
+            bps = self._to_float(fin.get('bps'), 0)
+            per = (price_val / eps) if eps > 0 else self._to_float(basic_info.get('per'))
+            pbr = (price_val / bps) if bps > 0 else self._to_float(basic_info.get('pbr'))
             
             # 밸류에이션 점수 (PER, PBR 기준)
             valuation_score = 50
@@ -1221,8 +1254,8 @@ class MCPKISIntegration:
             
             # 수익성 점수 (ROE, ROA 기준) - ✅ financial_ratios 우선
             profitability_score = 50
-            roe = float(fin.get('roe_val', 0) or basic_info.get('roe', 0) or 0)
-            roa = float(fin.get('roa_val', 0) or basic_info.get('roa', 0) or 0)
+            roe = self._to_float(fin.get('roe_val') or basic_info.get('roe'), 0)
+            roa = self._to_float(fin.get('roa_val') or basic_info.get('roa'), 0)
             
             if roe and roe > 0:
                 if roe > 15:
@@ -1236,8 +1269,8 @@ class MCPKISIntegration:
             
             # 안정성 점수 (부채비율, 유동비율 기준) - ✅ financial_ratios 우선
             stability_score = 50
-            debt_ratio = float(fin.get('debt_ratio', 0) or basic_info.get('debt_ratio', 0) or 0)
-            current_ratio = float(fin.get('current_ratio', 0) or basic_info.get('current_ratio', 0) or 0)
+            debt_ratio = self._to_float(fin.get('debt_ratio') or basic_info.get('debt_ratio'), 0)
+            current_ratio = min(self._to_float(fin.get('current_ratio') or basic_info.get('current_ratio'), 0), 10.0)  # ✅ 10 캡핑
             
             if debt_ratio > 0:  # ✅ 데이터가 있을 때만
                 if debt_ratio < 30:
@@ -1530,6 +1563,9 @@ class MCPKISIntegration:
                         logger.debug(f"📝 섹터 보정: {symbol} '{sector}' → '{corrected_sector}'")
                         sector = corrected_sector
                     
+                    # ✅ 섹터 표준화
+                    sector = self._normalize_sector(sector)
+                    
                     # 종목명 가져오기 (우선순위: current_price → stock → basic_info)
                     stock_name = current_price_data.get('hts_kor_isnm', '') or name
                     if not stock_name:
@@ -1613,21 +1649,32 @@ class MCPKISIntegration:
                 diversified_stocks = []
                 sector_count = {}
                 target_limit = min(limit, len(value_stocks))  # 실제 발견된 수와 목표 중 작은 값
-                max_per_sector = max(1, int(target_limit * 0.3))  # 섹터당 최대 30% (최소 1개)
                 
-                logger.info(f"📊 섹터 다양성 적용: 섹터당 최대 {max_per_sector}개 (30%), 목표: {target_limit}개")
+                # ✅ 섹터별 최대치 계산 함수
+                def get_sector_cap(sector: str, target: int) -> int:
+                    """금융만 30% 제한, 나머지는 50% 완화"""
+                    normalized = self._normalize_sector(sector)
+                    if '금융' in normalized or '은행' in normalized or '증권' in normalized:
+                        return max(1, int(target * 0.3))  # 금융 30%
+                    else:
+                        return max(1, int(target * 0.5))  # 기타 50%
+                
+                logger.info(f"📊 섹터 다양성 적용: 금융 최대 30%, 기타 최대 50%, 목표: {target_limit}개")
                 
                 # 2-pass 방식: 먼저 제한 내에서 채우고, 부족하면 추가
                 pass1_stocks = []
                 pass1_count = {}
                 
-                # Pass 1: 섹터 최대치 엄수
+                # Pass 1: 섹터 최대치 엄수 (✅ 섹터별 차등 적용)
                 for stock in value_stocks:
                     sector = stock['sector']
                     if sector not in pass1_count:
                         pass1_count[sector] = 0
                     
-                    if pass1_count[sector] < max_per_sector:
+                    # ✅ 섹터별 최대치 적용 (금융 30%, 기타 50%)
+                    sector_cap = get_sector_cap(sector, target_limit)
+                    
+                    if pass1_count[sector] < sector_cap:
                         pass1_stocks.append(stock)
                         pass1_count[sector] += 1
                 
@@ -1646,16 +1693,17 @@ class MCPKISIntegration:
                         
                         sector = stock['sector']
                         current_count = sector_count.get(sector, 0)
+                        sector_cap = get_sector_cap(sector, target_limit)  # ✅ 섹터별 최대치
                         
                         # 섹터 최대치 미달인 경우만 추가
-                        if current_count < max_per_sector:
+                        if current_count < sector_cap:
                             diversified_stocks.append(stock)
                             sector_count[sector] = current_count + 1
                             added += 1
-                            logger.debug(f"📊 Pass 2: {stock['name']} [{sector}] 추가 ({current_count+1}/{max_per_sector})")
+                            logger.debug(f"📊 Pass 2: {stock['name']} [{sector}] 추가 ({current_count+1}/{sector_cap})")
                     
                     if added > 0:
-                        logger.info(f"📊 Pass 2: {added}개 추가 (섹터 최대치 준수)")
+                        logger.info(f"📊 Pass 2: {added}개 추가 (섹터별 최대치 준수)")
                     else:
                         logger.warning(f"⚠️ Pass 2: 추가 불가 (모든 섹터가 최대치 도달)")
                 
@@ -1719,6 +1767,9 @@ class MCPKISIntegration:
         ✅ 균등 조정: 금융 편향 해소, 다양성 확보
         """
         try:
+            # ✅ 섹터 표준화
+            sector = self._normalize_sector(sector)
+            
             bonus = 0.0
             
             # ✅ 금융주: 보너스 축소 (편향 해소)
@@ -1784,3 +1835,9 @@ class MCPKISIntegration:
         with self._cache_lock:  # ✅ Lock으로 보호
             self.cache.clear()
         logger.info("KIS API 캐시 초기화 완료")
+    
+    def close(self):
+        """세션 종료 및 리소스 정리"""
+        if hasattr(self, 'session') and self.session:
+            self.session.close()
+            logger.info("KIS API 세션 종료 완료")

@@ -1375,10 +1375,10 @@ class MCPKISIntegration:
         try:
             if criteria is None:
                 criteria = {
-                    'per_max': 15.0,
-                    'pbr_max': 1.5,
-                    'roe_min': 10.0,
-                    'min_volume': 1000000  # 100만주 이상 (유동성 최소 기준)
+                    'per_max': 18.0,   # ✅ 15 → 18 완화 (더 많은 종목 발견)
+                    'pbr_max': 2.0,    # ✅ 1.5 → 2.0 완화
+                    'roe_min': 8.0,    # ✅ 10 → 8 완화
+                    'min_volume': 100000  # ✅ 100만 → 10만 완화 (유동성 기준)
                 }
             
             logger.info("MCP 진짜 가치주 발굴 시작...")
@@ -1572,31 +1572,56 @@ class MCPKISIntegration:
             # 점수순 정렬
             value_stocks.sort(key=lambda x: x['score'], reverse=True)
             
-            # ✅ 섹터 다양성 확보: 금융 최대 30% 제한
-            if len(value_stocks) > limit:
+            # ✅ 섹터 다양성 확보: 금융 최대 30% 제한 (항상 적용)
+            if len(value_stocks) >= 5:  # ✅ 5개 이상이면 다양성 적용
                 diversified_stocks = []
                 sector_count = {}
-                max_per_sector = int(limit * 0.3)  # 섹터당 최대 30%
+                target_limit = min(limit, len(value_stocks))  # 실제 발견된 수와 목표 중 작은 값
+                max_per_sector = max(1, int(target_limit * 0.3))  # 섹터당 최대 30% (최소 1개)
                 
-                logger.info(f"📊 섹터 다양성 적용: 섹터당 최대 {max_per_sector}개 (30%)")
+                logger.info(f"📊 섹터 다양성 적용: 섹터당 최대 {max_per_sector}개 (30%), 목표: {target_limit}개")
                 
+                # 2-pass 방식: 먼저 제한 내에서 채우고, 부족하면 추가
+                pass1_stocks = []
+                pass1_count = {}
+                
+                # Pass 1: 섹터 최대치 엄수
                 for stock in value_stocks:
-                    if len(diversified_stocks) >= limit:
-                        break
-                    
                     sector = stock['sector']
+                    if sector not in pass1_count:
+                        pass1_count[sector] = 0
                     
-                    # 섹터별 카운트
-                    if sector not in sector_count:
-                        sector_count[sector] = 0
+                    if pass1_count[sector] < max_per_sector:
+                        pass1_stocks.append(stock)
+                        pass1_count[sector] += 1
+                
+                diversified_stocks = pass1_stocks
+                sector_count = pass1_count.copy()
+                
+                # Pass 2: 목표 미달이면 남은 종목 추가 (✅ 최대치 미달 섹터 우선)
+                if len(diversified_stocks) < target_limit:
+                    remaining_stocks = [s for s in value_stocks if s not in diversified_stocks]
                     
-                    # 섹터 최대치 확인 (단, 전체 목표 미달이면 허용)
-                    if sector_count[sector] < max_per_sector:
-                        diversified_stocks.append(stock)
-                        sector_count[sector] += 1
-                    elif len(diversified_stocks) < limit * 0.8:  # 목표의 80% 미달이면 허용
-                        diversified_stocks.append(stock)
-                        sector_count[sector] += 1
+                    # ✅ 최대치에 도달한 섹터 제외하고 추가
+                    added = 0
+                    for stock in remaining_stocks:
+                        if len(diversified_stocks) >= target_limit:
+                            break
+                        
+                        sector = stock['sector']
+                        current_count = sector_count.get(sector, 0)
+                        
+                        # 섹터 최대치 미달인 경우만 추가
+                        if current_count < max_per_sector:
+                            diversified_stocks.append(stock)
+                            sector_count[sector] = current_count + 1
+                            added += 1
+                            logger.debug(f"📊 Pass 2: {stock['name']} [{sector}] 추가 ({current_count+1}/{max_per_sector})")
+                    
+                    if added > 0:
+                        logger.info(f"📊 Pass 2: {added}개 추가 (섹터 최대치 준수)")
+                    else:
+                        logger.warning(f"⚠️ Pass 2: 추가 불가 (모든 섹터가 최대치 도달)")
                 
                 # 섹터 분포 로깅
                 logger.info(f"📊 최종 섹터 분포: {dict(sector_count)}")

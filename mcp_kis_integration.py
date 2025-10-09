@@ -1572,8 +1572,38 @@ class MCPKISIntegration:
             # 점수순 정렬
             value_stocks.sort(key=lambda x: x['score'], reverse=True)
             
+            # ✅ 섹터 다양성 확보: 금융 최대 30% 제한
+            if len(value_stocks) > limit:
+                diversified_stocks = []
+                sector_count = {}
+                max_per_sector = int(limit * 0.3)  # 섹터당 최대 30%
+                
+                logger.info(f"📊 섹터 다양성 적용: 섹터당 최대 {max_per_sector}개 (30%)")
+                
+                for stock in value_stocks:
+                    if len(diversified_stocks) >= limit:
+                        break
+                    
+                    sector = stock['sector']
+                    
+                    # 섹터별 카운트
+                    if sector not in sector_count:
+                        sector_count[sector] = 0
+                    
+                    # 섹터 최대치 확인 (단, 전체 목표 미달이면 허용)
+                    if sector_count[sector] < max_per_sector:
+                        diversified_stocks.append(stock)
+                        sector_count[sector] += 1
+                    elif len(diversified_stocks) < limit * 0.8:  # 목표의 80% 미달이면 허용
+                        diversified_stocks.append(stock)
+                        sector_count[sector] += 1
+                
+                # 섹터 분포 로깅
+                logger.info(f"📊 최종 섹터 분포: {dict(sector_count)}")
+                value_stocks = diversified_stocks
+            
             logger.info(f"✅ MCP 가치주 발굴 완료: {len(value_stocks)}개 발굴 ({checked_count}개 분석)")
-            return value_stocks
+            return value_stocks[:limit]  # limit 적용
             
         except Exception as e:
             logger.error(f"가치주 발굴 실패: {e}")
@@ -1623,33 +1653,59 @@ class MCPKISIntegration:
             return 0.0
     
     def _get_sector_bonus(self, sector: str, per: float, pbr: float) -> float:
-        """섹터별 보너스 점수 (최대 10점)"""
+        """
+        섹터별 보너스 점수 (최대 10점)
+        ✅ 균등 조정: 금융 편향 해소, 다양성 확보
+        """
         try:
             bonus = 0.0
             
-            # 금융주: PBR이 더 중요
+            # ✅ 금융주: 보너스 축소 (편향 해소)
             if '금융' in sector or '은행' in sector or '증권' in sector or '보험' in sector:
-                if pbr < 0.7:
-                    bonus += 10
-                elif pbr < 1.0:
-                    bonus += 5
+                if pbr < 0.5:  # 기준 강화 (0.7 → 0.5)
+                    bonus += 5  # 축소 (10 → 5)
+                elif pbr < 0.8:  # 기준 완화 (1.0 → 0.8)
+                    bonus += 3  # 축소 (5 → 3)
             
-            # IT/바이오: ROE보다 성장성 중요 (PER 높아도 OK)
-            elif 'IT' in sector or '바이오' in sector or '제약' in sector:
-                if per < 25:
-                    bonus += 5
+            # ✅ IT/바이오: 보너스 증가 (성장주 중시)
+            elif 'IT' in sector or '바이오' in sector or '제약' in sector or '서비스' in sector:
+                if per < 20:  # 기준 강화 (25 → 20)
+                    bonus += 8  # 증가 (5 → 8)
+                elif per < 30:
+                    bonus += 4
             
-            # 제조업/전통산업: 안정성 중요
+            # ✅ 제조업: 보너스 유지
             elif '제조' in sector or '화학' in sector or '철강' in sector:
                 if per < 12 and pbr < 1.0:
-                    bonus += 10
+                    bonus += 8  # 약간 축소 (10 → 8)
                 elif per < 15:
                     bonus += 5
             
-            # 유틸리티(전력, 가스 등): 배당주 특성
+            # ✅ 유틸리티: 보너스 증가
             elif '전력' in sector or '가스' in sector or '에너지' in sector:
                 if pbr < 1.0:
                     bonus += 8
+                if per < 10:  # 추가 조건
+                    bonus += 3
+            
+            # ✅ 통신: 신규 추가
+            elif '통신' in sector:
+                if pbr < 1.0 and per < 15:
+                    bonus += 6
+            
+            # ✅ 운송/물류: 신규 추가
+            elif '운송' in sector or '물류' in sector or '창고' in sector:
+                if pbr < 1.0:
+                    bonus += 5
+                if per < 15:
+                    bonus += 3
+            
+            # ✅ 전기·전자: 신규 추가
+            elif '전기' in sector or '전자' in sector:
+                if pbr < 1.0:
+                    bonus += 6
+                if per < 12:
+                    bonus += 4
             
             return bonus
         except:

@@ -490,9 +490,9 @@ class ValueStockFinder:
         return lin(p75,p90,75.0,90.0,value)
 
     
-    def _percentile_or_range_score(self, value, percentiles, rng, higher_is_better, cap=25.0, percentile_cap=99.5):
+    def _percentile_or_range_score(self, value, percentiles, rng, higher_is_better, cap=20.0, percentile_cap=99.5):
         """
-        percentiles가 없으면 range 기반 정규화로 대체
+        ✅ percentiles가 없으면 range 기반 정규화로 대체 (캡 20점 - 총점 120 정합성)
         """
         if percentiles:
             pct = self._percentile_from_breakpoints(value, percentiles)
@@ -588,9 +588,10 @@ class ValueStockFinder:
         pbr_val = stock_data.get('pbr') or 0.0
         roe_val = stock_data.get('roe') or 0.0
 
-        per_raw = 0.0 if per_val <= 0 else self._percentile_or_range_score(per_val, per_percentiles, per_range, higher_is_better=False, percentile_cap=percentile_cap)
-        pbr_raw = self._percentile_or_range_score(pbr_val, pbr_percentiles, pbr_range, higher_is_better=False, percentile_cap=percentile_cap)
-        roe_raw = self._percentile_or_range_score(roe_val, roe_percentiles, roe_range, higher_is_better=True, percentile_cap=percentile_cap)
+        # ✅ 각 20점 캡 (총점 120 정합성: 60+25+35=120)
+        per_raw = 0.0 if per_val <= 0 else self._percentile_or_range_score(per_val, per_percentiles, per_range, higher_is_better=False, cap=20.0, percentile_cap=percentile_cap)
+        pbr_raw = self._percentile_or_range_score(pbr_val, pbr_percentiles, pbr_range, higher_is_better=False, cap=20.0, percentile_cap=percentile_cap)
+        roe_raw = self._percentile_or_range_score(roe_val, roe_percentiles, roe_range, higher_is_better=True, cap=20.0, percentile_cap=percentile_cap)
 
         raw_total = per_raw + pbr_raw + roe_raw
 
@@ -901,8 +902,8 @@ class ValueStockFinder:
         if not mos_list:
             return 0
         
-        # 보수적 접근: 두 경로의 평균 (또는 min으로 더 보수화 가능)
-        mos = sum(mos_list) / len(mos_list)
+        # ✅ 보수적 접근: 두 경로 중 더 작은 값 채택 (안전 우선)
+        mos = min(mos_list)
         
         # 0~100% 클리핑 후 점수화
         mos = max(0.0, min(mos, 1.0))
@@ -1076,19 +1077,17 @@ class ValueStockFinder:
             pbr_pass = pbr <= criteria['pbr_max'] if pbr > 0 else False
             roe_pass = roe >= criteria['roe_min'] if roe > 0 else False
             
-            # ✅ 하드가드: 적자(ROE<0) + 고PBR(>3) 조합은 무조건 SELL (사용자 권장)
+            # ✅ 추천 결정 로직 단순화 (MoS 반영, 총점 120점 기준)
             if roe < 0 and pbr > 3:
-                recommendation = "SELL"
-            # ✅ 업종 기준 완벽 충족 시 추천 강화 (3개 기준 모두 충족)
-            elif len(criteria_met) == 3 and score >= 60:
-                recommendation = "STRONG_BUY"  # 업종 기준 완벽하면 60점부터 강력매수
+                recommendation = "SELL"  # 하드가드: 적자 + 고PBR
+            elif len(criteria_met) == 3 and score >= 70:
+                recommendation = "STRONG_BUY"  # 업종 기준 완벽 + 70점 이상
+            elif score >= 75:
+                recommendation = "STRONG_BUY"  # 또는 총점 75점 이상
             elif len(criteria_met) == 3 and score >= 50:
-                recommendation = "BUY"  # 업종 기준 완벽하면 50점부터 매수
-            # 기존 추천 로직 (안전마진 기반)
-            elif score >= 70 and per_pass and pbr_pass:
-                recommendation = "STRONG_BUY"
-            elif score >= 60 and (per_pass or pbr_pass):
-                recommendation = "BUY"
+                recommendation = "BUY"  # 업종 기준 완벽 + 50점 이상
+            elif score >= 60:
+                recommendation = "BUY"  # 또는 총점 60점 이상
             elif score >= 50:
                 recommendation = "HOLD"
             else:
@@ -1894,7 +1893,8 @@ class ValueStockFinder:
                         'PER점수': f"{stock.get('per_score', 0):.1f}",
                         'PBR점수': f"{stock.get('pbr_score', 0):.1f}",
                         'ROE점수': f"{stock.get('roe_score', 0):.1f}",
-                        '마진점수': f"{stock.get('margin_score', 0):.1f}"
+                        'MoS점수': f"{stock.get('mos_score', 0):.1f}",  # ✅ MoS 점수
+                        '섹터보너스': f"+{stock.get('sector_bonus', 0):.0f}"  # ✅ 섹터 보너스
                     })
                 
                 df = pd.DataFrame(table_data)
@@ -1981,7 +1981,8 @@ class ValueStockFinder:
                     'PER점수': f"{stock.get('per_score', 0):.1f}",
                     'PBR점수': f"{stock.get('pbr_score', 0):.1f}",
                     'ROE점수': f"{stock.get('roe_score', 0):.1f}",
-                    '마진점수': f"{stock.get('margin_score', 0):.1f}",
+                    'MoS점수': f"{stock.get('mos_score', 0):.1f}",  # ✅ MoS 점수
+                    '섹터보너스': f"+{stock.get('sector_bonus', 0):.0f}",  # ✅ 섹터 보너스
                     '섹터조정': f"{stock.get('sector_adjustment', 1.0):.2f}x"
                 })
             
@@ -2200,11 +2201,12 @@ class ValueStockFinder:
                 with detail_col4:
                     if value_analysis['details']['intrinsic_value'] > 0:
                         st.info(f"""
-                        **안전마진 분석** (25점 만점)
+                        **안전마진(MoS) 분석** (35점 만점)
                         - 내재가치: {value_analysis['details']['intrinsic_value']:,.0f}원
-                        - 안전마진: {value_analysis['details']['safety_margin']:+.1f}%
-                        - 점수: {value_analysis['details']['margin_score']:.1f}점
-                        - 평가: {'매우 안전' if value_analysis['details']['safety_margin'] >= 30 else '안전' if value_analysis['details']['safety_margin'] >= 20 else '주의'}
+                        - 안전마진(참고): {value_analysis['details']['safety_margin']:+.1f}%
+                        - MoS 점수: {value_analysis['details'].get('mos_score', 0):.1f}점 / 35점
+                        - MoS 할인율: {value_analysis['details'].get('mos_raw', 0):.1f}%
+                        - 평가: {'매우 안전' if value_analysis['details'].get('mos_raw', 0) >= 30 else '안전' if value_analysis['details'].get('mos_raw', 0) >= 20 else '보통' if value_analysis['details'].get('mos_raw', 0) >= 10 else '주의'}
                         """)
                 
                 # 업종별 가치주 기준으로 최종 판단 (통일된 로직 사용)

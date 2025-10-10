@@ -665,10 +665,27 @@ class ValueStockFinder:
                 # analyzer 재호출 대신 primed 사용
                 fd = primed.get('financial_data') or {}
                 pd = primed.get('price_data') or {}
+                
+                # ✅ EPS/BPS 추출 및 실시간 PER/PBR 재계산
+                eps = fd.get('eps', 0) or 0
+                bps = fd.get('bps', 0) or 0
+                current_price = primed.get('current_price', 0) or 0
+                
+                if current_price > 0:
+                    per_realtime = (current_price / eps) if eps > 0 else 0
+                    pbr_realtime = (current_price / bps) if bps > 0 else 0
+                else:
+                    per_realtime = fd.get('per', 0) or 0
+                    pbr_realtime = fd.get('pbr', 0) or 0
+                
                 stock = {
                     'symbol': symbol, 'name': name,
-                    'current_price': primed['current_price'],
-                    'per': fd.get('per', 0), 'pbr': fd.get('pbr', 0), 'roe': fd.get('roe', 0),
+                    'current_price': current_price,
+                    'per': per_realtime,  # ✅ 실시간 재계산
+                    'pbr': pbr_realtime,  # ✅ 실시간 재계산
+                    'roe': fd.get('roe', 0),
+                    'eps': eps,  # ✅ 저장
+                    'bps': bps,  # ✅ 저장
                     'market_cap': primed.get('market_cap'),
                     'volume': pd.get('volume', 0), 'change': pd.get('price_change_rate', 0),
                     'sector': fd.get('sector', ''), 'sector_analysis': primed.get('sector_analysis', {}),
@@ -683,19 +700,36 @@ class ValueStockFinder:
                 result = self.analyzer.analyze_single_stock(symbol, name)
             
             if result.status.name == 'SUCCESS':
+                # ✅ EPS/BPS 추출 (PER/PBR 실시간 재계산용)
+                fd = result.financial_data if result.financial_data else {}
+                eps = fd.get('eps', 0) or 0
+                bps = fd.get('bps', 0) or 0
+                current_price = result.current_price or 0
+                
+                # ✅ 실시간 현재가로 PER/PBR 재계산 (크리티컬!)
+                if current_price > 0:
+                    per_realtime = (current_price / eps) if eps > 0 else 0
+                    pbr_realtime = (current_price / bps) if bps > 0 else 0
+                else:
+                    # 현재가 없으면 KIS API 값 사용
+                    per_realtime = fd.get('per', 0) or 0
+                    pbr_realtime = fd.get('pbr', 0) or 0
+                
                 stock = {
                     'symbol': symbol,
                     'name': name,
-                    'current_price': result.current_price,
-                    'per': result.financial_data.get('per', 0) if result.financial_data else 0,
-                    'pbr': result.financial_data.get('pbr', 0) if result.financial_data else 0,
-                    'roe': result.financial_data.get('roe', 0) if result.financial_data else 0,
+                    'current_price': current_price,
+                    'per': per_realtime,  # ✅ 실시간 재계산
+                    'pbr': pbr_realtime,  # ✅ 실시간 재계산
+                    'roe': fd.get('roe', 0) if fd else 0,
+                    'eps': eps,  # ✅ 저장
+                    'bps': bps,  # ✅ 저장
                     'market_cap': result.market_cap,
                     'volume': result.price_data.get('volume', 0) if result.price_data else 0,
                     'change': result.price_data.get('price_change_rate', 0) if result.price_data else 0,
-                    'sector': result.financial_data.get('sector') if result.financial_data else '',
+                    'sector': fd.get('sector') if fd else '',
                     'sector_analysis': getattr(result, 'sector_analysis', {}),
-                    'financial_data': result.financial_data
+                    'financial_data': fd
                 }
                 # ✅ 종목명 보정 통일 (사용자 권장 - 일관된 키 사용)
                 stock['name'] = stock.get('name') or stock.get('financial_data', {}).get('name') or symbol
@@ -805,6 +839,74 @@ class ValueStockFinder:
             hours = int(time_seconds/3600)
             minutes = int((time_seconds%3600)/60)
             return f"약 {hours}시간 {minutes}분"
+    
+    def _justified_multiples(self, per, pbr, roe, sector, payout_hint=None):
+        """✅ 정당 멀티플 계산 (Justified PER/PBR - CFA 교과서 방식)"""
+        # 1) 섹터별 요구수익률(r)과 유보율(b) 기본값
+        sector_r = {
+            "금융": 0.10, "금융업": 0.10,
+            "통신": 0.105, "통신업": 0.105,
+            "제조업": 0.115, "필수소비재": 0.11,
+            "운송": 0.12, "운송장비": 0.12,
+            "전기전자": 0.12, "IT": 0.125,
+            "건설": 0.12, "건설업": 0.12,
+            "기타": 0.115
+        }
+        sector_b = {
+            "금융": 0.40, "금융업": 0.40,
+            "통신": 0.55, "통신업": 0.55,
+            "제조업": 0.35, "필수소비재": 0.40,
+            "운송": 0.35, "운송장비": 0.35,
+            "전기전자": 0.35, "IT": 0.30,
+            "건설": 0.35, "건설업": 0.35,
+            "기타": 0.35
+        }
+        
+        r = sector_r.get(sector, 0.115)
+        b = (payout_hint if payout_hint is not None else sector_b.get(sector, 0.35))
+        
+        # 2) 지속성장률 g = ROE × b
+        roe_decimal = roe / 100.0 if roe > 0 else 0.0
+        g = max(0.0, roe_decimal * b)
+        
+        # 과열 체크: g >= r이면 비정상 가정
+        if g >= r or roe_decimal <= 0:
+            return None, None
+        
+        # 3) 정당 멀티플 계산
+        pb_star = (roe_decimal - g) / (r - g) if roe_decimal > 0 else None
+        pe_star = (1 - b) / (r - g) if (1 - b) > 0 else None
+        
+        return pb_star, pe_star
+    
+    def compute_mos_score(self, per, pbr, roe, sector):
+        """✅ 안전마진(MoS) 점수 계산 (0~100점)"""
+        pb_star, pe_star = self._justified_multiples(per, pbr, roe, sector)
+        
+        if pb_star is None and pe_star is None:
+            return 0
+        
+        mos_list = []
+        
+        # PBR 경로
+        if pb_star and pbr and pbr > 0:
+            mos_pb = max(0.0, pb_star / pbr - 1.0)
+            mos_list.append(mos_pb)
+        
+        # PER 경로
+        if pe_star and per and per > 0:
+            mos_pe = max(0.0, pe_star / per - 1.0)
+            mos_list.append(mos_pe)
+        
+        if not mos_list:
+            return 0
+        
+        # 보수적 접근: 두 경로의 평균 (또는 min으로 더 보수화 가능)
+        mos = sum(mos_list) / len(mos_list)
+        
+        # 0~100% 클리핑 후 점수화
+        mos = max(0.0, min(mos, 1.0))
+        return round(mos * 100)  # 0~100 점수
     
     def calculate_intrinsic_value(self, stock_data):
         """내재가치 계산 (섹터 타깃 PBR 기반, 가드 포함)"""
@@ -919,49 +1021,37 @@ class ValueStockFinder:
             details['sector_bonus'] = sector_bonus
             details['criteria_met'] = criteria_met
             
-            # 4. 안전마진 평가 (25점) - ✅ 기준 완화 (부정적 마진도 부분 점수)
+            # 4. ✅ 안전마진(MoS) 평가 (35점) - Justified Multiple 방식
+            sector_name = stock_data.get('sector_name', stock_data.get('sector', ''))
+            per = stock_data.get('per', 0)
+            pbr = stock_data.get('pbr', 0)
+            roe = stock_data.get('roe', 0)
+            
+            # Justified Multiple 기반 MoS 점수 (0~100점)
+            mos_raw_score = self.compute_mos_score(per, pbr, roe, sector_name)
+            # 35점 만점으로 스케일링
+            mos_score = round(mos_raw_score * 0.35)
+            
+            score += mos_score
+            details['mos_score'] = mos_score
+            details['mos_raw'] = mos_raw_score
+            
+            # 기존 내재가치도 참고용으로 보관
             intrinsic_data = self.calculate_intrinsic_value(stock_data)
             if intrinsic_data:
-                safety_margin = intrinsic_data['safety_margin']
-                sample_size = (stock_data.get('sector_stats') or {}).get('sample_size', 0) or 0
-                
-                # ✅ 안전마진 클립 (사용자 권장 - 상한/하한 모두)
-                safety_margin = max(-50.0, min(safety_margin, 50.0))  # [-50%, +50%] 범위
-                if sample_size < 10:
-                    safety_margin = min(safety_margin, 20.0)  # 소형 섹터는 상한 20%
-                
-                # ✅ 안전마진 점수 계산 완화 (부정적 마진도 일부 점수 부여)
-                if safety_margin >= 50:
-                    margin_score = 25
-                elif safety_margin >= 30:
-                    margin_score = 20
-                elif safety_margin >= 20:
-                    margin_score = 15
-                elif safety_margin >= 10:
-                    margin_score = 12
-                elif safety_margin >= 0:
-                    margin_score = 10  # 0% 이상이면 기본 10점
-                elif safety_margin >= -10:
-                    margin_score = 8   # -10% 이상이면 8점
-                elif safety_margin >= -20:
-                    margin_score = 6   # -20% 이상이면 6점
-                else:
-                    margin_score = 5   # 그 외는 최소 5점
-                
-                score += margin_score
-                details['margin_score'] = margin_score
-                details['safety_margin'] = safety_margin
+                details['safety_margin'] = intrinsic_data['safety_margin']
                 details['intrinsic_value'] = intrinsic_data['intrinsic_value']
                 details['confidence'] = intrinsic_data.get('confidence', 'UNKNOWN')
             else:
-                details['margin_score'] = 0
                 details['safety_margin'] = 0
                 details['intrinsic_value'] = 0
+                details['confidence'] = 'UNKNOWN'
             
-            # 등급 결정
-            if score >= 80:
+            # ✅ 등급 결정 (MoS 반영으로 점수 체계 변경)
+            # 총점 구성: PER/PBR/ROE(~60점) + 섹터보너스(최대25점) + MoS(35점) = 최대 120점
+            if score >= 90:
                 grade = "A+ (매우 우수)"
-            elif score >= 70:
+            elif score >= 75:
                 grade = "A (우수)"
             elif score >= 60:
                 grade = "B+ (양호)"

@@ -6,6 +6,7 @@ import pandas as pd
 import logging
 from datetime import datetime, timedelta
 from typing import Dict, Optional, List, Any
+from functools import lru_cache  # ✅ 중복 호출 방지용 캐시
 from kis_token_manager import KISTokenManager
 
 logger = logging.getLogger(__name__)
@@ -15,6 +16,9 @@ class KISDataProvider:
     
     # ✅ 클래스 레벨 종목명 캐시 (모든 인스턴스가 공유)
     _stock_name_cache: Optional[Dict[str, str]] = None
+    
+    # ✅ 가격 정보 캐시 카운터 (1분 단위 TTL)
+    _cache_bucket = 0
 
     def __init__(self, config_path: str = 'config.yaml'):
         self.token_manager = KISTokenManager(config_path)
@@ -550,8 +554,9 @@ class KISDataProvider:
         ]
         return fallback_stocks
     
-    def get_stock_price_info(self, symbol: str) -> Optional[Dict[str, Any]]:
-        """주식 현재가 및 주요 투자지표를 조회합니다."""
+    @lru_cache(maxsize=2048)
+    def _get_stock_price_info_cached(self, symbol: str, cache_bucket: int) -> Optional[Dict[str, Any]]:
+        """✅ 캐시된 가격 정보 조회 (1분 TTL - 중복 호출 방지)"""
         path = "/uapi/domestic-stock/v1/quotations/inquire-price"
         params = {"FID_COND_MRKT_DIV_CODE": "J", "FID_INPUT_ISCD": symbol}
         data = self._send_request(path, "FHKST01010100", params)
@@ -575,8 +580,8 @@ class KISDataProvider:
                 else:
                     stock_name = symbol  # 캐시 없으면 종목코드 사용
             
-            # 디버깅 로그 (처음 3개 종목만)
-            if symbol in ['005930', '000660', '035420']:  # 주요 종목들만 로그
+            # ✅ 디버깅 로그 제한 (중복 조회 시에는 로그 생략)
+            if symbol in ['005930', '000660', '035420'] and cache_bucket != KISDataProvider._cache_bucket:
                 logger.info(f"🔍 종목 {symbol}: 종목명='{stock_name}', 섹터명='{sector_name}'")
             
             # ✅ market_cap 상식 범위 체크 (크리티컬 - 단위 확정 가드)
@@ -623,6 +628,13 @@ class KISDataProvider:
                 'management_stock': output.get('mang_issu_cls_code', ''), # 관리종목여부
             }
         return None
+    
+    def get_stock_price_info(self, symbol: str) -> Optional[Dict[str, Any]]:
+        """✅ 주식 현재가 조회 (1분 캐시 - 중복 호출 방지)"""
+        # 1분 단위 버킷으로 TTL 효과
+        cache_bucket = int(time.time() // 60)
+        KISDataProvider._cache_bucket = cache_bucket
+        return self._get_stock_price_info_cached(symbol, cache_bucket)
 
     def get_daily_price_history(self, symbol: str, days: int = 252) -> pd.DataFrame:
         """지정한 기간 동안의 일봉 데이터를 조회합니다."""

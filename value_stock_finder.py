@@ -1158,7 +1158,7 @@ class ValueStockFinder:
             if stock_universe and api_success:
                 # 섹터 정보가 없으므로 여기서는 통계 갱신 생략
                 # 실제 섹터는 analyze_single_stock_parallel에서 확보됨
-                logger.info(f"캐시된 API에서 {len(stock_universe)}개 종목을 가져왔습니다(섹터 미포함).")
+                logger.info(f"캐시된 API에서 {len(stock_universe)}개 종목을 가져왔습니다 (섹터는 분석 단계에서 자동 보강).")
                 return stock_universe, True
             else:
                 logger.warning("캐시된 API에서 종목 리스트를 가져오지 못했습니다. 기본 종목을 사용합니다.")

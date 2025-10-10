@@ -2479,6 +2479,19 @@ class ValueStockFinder:
                     
                     # 상위 가치주
                     st.markdown("##### 🏆 상위 가치주 (점수순)")
+                    # ✅ MoS 점수 계산 (표시용)
+                    for stock in value_stocks[:30]:
+                        if 'mos_score' not in stock:
+                            # MCP 결과에 MoS 없으면 즉시 계산
+                            mos_raw = self.compute_mos_score(
+                                stock.get('per', 0),
+                                stock.get('pbr', 0),
+                                stock.get('roe', 0),
+                                stock.get('sector', '')
+                            )
+                            stock['mos_score'] = round(mos_raw * 0.35)
+                            stock['mos_raw'] = mos_raw
+                    
                     df = pd.DataFrame([
                         {
                             '순위': idx + 1,
@@ -2492,8 +2505,8 @@ class ValueStockFinder:
                             '거래량': f"{stock['volume']:,}",
                             '등락률': f"{stock['change_rate']:+.2f}%",
                             '점수': f"{stock['score']:.1f}",
-                            '비중': f"{stock.get('proposed_weight', 0)*100:.1f}%",  # ✅ 신규!
-                            '모멘텀': stock.get('momentum_period', '-'),  # ✅ 신규!
+                            '비중': f"{stock.get('proposed_weight', 0)*100:.1f}%",
+                            'MoS': f"{stock.get('mos_raw', 0):.1f}%",  # ✅ MoS 할인율!
                             '시가총액': f"{stock.get('market_cap', 0)/1e8:,.0f}억"
                         }
                         for idx, stock in enumerate(value_stocks[:30])

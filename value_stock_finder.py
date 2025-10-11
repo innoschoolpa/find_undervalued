@@ -215,6 +215,39 @@ class ValueStockFinder:
     """저평가 가치주 발굴 시스템"""
     
     # UI 업데이트 상수 (동적 디바운스)
+    def _safe_progress(self, progress_bar, progress, text):
+        """✅ Streamlit 버전 호환 progress (1.27+ text 인자)"""
+        try:
+            progress_bar.progress(progress, text=text)
+        except TypeError:
+            # Streamlit < 1.27은 text 인자 미지원
+            progress_bar.progress(progress)
+    
+    def _fmt_prog(self, done, total):
+        """✅ 진행률 텍스트 포맷터"""
+        pct = (done / total) * 100 if total else 0
+        return f"{done}/{total} • {pct:.1f}%"
+    
+    def _maybe_update(self, ui_slot, txt, last_ts, interval):
+        """✅ 디바운스된 UI 업데이트 (깜빡임 완화)"""
+        now = time.time()
+        if now - last_ts > interval:
+            ui_slot.text(txt)
+            return now
+        return last_ts
+    
+    def _fmt_currency(self, x):
+        """✅ 통화 포맷터"""
+        return f"{x:,.0f}원" if isinstance(x, (int, float)) and x > 0 else "N/A"
+    
+    def _fmt_multiple(self, x, nd=1):
+        """✅ 배수 포맷터 (PER, PBR 등)"""
+        return f"{x:.{nd}f}배" if x and x > 0 else "N/A"
+    
+    def _fmt_pct(self, x, nd=1):
+        """✅ 퍼센트 포맷터"""
+        return f"{x:.{nd}f}%" if isinstance(x, (int, float)) else "N/A"
+    
     def _get_ui_update_interval(self, total_items):
         """대용량 처리 시 UI 업데이트 간격 조정"""
         if total_items > 150:
@@ -233,11 +266,21 @@ class ValueStockFinder:
     
     def __init__(self):
         # KIS OAuth 매니저 초기화 (config.yaml에서 설정 로드)
-        import yaml
+        # ✅ PyYAML 미설치시 ImportError 방지
         try:
-            with open('config.yaml', 'r', encoding='utf-8') as f:
-                config = yaml.safe_load(f)
-                kis_config = config.get('kis_api', {})
+            import yaml
+        except ImportError:
+            yaml = None
+            logger.warning("⚠️ PyYAML 미설치 — config.yaml을 읽을 수 없습니다. `pip install PyYAML` 권장")
+        
+        kis_config = {}
+        try:
+            if yaml is not None and os.path.exists('config.yaml'):
+                with open('config.yaml', 'r', encoding='utf-8') as f:
+                    config = yaml.safe_load(f)
+                    kis_config = config.get('kis_api', {}) or {}
+            else:
+                logger.warning("PyYAML 미설치 또는 config.yaml 없음 — KIS 설정은 빈값으로 진행합니다.")
         except Exception as e:
             logger.warning(f"config.yaml 로드 실패: {e}")
             kis_config = {}
@@ -296,7 +339,13 @@ class ValueStockFinder:
                 """토큰 발급 및 캐시 저장"""
                 import json
                 import time
-                import requests
+                
+                # ✅ requests 의존성 안전 처리
+                try:
+                    import requests
+                except ImportError:
+                    logger.error("❌ requests 패키지가 없습니다. `pip install requests` 후 다시 시도하세요.")
+                    return None
                 
                 try:
                     # KIS REST 토큰 발급 API 호출
@@ -397,8 +446,18 @@ class ValueStockFinder:
         self._analyzer = None
         self._last_api_success = False  # API 성공 여부 추적
         
-        # API 호출 한도 관리 (초당 2.5회, 최대 12개 토큰) - 성능 향상
-        self.rate_limiter = TokenBucket(rate_per_sec=2.5, capacity=12)
+        # API 호출 한도 관리 (환경 변수 기반 제어)
+        # - KIS_MAX_TPS: 초당 요청 수 (float, 기본 2.5)
+        # - TOKEN_BUCKET_CAP: 버킷 용량 (int, 기본 12)
+        try:
+            _rate = float(os.environ.get("KIS_MAX_TPS", "2.5"))
+        except Exception:
+            _rate = 2.5
+        try:
+            _cap = int(os.environ.get("TOKEN_BUCKET_CAP", "12"))
+        except Exception:
+            _cap = 12
+        self.rate_limiter = TokenBucket(rate_per_sec=max(0.5, _rate), capacity=max(1, _cap))
         
         # 스레드 안전성을 위한 락 (부분 동시성 허용)
         self._analyzer_sem = threading.BoundedSemaphore(3)  # 최대 3개 동시 분석
@@ -1431,9 +1490,16 @@ class ValueStockFinder:
         dev_exp = st.sidebar.expander("🔧 개발자 도구")
         with dev_exp:
             if st.button("캐시 클리어", help="모든 캐시를 클리어하여 재계산합니다", key="cache_clear_button"):
-                st.cache_data.clear()
-                st.cache_resource.clear()
-                st.success("캐시가 클리어되었습니다!")
+                # ✅ 캐시 클리어 안전 처리
+                try:
+                    st.cache_data.clear()
+                except Exception as e:
+                    logger.warning(f"cache_data 클리어 실패: {e}")
+                try:
+                    st.cache_resource.clear()
+                except Exception as e:
+                    logger.warning(f"cache_resource 클리어 실패: {e}")
+                st.success("캐시가 클리어되었습니다! 새로 고침합니다.")
                 st.rerun()
         
         # 업종별 기준 정보 표시
@@ -1461,7 +1527,9 @@ class ValueStockFinder:
             'roe_min': roe_min,
             'score_min': score_min,
             'fast_latency': fast_latency,
-            'percentile_cap': percentile_cap
+            'percentile_cap': percentile_cap,
+            # ✅ 빠른 모드 플래그 (토큰버킷 타임아웃 계산에 사용)
+            'fast_mode': (api_strategy == "빠른 모드 (병렬 처리)")
         }
     
     def get_stock_universe_from_api(self, max_count: int = 250):
@@ -1647,12 +1715,12 @@ class ValueStockFinder:
             try:
                 try:
                     with concurrent.futures.ThreadPoolExecutor(max_workers=6) as ex:
-                        futs = []
                         items = list(stock_universe.items())
-                        for code, name in items[:max_count * 2]:  # 과도 프리페치 방지
-                            futs.append(ex.submit(self._is_tradeable, code, name))
-                            
-                        for ((code, name), fut) in zip(items, futs):
+                        # ✅ 커버리지 명확화: 앞에서부터 max_count*2개만 검사
+                        prefetch = items[:max_count * 2]  # 과도 프리페치 방지
+                        futs = [ex.submit(self._is_tradeable, code, name) for code, name in prefetch]
+                        
+                        for ((code, name), fut) in zip(prefetch, futs):
                             ok, primed_data = fut.result()
                             if ok: 
                                 filtered[code] = name
@@ -1863,8 +1931,8 @@ class ValueStockFinder:
                 # 진행률 업데이트
                 completed_count = batch_end
                 progress = completed_count / len(stock_items)
-                # ✅ 진행률 텍스트 합치기 (rerender 최적화)
-                progress_bar.progress(progress, text=f"{completed_count}/{len(stock_items)} • {progress*100:.1f}%")
+                # ✅ 진행률 텍스트 합치기 (rerender 최적화) + 버전 호환
+                self._safe_progress(progress_bar, progress, f"{completed_count}/{len(stock_items)} • {progress*100:.1f}%")
                 
                 current_time = time.time()
                 if current_time - last_ui_update > self._get_ui_update_interval(len(stock_items)):
@@ -1895,12 +1963,13 @@ class ValueStockFinder:
             # ✅ 워커 수 보수적 조정: 토큰버킷이 유일한 속도 조절자
             import os
             cpu_count = os.cpu_count() or 4
-            # rate를 기준으로 하되 최소 1개는 보장 (단, 8개 초과 금지)
-            soft_cap = int(self.rate_limiter.rate)  # e.g. 2.5 → 2
-            max_workers = max(1, min(8, max(soft_cap, 4), len(stock_universe)))
+            # ✅ 워커 수 산정: 레이트리미터·데이터 규모·CPU 균형
+            soft_cap = max(1, int(self.rate_limiter.rate))  # e.g., 2.5 → 2
+            # 기본: min(데이터, CPU*2, 8) 를 상한으로, 하한 4 보장
+            max_workers = max(1, min(8, max(4, soft_cap), len(stock_items), cpu_count * 2))
             
             # ✅ 대규모(>150) 처리 시 워커 상한 추가 (Windows 스레드 컨텍스트 스위칭 최적화)
-            if len(stock_universe) > 150:
+            if len(stock_items) > 150:
                 max_workers = min(max_workers, 6)
             
             status_text.text(f"⚡ 빠른 모드 시작: {len(stock_universe)}개 종목, {max_workers}개 워커")
@@ -1930,8 +1999,8 @@ class ValueStockFinder:
                     
                     completed_count += 1
                     progress = completed_count / len(stock_items)
-                    # ✅ 진행률 텍스트 합치기 (rerender 최적화)
-                    progress_bar.progress(progress, text=f"{completed_count}/{len(stock_items)} • {progress*100:.1f}%")
+                    # ✅ 진행률 텍스트 합치기 (rerender 최적화) + 버전 호환
+                    self._safe_progress(progress_bar, progress, f"{completed_count}/{len(stock_items)} • {progress*100:.1f}%")
                     current_time = time.time()
                     if current_time - last_ui_update > self._get_ui_update_interval(len(stock_items)):
                         status_text.text(f"📊 분석 진행: {completed_count}/{len(stock_items)} 완료 ({progress*100:.1f}%)")
@@ -1964,8 +2033,8 @@ class ValueStockFinder:
                 
                 # 진행률 업데이트
                 progress = (i + 1) / len(stock_items)
-                # ✅ 진행률 텍스트 합치기 (rerender 최적화)
-                progress_bar.progress(progress, text=f"{i+1}/{len(stock_items)} • {progress*100:.1f}%")
+                # ✅ 진행률 텍스트 합치기 (rerender 최적화) + 버전 호환
+                self._safe_progress(progress_bar, progress, f"{i+1}/{len(stock_items)} • {progress*100:.1f}%")
                 
                 current_time = time.time()
                 if current_time - last_ui_update > self._get_ui_update_interval(len(stock_items)):
@@ -2305,6 +2374,7 @@ class ValueStockFinder:
         name = stock_options[selected_symbol]
         
         # 데이터 조회
+        stock_data = None  # ✅ 예외 시 UnboundLocalError 방지
         with st.spinner(f"{name} 가치주 분석 중..."):
             stock_data = self.get_stock_data(selected_symbol, name)
             if stock_data:
@@ -2475,8 +2545,8 @@ class ValueStockFinder:
                         **안전마진(MoS) 분석** (35점 만점)
                         - 내재가치: {value_analysis['details']['intrinsic_value']:,.0f}원
                         - 안전마진(참고): {value_analysis['details']['safety_margin']:+.1f}%
-                        - MoS 점수: {value_analysis['details'].get('mos_score', 0):.1f}점 / 35점
-                        - MoS 할인율: {value_analysis['details'].get('mos_raw', 0):.1f}%
+                        - MoS 점수(0~35): {value_analysis['details'].get('mos_score', 0):.1f}점
+                        - MoS 원점수(0~100): {value_analysis['details'].get('mos_raw', 0):.1f}%
                         - 평가: {'매우 안전' if value_analysis['details'].get('mos_raw', 0) >= 30 else '안전' if value_analysis['details'].get('mos_raw', 0) >= 20 else '보통' if value_analysis['details'].get('mos_raw', 0) >= 10 else '주의'}
                         """)
                 

@@ -74,6 +74,12 @@ def _get_mcp_integration():
     logger.info("✅ MCP 통합 모듈 초기화 (최초 1회만)")
     return MCPKISIntegration(oauth_manager=None)
 
+@st.cache_resource
+def _get_value_stock_finder():
+    """ValueStockFinder 인스턴스 캐시 (최초 1회만 생성, OAuth 토큰 24시간 재사용)"""
+    logger.info("✅ ValueStockFinder 초기화 (최초 1회만, OAuth 토큰 24시간 재사용)")
+    return ValueStockFinder()
+
 @st.cache_data(ttl=300)  # 5분 TTL
 def _cached_universe_from_api(max_count: int):
     """유니버스 API 캐시 (재실행 비용 절감)"""
@@ -2514,12 +2520,11 @@ class ValueStockFinder:
                     
                     st.dataframe(df, use_container_width=True, height=600)
                     
-                    # CSV 다운로드
-                    csv = df.to_csv(index=False, encoding='utf-8-sig')
+                    # CSV 다운로드 (다른 탭과 동일한 방식으로 통일)
                     st.download_button(
-                        label="📥 CSV 다운로드",
-                        data=csv,
-                        file_name=f"mcp_value_stocks_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
+                        label="📥 MCP 가치주 CSV 다운로드",
+                        data=df.to_csv(index=False).encode("utf-8-sig"),
+                        file_name=f"mcp_value_stocks_{datetime.now().strftime('%Y%m%d_%H%M')}.csv",
                         mime="text/csv"
                     )
                     
@@ -2733,7 +2738,8 @@ class ValueStockFinder:
 def main():
     """메인 실행 함수"""
     try:
-        finder = ValueStockFinder()
+        # ✅ 캐시된 인스턴스 재사용 (OAuth 토큰 24시간 재사용 보장)
+        finder = _get_value_stock_finder()
         finder.run()
     except Exception as e:
         st.error(f"시스템 실행 중 오류가 발생했습니다: {e}")

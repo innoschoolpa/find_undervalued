@@ -1,0 +1,351 @@
+"""
+DART API를 사용한 재무정보 조회 및 시가총액 상위 종목 추출
+"""
+
+import requests
+import time
+import logging
+from typing import List, Dict, Any, Optional
+import yaml
+import json
+from datetime import datetime, timedelta
+import xml.etree.ElementTree as ET
+
+logger = logging.getLogger(__name__)
+
+class DartDataProvider:
+    """DART API를 사용한 재무정보 조회 클래스"""
+    
+    def __init__(self, config_path: str = "config.yaml"):
+        """DART API 초기화"""
+        self.config = self._load_config(config_path)
+        self.api_key = self._get_dart_api_key()
+        self.base_url = 'https://opendart.fss.or.kr/api'
+        self.timeout = 12
+        
+        if not self.api_key:
+            logger.warning("DART API 키가 설정되지 않았습니다. config.yaml을 확인하세요.")
+            # API 키가 없어도 초기화는 진행 (테스트용)
+        
+        self.session = requests.Session()
+        self.session.headers.update({
+            'User-Agent': 'DART-API-Client/1.0',
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        })
+        
+        self.last_request_time = 0
+        self.request_interval = 0.1  # DART API는 초당 10회 제한
+        
+        logger.info(f"🔍 DART API 초기화 완료: {self.base_url}")
+    
+    def _load_config(self, config_path: str) -> Dict[str, Any]:
+        """설정 파일 로드 (재귀 오류 방지)"""
+        try:
+            with open(config_path, 'r', encoding='utf-8') as f:
+                config = yaml.safe_load(f)
+                if config is None:
+                    logger.warning("설정 파일이 비어있습니다.")
+                    return {}
+                return config
+        except yaml.YAMLError as e:
+            logger.error(f"YAML 파싱 오류: {e}")
+            return {}
+        except FileNotFoundError:
+            logger.error(f"설정 파일을 찾을 수 없습니다: {config_path}")
+            return {}
+        except Exception as e:
+            logger.error(f"설정 파일 로드 실패: {e}")
+            return {}
+    
+    def _get_dart_api_key(self) -> Optional[str]:
+        """DART API 키 추출 (안전한 방식)"""
+        try:
+            if not self.config:
+                return None
+            
+            # 여러 경로에서 API 키 찾기
+            api_key = None
+            
+            # 경로 1: api.dart.api_key
+            if 'api' in self.config and 'dart' in self.config['api']:
+                api_key = self.config['api']['dart'].get('api_key')
+            
+            # 경로 2: 직접 dart 키
+            if not api_key and 'dart' in self.config:
+                api_key = self.config['dart'].get('api_key')
+            
+            return api_key
+            
+        except Exception as e:
+            logger.error(f"DART API 키 추출 실패: {e}")
+            return None
+    
+    def _rate_limit(self):
+        """API 요청 속도 제어"""
+        elapsed_time = time.time() - self.last_request_time
+        if elapsed_time < self.request_interval:
+            time.sleep(self.request_interval - elapsed_time)
+        self.last_request_time = time.time()
+    
+    def _send_request(self, endpoint: str, params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """DART API 요청 전송"""
+        self._rate_limit()
+        
+        url = f"{self.base_url}/{endpoint}"
+        params['crtfc_key'] = self.api_key
+        
+        try:
+            response = self.session.get(url, params=params, timeout=self.timeout)
+            response.raise_for_status()
+            
+            # DART API는 XML 응답을 주로 사용
+            if response.headers.get('content-type', '').startswith('application/xml'):
+                return self._parse_xml_response(response.text)
+            else:
+                return response.json()
+                
+        except requests.exceptions.RequestException as e:
+            logger.error(f"DART API 요청 실패: {e}")
+            return None
+        except Exception as e:
+            logger.error(f"DART API 응답 처리 실패: {e}")
+            return None
+    
+    def _parse_xml_response(self, xml_text: str) -> Dict[str, Any]:
+        """XML 응답 파싱"""
+        try:
+            root = ET.fromstring(xml_text)
+            result = {}
+            
+            for child in root:
+                if child.text:
+                    result[child.tag] = child.text
+                else:
+                    result[child.tag] = self._parse_xml_response(ET.tostring(child, encoding='unicode'))
+            
+            return result
+        except Exception as e:
+            logger.error(f"XML 파싱 실패: {e}")
+            return {}
+    
+    def get_corp_code_list(self) -> List[Dict[str, str]]:
+        """기업 고유번호 목록 조회"""
+        logger.info("🔍 DART에서 기업 고유번호 목록 조회 중...")
+        
+        params = {}
+        data = self._send_request("corpCode.xml", params)
+        
+        if not data:
+            logger.error("기업 고유번호 목록 조회 실패")
+            return []
+        
+        # XML 응답에서 기업 정보 추출
+        corps = []
+        try:
+            root = ET.fromstring(data.get('response', ''))
+            for corp in root.findall('list'):
+                corp_info = {
+                    'corp_code': corp.find('corp_code').text if corp.find('corp_code') is not None else '',
+                    'corp_name': corp.find('corp_name').text if corp.find('corp_name') is not None else '',
+                    'stock_code': corp.find('stock_code').text if corp.find('stock_code') is not None else '',
+                    'modify_date': corp.find('modify_date').text if corp.find('modify_date') is not None else ''
+                }
+                # 주식코드가 있는 기업만 포함 (상장기업)
+                if corp_info['stock_code'] and corp_info['stock_code'] != '':
+                    corps.append(corp_info)
+        except Exception as e:
+            logger.error(f"기업 고유번호 파싱 실패: {e}")
+            return []
+        
+        logger.info(f"✅ {len(corps)}개 상장기업 정보 수집 완료")
+        return corps
+    
+    def get_financial_statements(self, corp_code: str, year: int = None, quarter: int = None) -> Optional[Dict[str, Any]]:
+        """재무제표 조회"""
+        if year is None:
+            year = datetime.now().year - 1  # 작년 연간보고서
+        
+        params = {
+            'corp_code': corp_code,
+            'bsns_year': str(year),
+            'reprt_code': '11011'  # 연간보고서
+        }
+        
+        if quarter:
+            params['reprt_code'] = f'1{quarter:02d}11'  # 분기보고서
+        
+        data = self._send_request("fnlttSinglAcnt.json", params)
+        
+        if not data or data.get('status') != '000':
+            logger.debug(f"재무제표 조회 실패: {corp_code}")
+            return None
+        
+        return data
+    
+    def get_share_capital_info(self, corp_code: str) -> Optional[Dict[str, Any]]:
+        """자본금 정보 조회"""
+        params = {
+            'corp_code': corp_code
+        }
+        
+        data = self._send_request("fnlttSinglAcnt.json", params)
+        
+        if not data or data.get('status') != '000':
+            return None
+        
+        # 자본금 관련 정보 추출
+        capital_info = {}
+        for item in data.get('list', []):
+            if item.get('account_nm') in ['자본금', '납입자본금', '발행주식총수']:
+                capital_info[item.get('account_nm')] = {
+                    'thstrm_amount': item.get('thstrm_amount', '0'),
+                    'frmtrm_amount': item.get('frmtrm_amount', '0')
+                }
+        
+        return capital_info
+    
+    def calculate_market_cap(self, stock_code: str, current_price: float) -> Optional[float]:
+        """시가총액 계산"""
+        # 기업 고유번호 조회
+        corps = self.get_corp_code_list()
+        corp_code = None
+        
+        for corp in corps:
+            if corp['stock_code'] == stock_code:
+                corp_code = corp['corp_code']
+                break
+        
+        if not corp_code:
+            logger.debug(f"기업 고유번호를 찾을 수 없음: {stock_code}")
+            return None
+        
+        # 자본금 정보 조회
+        capital_info = self.get_share_capital_info(corp_code)
+        if not capital_info:
+            logger.debug(f"자본금 정보를 찾을 수 없음: {stock_code}")
+            return None
+        
+        # 발행주식수 추출
+        issued_shares = None
+        for account_name, info in capital_info.items():
+            if '발행주식' in account_name or '자본금' in account_name:
+                try:
+                    # 자본금을 액면가로 나누어 발행주식수 계산
+                    capital = float(info['thstrm_amount'].replace(',', ''))
+                    if capital > 0:
+                        # 일반적인 액면가 500원 기준으로 계산
+                        issued_shares = capital / 500
+                        break
+                except (ValueError, ZeroDivisionError):
+                    continue
+        
+        if not issued_shares:
+            logger.debug(f"발행주식수를 계산할 수 없음: {stock_code}")
+            return None
+        
+        # 시가총액 계산
+        market_cap = issued_shares * current_price
+        logger.debug(f"시가총액 계산: {stock_code} = {issued_shares:,.0f}주 × {current_price:,.0f}원 = {market_cap:,.0f}원")
+        
+        return market_cap
+    
+    def get_top_stocks_by_market_cap(self, max_count: int = 250, current_prices: Dict[str, float] = None) -> List[Dict[str, Any]]:
+        """시가총액 상위 종목 조회"""
+        logger.info(f"🔍 DART API로 시가총액 상위 {max_count}개 종목 조회 시작")
+        
+        # 기업 고유번호 목록 조회
+        corps = self.get_corp_code_list()
+        if not corps:
+            logger.error("기업 고유번호 목록 조회 실패")
+            return []
+        
+        # KOSPI/KOSDAQ 종목만 필터링 (6자리 숫자 코드)
+        listed_corps = []
+        for corp in corps:
+            stock_code = corp['stock_code']
+            if stock_code and len(stock_code) == 6 and stock_code.isdigit():
+                listed_corps.append(corp)
+        
+        logger.info(f"🔍 {len(listed_corps)}개 상장종목 중 시가총액 계산 중...")
+        
+        # 시가총액 계산
+        market_caps = []
+        successful_count = 0
+        
+        for i, corp in enumerate(listed_corps):
+            if successful_count >= max_count * 2:  # 여유분 확보
+                break
+            
+            stock_code = corp['stock_code']
+            corp_name = corp['corp_name']
+            
+            # 현재가 조회 (KIS API 또는 외부 소스 사용)
+            if current_prices and stock_code in current_prices:
+                current_price = current_prices[stock_code]
+            else:
+                # 여기서는 KIS API를 사용하거나 기본값 사용
+                current_price = 10000  # 기본값 (실제로는 KIS API에서 조회)
+            
+            # 시가총액 계산
+            market_cap = self.calculate_market_cap(stock_code, current_price)
+            
+            if market_cap and market_cap > 0:
+                market_caps.append({
+                    'code': stock_code,
+                    'name': corp_name,
+                    'market_cap': market_cap,
+                    'current_price': current_price,
+                    'corp_code': corp['corp_code']
+                })
+                successful_count += 1
+            
+            # 진행률 표시
+            if (i + 1) % 100 == 0:
+                logger.info(f"🔍 진행률: {i + 1}/{len(listed_corps)}, 성공: {successful_count}")
+        
+        # 시가총액 순으로 정렬
+        market_caps.sort(key=lambda x: x['market_cap'], reverse=True)
+        
+        # 상위 N개 반환
+        top_stocks = market_caps[:max_count]
+        
+        logger.info(f"✅ DART API로 시가총액 상위 {len(top_stocks)}개 종목 조회 완료")
+        
+        return top_stocks
+    
+    def get_financial_ratios(self, corp_code: str) -> Optional[Dict[str, float]]:
+        """재무비율 조회"""
+        # 재무제표 조회
+        financial_data = self.get_financial_statements(corp_code)
+        if not financial_data:
+            return None
+        
+        # 재무비율 계산
+        ratios = {}
+        
+        # PER, PBR, ROE 등 계산 로직 구현
+        # 실제 구현에서는 재무제표 데이터를 파싱하여 계산
+        
+        return ratios
+
+def main():
+    """테스트 함수"""
+    try:
+        dart_provider = DartDataProvider()
+        
+        # 기업 고유번호 목록 조회 테스트
+        corps = dart_provider.get_corp_code_list()
+        print(f"상장기업 수: {len(corps)}")
+        
+        # 상위 10개 종목 조회 테스트
+        top_stocks = dart_provider.get_top_stocks_by_market_cap(10)
+        print(f"상위 10개 종목:")
+        for stock in top_stocks:
+            print(f"  {stock['code']}: {stock['name']} - {stock['market_cap']:,.0f}원")
+            
+    except Exception as e:
+        logger.error(f"DART API 테스트 실패: {e}")
+
+if __name__ == "__main__":
+    main()

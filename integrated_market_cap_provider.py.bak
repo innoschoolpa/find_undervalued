@@ -1,0 +1,252 @@
+"""
+KIS API + DART API 통합 시가총액 상위 종목 조회 시스템
+"""
+
+import logging
+from typing import List, Dict, Any, Optional
+import time
+from datetime import datetime
+
+from kis_data_provider import KISDataProvider
+from dart_data_provider import DartDataProvider
+
+logger = logging.getLogger(__name__)
+
+class IntegratedMarketCapProvider:
+    """KIS API와 DART API를 통합한 시가총액 상위 종목 조회 클래스"""
+    
+    def __init__(self, config_path: str = "config.yaml"):
+        """통합 데이터 제공자 초기화"""
+        try:
+            self.kis_provider = KISDataProvider(config_path)
+            logger.info("✅ KIS API 초기화 완료")
+        except Exception as e:
+            logger.error(f"KIS API 초기화 실패: {e}")
+            self.kis_provider = None
+        
+        try:
+            self.dart_provider = DartDataProvider(config_path)
+            logger.info("✅ DART API 초기화 완료")
+        except Exception as e:
+            logger.error(f"DART API 초기화 실패: {e}")
+            self.dart_provider = None
+        
+        logger.info("🔍 통합 시가총액 조회 시스템 초기화 완료")
+    
+    def get_top_stocks_by_market_cap(self, max_count: int = 250) -> List[Dict[str, Any]]:
+        """시가총액 상위 종목 조회 (통합 방식)"""
+        logger.info(f"🔍 통합 방식으로 시가총액 상위 {max_count}개 종목 조회 시작")
+        
+        try:
+            # DART API가 없으면 KIS API만 사용
+            if not self.dart_provider:
+                logger.warning("DART API를 사용할 수 없음. KIS API만 사용")
+                return self._get_top_stocks_kis_only(max_count)
+            
+            # KIS API가 없으면 DART API만 사용
+            if not self.kis_provider:
+                logger.warning("KIS API를 사용할 수 없음. DART API만 사용")
+                return self._get_top_stocks_dart_only(max_count)
+            
+            # 1단계: KIS API로 현재가 정보 수집
+            logger.info("📊 1단계: KIS API로 현재가 정보 수집")
+            current_prices = self._get_current_prices_from_kis(max_count * 2)
+            
+            if not current_prices:
+                logger.warning("KIS API에서 현재가 정보를 가져올 수 없음. DART API만 사용")
+                return self._get_top_stocks_dart_only(max_count)
+            
+            # 2단계: DART API로 시가총액 계산
+            logger.info("📊 2단계: DART API로 시가총액 계산")
+            top_stocks = self.dart_provider.get_top_stocks_by_market_cap(max_count, current_prices)
+            
+            if not top_stocks:
+                logger.warning("DART API에서 시가총액 정보를 가져올 수 없음. KIS API만 사용")
+                return self._get_top_stocks_kis_only(max_count)
+            
+            # 3단계: 데이터 통합 및 검증
+            logger.info("📊 3단계: 데이터 통합 및 검증")
+            integrated_stocks = self._integrate_and_validate_data(top_stocks, current_prices)
+            
+            # 4단계: 시가총액 순으로 정렬
+            integrated_stocks.sort(key=lambda x: x.get('market_cap', 0), reverse=True)
+            
+            # 상위 N개 반환
+            final_stocks = integrated_stocks[:max_count]
+            
+            logger.info(f"✅ 통합 방식으로 시가총액 상위 {len(final_stocks)}개 종목 조회 완료")
+            
+            return final_stocks
+            
+        except Exception as e:
+            logger.error(f"통합 시가총액 조회 실패: {e}")
+            # 폴백: KIS API만 사용
+            return self._get_top_stocks_kis_only(max_count)
+    
+    def _get_current_prices_from_kis(self, max_count: int) -> Dict[str, float]:
+        """KIS API로 현재가 정보 수집"""
+        try:
+            # KIS API로 종목 리스트 조회
+            stocks = self.kis_provider.get_kospi_stock_list(max_count)
+            
+            current_prices = {}
+            for stock in stocks:
+                if isinstance(stock, dict) and 'code' in stock:
+                    code = stock['code']
+                    price = stock.get('current_price', 0)
+                    if price > 0:
+                        current_prices[code] = price
+            
+            logger.info(f"📊 KIS API에서 {len(current_prices)}개 종목의 현재가 수집")
+            return current_prices
+            
+        except Exception as e:
+            logger.error(f"KIS API 현재가 수집 실패: {e}")
+            return {}
+    
+    def _get_top_stocks_dart_only(self, max_count: int) -> List[Dict[str, Any]]:
+        """DART API만 사용하여 상위 종목 조회"""
+        try:
+            logger.info("📊 DART API만 사용하여 상위 종목 조회")
+            return self.dart_provider.get_top_stocks_by_market_cap(max_count)
+        except Exception as e:
+            logger.error(f"DART API 단독 조회 실패: {e}")
+            return []
+    
+    def _get_top_stocks_kis_only(self, max_count: int) -> List[Dict[str, Any]]:
+        """KIS API만 사용하여 상위 종목 조회 (기존 방식)"""
+        try:
+            logger.info("📊 KIS API만 사용하여 상위 종목 조회")
+            stocks = self.kis_provider.get_kospi_stock_list(max_count)
+            
+            # KIS API 응답을 표준 형식으로 변환
+            formatted_stocks = []
+            for stock in stocks:
+                if isinstance(stock, dict):
+                    formatted_stocks.append({
+                        'code': stock.get('code', ''),
+                        'name': stock.get('name', ''),
+                        'market_cap': stock.get('market_cap', 0),
+                        'current_price': stock.get('current_price', 0),
+                        'per': stock.get('per', 0),
+                        'pbr': stock.get('pbr', 0),
+                        'roe': stock.get('roe', 0),
+                        'sector': stock.get('sector', ''),
+                        'source': 'kis_only'
+                    })
+            
+            return formatted_stocks
+            
+        except Exception as e:
+            logger.error(f"KIS API 단독 조회 실패: {e}")
+            return []
+    
+    def _integrate_and_validate_data(self, dart_stocks: List[Dict[str, Any]], current_prices: Dict[str, float]) -> List[Dict[str, Any]]:
+        """DART 데이터와 KIS 데이터 통합 및 검증"""
+        integrated_stocks = []
+        
+        for dart_stock in dart_stocks:
+            code = dart_stock.get('code', '')
+            
+            # KIS API에서 추가 정보 조회
+            kis_info = self._get_kis_additional_info(code)
+            
+            # 데이터 통합
+            integrated_stock = {
+                'code': code,
+                'name': dart_stock.get('name', ''),
+                'market_cap': dart_stock.get('market_cap', 0),
+                'current_price': current_prices.get(code, dart_stock.get('current_price', 0)),
+                'per': kis_info.get('per', 0),
+                'pbr': kis_info.get('pbr', 0),
+                'roe': kis_info.get('roe', 0),
+                'sector': kis_info.get('sector', ''),
+                'source': 'integrated',
+                'dart_corp_code': dart_stock.get('corp_code', '')
+            }
+            
+            # 데이터 검증
+            if self._validate_stock_data(integrated_stock):
+                integrated_stocks.append(integrated_stock)
+        
+        logger.info(f"📊 데이터 통합 완료: {len(integrated_stocks)}개 종목")
+        return integrated_stocks
+    
+    def _get_kis_additional_info(self, stock_code: str) -> Dict[str, Any]:
+        """KIS API에서 추가 정보 조회"""
+        try:
+            stock_info = self.kis_provider.get_stock_price_info(stock_code)
+            if stock_info:
+                return {
+                    'per': stock_info.get('per', 0),
+                    'pbr': stock_info.get('pbr', 0),
+                    'roe': stock_info.get('eps', 0) / stock_info.get('bps', 1) * 100 if stock_info.get('bps', 0) > 0 else 0,
+                    'sector': stock_info.get('sector', '')
+                }
+        except Exception as e:
+            logger.debug(f"KIS API 추가 정보 조회 실패: {stock_code} - {e}")
+        
+        return {}
+    
+    def _validate_stock_data(self, stock_data: Dict[str, Any]) -> bool:
+        """종목 데이터 검증"""
+        # 필수 필드 검증
+        required_fields = ['code', 'name', 'market_cap']
+        for field in required_fields:
+            if not stock_data.get(field):
+                return False
+        
+        # 시가총액 검증 (최소 100억원)
+        market_cap = stock_data.get('market_cap', 0)
+        if market_cap < 10000000000:  # 100억원
+            return False
+        
+        # 주가 검증 (최소 100원)
+        current_price = stock_data.get('current_price', 0)
+        if current_price < 100:
+            return False
+        
+        return True
+    
+    def get_market_cap_ranking(self, max_count: int = 250) -> List[Dict[str, Any]]:
+        """시가총액 순위 조회 (별칭)"""
+        return self.get_top_stocks_by_market_cap(max_count)
+    
+    def get_stock_universe(self, max_count: int = 250) -> Dict[str, str]:
+        """종목 유니버스 조회 (기존 인터페이스 호환)"""
+        stocks = self.get_top_stocks_by_market_cap(max_count)
+        
+        # 기존 인터페이스에 맞게 변환
+        universe = {}
+        for stock in stocks:
+            code = stock.get('code', '')
+            name = stock.get('name', '')
+            if code and name:
+                universe[code] = name
+        
+        logger.info(f"📊 종목 유니버스 생성: {len(universe)}개 종목")
+        return universe
+
+def main():
+    """테스트 함수"""
+    try:
+        provider = IntegratedMarketCapProvider()
+        
+        # 시가총액 상위 10개 종목 조회 테스트
+        top_stocks = provider.get_top_stocks_by_market_cap(10)
+        
+        print(f"시가총액 상위 10개 종목:")
+        for i, stock in enumerate(top_stocks, 1):
+            print(f"{i:2d}. {stock['code']}: {stock['name']} - {stock['market_cap']:,.0f}원")
+        
+        # 종목 유니버스 조회 테스트
+        universe = provider.get_stock_universe(10)
+        print(f"\n종목 유니버스: {len(universe)}개 종목")
+        for code, name in list(universe.items())[:5]:
+            print(f"  {code}: {name}")
+            
+    except Exception as e:
+        logger.error(f"통합 시가총액 조회 테스트 실패: {e}")
+
+if __name__ == "__main__":
+    main()

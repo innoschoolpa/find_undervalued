@@ -223,12 +223,24 @@ class ValueStockFinder:
     
     # UI 업데이트 상수 (동적 디바운스)
     def _safe_progress(self, progress_bar, progress, text):
-        """✅ Streamlit 버전 호환 progress (1.27+ text 인자)"""
+        """✅ Streamlit 버전 호환 + 값 스케일 자동화
+        - 최신 버전: 0~100 정수 기대
+        - 구버전: 텍스트 인자 미지원
+        - 입력이 0~1.0이면 0~100으로 자동 변환
+        """
+        val = progress
+        if isinstance(val, float) and 0.0 <= val <= 1.0:
+            val = int(round(val * 100))
+        elif isinstance(val, (int, float)):
+            val = int(round(val))
+        else:
+            val = 0
+        val = max(0, min(100, val))  # 클램프
         try:
-            progress_bar.progress(progress, text=text)
+            progress_bar.progress(val, text=text)
         except TypeError:
             # Streamlit < 1.27은 text 인자 미지원
-            progress_bar.progress(progress)
+            progress_bar.progress(val)
     
     def _fmt_prog(self, done, total):
         """✅ 진행률 텍스트 포맷터"""
@@ -2373,8 +2385,7 @@ class ValueStockFinder:
                 label="📥 전체 분석 결과 CSV 다운로드",
                 data=summary_df.to_csv(index=False).encode("utf-8-sig"),
                 file_name=f"all_analysis_summary_{datetime.now().strftime('%Y%m%d_%H%M')}.csv",
-                mime="text/csv",
-                use_container_width=True
+                mime="text/csv"
             )
             
             # (중복 제거됨 - 위쪽에 이미 표시됨)
@@ -3214,13 +3225,19 @@ def main_app():
 
 def _render_app():
     """메인 앱 렌더링(실행 엔트리포인트)"""
-    finder = _get_value_stock_finder()
-    finder.render_header()
-    options = finder.render_sidebar()
-    if options['analysis_mode'] == "전체 종목 스크리닝":
-        finder.screen_all_stocks(options)
-    else:
-        finder.render_individual_analysis(options)
+    try:
+        finder = _get_value_stock_finder()
+        finder.render_header()
+        options = finder.render_sidebar()
+        if options['analysis_mode'] == "전체 종목 스크리닝":
+            finder.screen_all_stocks(options)
+        else:
+            finder.render_individual_analysis(options)
+    except Exception as e:
+        logger.exception(f"애플리케이션 실행 오류: {e}")
+        st.error("예상치 못한 오류가 발생했습니다. 좌측 상단 ▶ Rerun 또는 새로고침 후 다시 시도해주세요.")
+        with st.expander("🔧 상세 오류 정보"):
+            st.exception(e)
 
 # __main__ guard: streamlit run 또는 python 직접 실행 모두 지원
 if __name__ == "__main__":

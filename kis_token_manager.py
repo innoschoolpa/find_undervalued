@@ -60,8 +60,17 @@ class KISTokenManager:
                 logger.warning("⚠️ 캐시 파일에 필요한 정보가 없습니다. 새 토큰을 발급합니다.")
                 return False
 
-            expires_at = datetime.fromisoformat(cache['expires_at'])
+            # ✅ expires_at 타입 호환 (ISO 문자열 or epoch 숫자)
+            expires_at_value = cache['expires_at']
             current_time = datetime.now()
+            
+            if isinstance(expires_at_value, (int, float)):
+                expires_at = datetime.fromtimestamp(expires_at_value)
+            elif isinstance(expires_at_value, str):
+                expires_at = datetime.fromisoformat(expires_at_value)
+            else:
+                logger.warning(f"⚠️ 알 수 없는 expires_at 타입: {type(expires_at_value)}")
+                return False
 
             # 토큰이 유효한지 확인 (1시간 여유분 포함)
             if expires_at > current_time + timedelta(hours=1):
@@ -159,8 +168,16 @@ class KISTokenManager:
             if 'expires_at' not in cache:
                 return True
 
-            expires_at = datetime.fromisoformat(cache['expires_at'])
+            # ✅ expires_at 타입 호환 (ISO 문자열 or epoch 숫자)
+            expires_at_value = cache['expires_at']
             current_time = datetime.now()
+            
+            if isinstance(expires_at_value, (int, float)):
+                expires_at = datetime.fromtimestamp(expires_at_value)
+            elif isinstance(expires_at_value, str):
+                expires_at = datetime.fromisoformat(expires_at_value)
+            else:
+                return True  # 알 수 없는 타입이면 만료로 간주
 
             # 1시간 여유분을 두고 만료 확인
             return expires_at <= current_time + timedelta(hours=1)

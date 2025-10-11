@@ -1258,18 +1258,28 @@ class MCPKISIntegration:
                         pass
                     return None
                 
-                # ✅ 기존 형식 호환 (kis_token_manager.py)
+                # ✅ 기존 형식 호환 (kis_token_manager.py + value_stock_finder.py)
                 if 'token' in cache and 'expires_at' in cache:
                     token = cache.get('token')
-                    expires_at_str = cache.get('expires_at')
+                    expires_at_value = cache.get('expires_at')
                     
-                    if not token or not expires_at_str:
+                    if not token or not expires_at_value:
                         return None
                     
-                    # expires_at 파싱 (ISO 형식)
+                    # expires_at 파싱 (ISO 형식 문자열 or epoch timestamp 숫자)
                     try:
-                        expires_at = datetime.fromisoformat(expires_at_str)
                         now = datetime.now()
+                        
+                        # ✅ 숫자(epoch timestamp) vs 문자열(ISO format) 구분
+                        if isinstance(expires_at_value, (int, float)):
+                            # epoch timestamp → datetime 변환
+                            expires_at = datetime.fromtimestamp(expires_at_value)
+                        elif isinstance(expires_at_value, str):
+                            # ISO format string → datetime 변환
+                            expires_at = datetime.fromisoformat(expires_at_value)
+                        else:
+                            logger.warning(f"알 수 없는 expires_at 타입: {type(expires_at_value)}")
+                            return None
                         
                         # 1시간 여유 (기존 시스템과 동일)
                         if expires_at > now + timedelta(hours=1):

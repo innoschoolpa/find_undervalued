@@ -20,9 +20,69 @@ import statistics
 from collections import Counter
 import textwrap  # ✅ 에러 메시지 길이 제한용
 
-from financial_data_provider import FinancialDataProvider
-from sector_contextualizer import SectorCycleContextualizer
-from sector_utils import get_sector_benchmarks
+# ✅ 외부 모듈 의존성 graceful fallback
+try:
+    from financial_data_provider import FinancialDataProvider
+    HAS_FINANCIAL_PROVIDER = True
+except ImportError:
+    HAS_FINANCIAL_PROVIDER = False
+    print("⚠️ financial_data_provider 모듈을 찾을 수 없습니다. 기본 데이터 제공자를 사용합니다.")
+
+try:
+    from sector_contextualizer import SectorCycleContextualizer
+    HAS_SECTOR_CONTEXTUALIZER = True
+except ImportError:
+    HAS_SECTOR_CONTEXTUALIZER = False
+    print("⚠️ sector_contextualizer 모듈을 찾을 수 없습니다. 섹터 컨텍스트 기능이 제한됩니다.")
+
+try:
+    from sector_utils import get_sector_benchmarks
+    HAS_SECTOR_UTILS = True
+except ImportError:
+    HAS_SECTOR_UTILS = False
+    print("⚠️ sector_utils 모듈을 찾을 수 없습니다. 기본 섹터 벤치마크를 사용합니다.")
+    # ✅ 폴백 함수 제공 (시그니처 호환)
+    def get_sector_benchmarks(sector: str = '기타', *_args, **_kwargs):
+        """기본 섹터 벤치마크 (폴백) — 호출 시그니처 호환"""
+        defaults = {
+            '금융업': {'per_max': 12, 'pbr_max': 1.2, 'roe_min': 12, 'per_range': (5, 15), 'pbr_range': (0.4, 1.3), 'roe_range': (8, 20)},
+            '제조업': {'per_max': 18, 'pbr_max': 2.0, 'roe_min': 10, 'per_range': (6, 20), 'pbr_range': (0.7, 2.2), 'roe_range': (6, 20)},
+            '통신':   {'per_max': 15, 'pbr_max': 2.0, 'roe_min': 8,  'per_range': (6, 18), 'pbr_range': (0.6, 2.1), 'roe_range': (5, 15)},
+            '건설':   {'per_max': 12, 'pbr_max': 1.5, 'roe_min': 8,  'per_range': (5, 15), 'pbr_range': (0.5, 1.7), 'roe_range': (5, 15)},
+            '운송':   {'per_max': 15, 'pbr_max': 1.5, 'roe_min': 10, 'per_range': (5, 16), 'pbr_range': (0.6, 1.7), 'roe_range': (6, 18)},
+            '전기전자':{'per_max': 15, 'pbr_max': 1.5, 'roe_min': 10, 'per_range': (6, 18), 'pbr_range': (0.7, 1.8), 'roe_range': (6, 20)},
+            'IT':     {'per_max': 20, 'pbr_max': 2.5, 'roe_min': 12, 'per_range': (8, 25), 'pbr_range': (1.0, 3.0), 'roe_range': (8, 25)},
+            '기타':   {'per_max': 15, 'pbr_max': 2.0, 'roe_min': 10, 'per_range': (5, 20), 'pbr_range': (0.5, 2.2), 'roe_range': (5, 20)},
+        }
+        # 최소한 range 키가 없어서 점수화 fallback로 넘어가 멈추는 일 없도록 기본 range 포함
+        return defaults.get(sector, defaults['기타'])
+
+# ✅ 폴백 더미 클래스 (외부 모듈 미존재 시 크래시 방지)
+if not HAS_FINANCIAL_PROVIDER:
+    class FinancialDataProvider:
+        """더미 재무 데이터 제공자 (폴백)"""
+        def get_sector_data(self, sector_norm: str):
+            # 빈 통계라도 shape은 맞춰서 반환
+            return {
+                'sample_size': 0,
+                'per_percentiles': {}, 
+                'pbr_percentiles': {}, 
+                'roe_percentiles': {},
+                'valuation_score': 60.0
+            }
+        def refresh_sector_statistics(self, stocks):
+            return None
+
+if not HAS_SECTOR_CONTEXTUALIZER:
+    class SectorCycleContextualizer:
+        """더미 섹터 컨텍스트화 (폴백)"""
+        def apply_sector_contextualization(self, symbol, sector_name, raw_total, sector_ctx):
+            # 조정 없음 (안전값)
+            return {
+                'adjusted_score': raw_total,
+                'total_adjustment_factor': 1.0,
+                'contextualization_applied': False
+            }
 
 # Streamlit 페이지 설정 (최상단에서 한 번만)
 st.set_page_config(
@@ -63,8 +123,25 @@ except ImportError as e:
 def _get_analyzer():
     """분석기 캐시 (재실행 비용 절감)"""
     logger.info("✅ 분석기 초기화 (최초 1회만)")
-    from enhanced_integrated_analyzer_refactored import EnhancedIntegratedAnalyzer
-    return EnhancedIntegratedAnalyzer()
+    try:
+        from enhanced_integrated_analyzer_refactored import EnhancedIntegratedAnalyzer
+        return EnhancedIntegratedAnalyzer()
+    except Exception as e:
+        logger.warning(f"EnhancedIntegratedAnalyzer 로드 실패: {e}")
+        
+        # ✅ 더미 분석기 (개발/테스트 환경 지원)
+        class _DummyAnalyzer:
+            def analyze_single_stock(self, symbol, name):
+                # Streamlit 표에서 최소 필요한 필드만 채운 더미 결과
+                class R:
+                    status = type("S", (), {"name": "SUCCESS"})()
+                    current_price = 0
+                    market_cap = 0
+                    price_data = {'volume': 0, 'price_change_rate': 0}
+                    financial_data = {'per': 0, 'pbr': 0, 'roe': 0, 'eps': 0, 'bps': 0, 'sector': '기타'}
+                    sector_analysis = {'sector_name': '기타'}
+                return R()
+        return _DummyAnalyzer()
 
 @st.cache_resource
 def _get_mcp_integration():
@@ -137,8 +214,15 @@ class TokenBucket:
 class ValueStockFinder:
     """저평가 가치주 발굴 시스템"""
     
-    # UI 업데이트 상수
-    UI_UPDATE_INTERVAL = 0.25  # 초 단위
+    # UI 업데이트 상수 (동적 디바운스)
+    def _get_ui_update_interval(self, total_items):
+        """대용량 처리 시 UI 업데이트 간격 조정"""
+        if total_items > 150:
+            return 0.75  # 대용량: 느린 업데이트
+        elif total_items > 50:
+            return 0.5   # 중간: 보통 업데이트
+        else:
+            return 0.25  # 소용량: 빠른 업데이트
     
     # 블랙리스트 상수 (단일화)
     # ✅ 047050 제거 (포스코인터내셔널 - 폴백 리스트에 포함)
@@ -168,22 +252,125 @@ class ValueStockFinder:
                 self.base_url = ("https://openapivts.koreainvestment.com:29443" if is_test 
                                 else "https://openapi.koreainvestment.com:9443")
                 self._rest_token = None
+                self._token_lock = threading.Lock()  # ✅ 동시 재발급 방지
                 
             def get_rest_token(self):
                 # ✅ 토큰 캐시에서 로드 + 만료 가드 (크리티컬 - 실패 루프 방지)
                 import json
                 import time
+                import os
+                
+                cache_file = '.kis_token_cache.json'
+                
+                # 캐시 파일 존재 확인
+                if not os.path.exists(cache_file):
+                    logger.debug(f"토큰 캐시 파일 없음: {cache_file}")
+                    return None
+                
                 try:
-                    with open('.kis_token_cache.json', 'r') as f:
+                    with open(cache_file, 'r', encoding='utf-8') as f:
                         cache = json.load(f)
                     token = cache.get('token')
                     exp = cache.get('expires_at')  # epoch sec
+                    
                     # 만료 60초 전부터 무효화하여 상위 레이어에서 재발급 트리거
-                    if not token or (exp and time.time() > exp - 60):
+                    if not token:
+                        logger.debug("캐시에 토큰 없음")
                         return None
+                    
+                    if exp and time.time() > exp - 60:
+                        remaining = exp - time.time()
+                        logger.info(f"토큰 만료 임박 (남은 시간: {remaining:.0f}초) → 재발급 필요")
+                        return None
+                    
+                    logger.info(f"✅ 캐시된 토큰 재사용 (만료까지: {(exp - time.time()):.0f}초)")
                     return token
-                except:
+                except json.JSONDecodeError as e:
+                    logger.warning(f"토큰 캐시 JSON 파싱 실패: {e}")
                     return None
+                except Exception as e:
+                    logger.warning(f"토큰 캐시 로드 실패: {e}")
+                    return None
+            
+            def _refresh_rest_token(self):
+                """토큰 발급 및 캐시 저장"""
+                import json
+                import time
+                import requests
+                
+                try:
+                    # KIS REST 토큰 발급 API 호출
+                    url = f"{self.base_url}/oauth2/tokenP"
+                    headers = {
+                        'content-type': 'application/json'
+                    }
+                    data = {
+                        'grant_type': 'client_credentials',
+                        'appkey': self.appkey,
+                        'appsecret': self.appsecret
+                    }
+                    
+                    response = requests.post(url, json=data, headers=headers, timeout=10)
+                    response.raise_for_status()
+                    
+                    result = response.json()
+                    access_token = result.get('access_token')
+                    expires_in = result.get('expires_in', 86400)  # 기본 24시간
+                    
+                    if not access_token:
+                        logger.error("토큰 발급 실패: access_token 없음")
+                        return None
+                    
+                    # 캐시에 저장
+                    expires_at = time.time() + expires_in - 300  # 5분 여유
+                    cache_data = {
+                        'token': access_token,
+                        'expires_at': expires_at,
+                        'issued_at': time.time()
+                    }
+                    
+                    cache_file = '.kis_token_cache.json'
+                    with open(cache_file, 'w', encoding='utf-8') as f:
+                        json.dump(cache_data, f, indent=2)
+                    
+                    logger.info(f"💾 토큰 캐시 저장 완료: {cache_file} (만료: {expires_in}초 후)")
+                    
+                    # 파일 권한 설정 (보안)
+                    try:
+                        import os
+                        os.chmod('.kis_token_cache.json', 0o600)
+                    except Exception:
+                        pass
+                    
+                    logger.info(f"토큰 발급 완료 (만료: {expires_in}초)")
+                    return access_token
+                    
+                except Exception as e:
+                    logger.error(f"토큰 발급 실패: {e}")
+                    return None  # ❌ 더미 토큰 저장 제거 (보안 강화)
+            
+            def get_valid_token(self, max_retries=3):
+                """유효한 토큰 반환 (재시도 로직 + 동시성 제어)"""
+                for attempt in range(max_retries):
+                    token = self.get_rest_token()
+                    if token:
+                        return token
+                    
+                    # 토큰 없음/만료 → 재발급 시도 (동시 재발급 방지)
+                    with self._token_lock:  # ✅ 동시 재발급 방지
+                        token = self.get_rest_token()  # 락 내에서 다시 확인
+                        if token:
+                            return token
+                        logger.info(f"토큰 재발급 시도 {attempt + 1}/{max_retries}")
+                        token = self._refresh_rest_token()
+                        if token:
+                            return token
+                    
+                    if attempt < max_retries - 1:
+                        time.sleep(2 ** attempt)  # 지수 백오프
+                
+                logger.error("토큰 발급 최종 실패")
+                return None
         
         self.oauth_manager = SimpleOAuthManager(
             appkey=kis_config.get('app_key', ''),
@@ -210,8 +397,8 @@ class ValueStockFinder:
         self._analyzer = None
         self._last_api_success = False  # API 성공 여부 추적
         
-        # API 호출 한도 관리 (초당 2회, 최대 10개 토큰)
-        self.rate_limiter = TokenBucket(rate_per_sec=2.0, capacity=10)
+        # API 호출 한도 관리 (초당 2.5회, 최대 12개 토큰) - 성능 향상
+        self.rate_limiter = TokenBucket(rate_per_sec=2.5, capacity=12)
         
         # 스레드 안전성을 위한 락 (부분 동시성 허용)
         self._analyzer_sem = threading.BoundedSemaphore(3)  # 최대 3개 동시 분석
@@ -347,19 +534,25 @@ class ValueStockFinder:
              .replace('통신서비스', '통신')
              .replace('운송장비부품', '운송장비'))
 
-        # 3) 규칙 기반 매핑
+        # 3) 규칙 기반 매핑 (추가 키워드 포함)
         rules = [
-            (['금융','은행','증권','보험'], '금융업'),
+            (['금융','은행','증권','보험','금융업'], '금융업'),
             (['it','아이티','기술','반도체','전자','소프트웨어','인터넷'], '기술업'),
             (['제조','자동차','완성차','기계','산업재'], '제조업'),
             (['바이오','제약','의료','헬스케어'], '바이오/제약'),
             (['에너지','화학','석유','정유'], '에너지/화학'),
-            (['소비','유통','식품','리테일'], '소비재'),
-            (['통신','텔레콤'], '통신업'),
-            (['건설','부동산','디벨로퍼'], '건설업'),
+            (['소비','유통','식품','리테일','소비재'], '소비재'),
+            (['통신','텔레콤','통신업'], '통신업'),
+            (['건설','부동산','디벨로퍼','건설업'], '건설업'),
             (['전기전자'], '전기전자'),   # 세부 섹터를 그대로 인정
             (['운송장비'], '운송장비'),
-            (['운송','해운','항공'], '운송'),
+            (['운송','해운','항공','운수창고'], '운송'),
+            # 추가 섹터 매핑
+            (['서비스업','서비스','레저','관광'], '서비스업'),
+            (['철강금속','철강','금속','비철금속'], '철강금속'),
+            (['섬유의복','섬유','의복','의류'], '섬유의복'),
+            (['종이목재','종이','목재','펄프'], '종이목재'),
+            (['유통업','유통','도소매'], '유통업'),
         ]
         for kws, label in rules:
             if any(k in s for k in kws):
@@ -380,18 +573,24 @@ class ValueStockFinder:
         sector_name = stock_data.get('sector_name', stock_data.get('sector', ''))
         criteria = self.get_sector_specific_criteria(sector_name)
         
-        per = stock_data.get('per', 0)
-        pbr = stock_data.get('pbr', 0)
-        roe = stock_data.get('roe', 0)
+        per = stock_data.get('per', 0) or 0
+        pbr = stock_data.get('pbr', 0) or 0
+        roe = stock_data.get('roe', 0) or 0
+        
+        # 이상치 하드 클립 (분포/퍼센타일 안정화)
+        per = per if 0 < per < 200 else 0
+        pbr = pbr if 0 < pbr < 20 else 0
         value_score = stock_data.get('value_score', 0)
         
         per_ok = per <= criteria['per_max'] if per > 0 else False
         pbr_ok = pbr <= criteria['pbr_max'] if pbr > 0 else False
         roe_ok = roe >= criteria['roe_min'] if roe > 0 else False
         
-        # ✅ 업종별 기준 3개 모두 충족 + 점수 50점 이상 (완화)
+        # ✅ 업종별 기준 3개 모두 충족 + 점수 임계값 (사이드바 옵션 반영)
         criteria_met_count = sum([per_ok, pbr_ok, roe_ok])
-        score_threshold = 50.0 if criteria_met_count == 3 else 60.0  # 3개 충족 시 50점, 아니면 60점
+        # 사이드바 최소 점수를 반영하여 UX 일관성 확보
+        user_score_min = options.get('score_min', 60.0)
+        score_threshold = min(50.0, user_score_min) if criteria_met_count == 3 else user_score_min
         
         return criteria_met_count == 3 and value_score >= score_threshold
         
@@ -666,6 +865,10 @@ class ValueStockFinder:
     def get_stock_data(self, symbol: str, name: str):
         """종목 데이터 조회 (프라임 데이터 재사용)"""
         try:
+            # ✅ name이 dict일 경우 이름 추출 (B안: 유연성)
+            if isinstance(name, dict):
+                name = name.get('name') or name.get('stock_name') or name.get('kor_name') or ""
+            
             # 프라임 데이터 재사용 (폴백 시 이중 호출 방지)
             primed = getattr(self, "_primed_cache", {}).get(symbol)
             if primed:
@@ -757,10 +960,10 @@ class ValueStockFinder:
             name = ''
         
         try:
-            # 모든 모드에서 API 한도 체크 (폴백 필터링용으로 짧은 타임아웃)
-            timeout = 5.0 if hasattr(self, '_is_fallback_filtering') else 10.0
+            # ✅ RateLimiter 타임아웃 차등: 빠른 모드에서 early return으로 API 폭주 방지
+            timeout = options.get("fast_latency", 0.7) if options.get("fast_mode") else 10.0
             if not self.rate_limiter.take(1, timeout=timeout):
-                logger.warning("Rate limit wait timed out")
+                logger.warning(f"Rate limit wait timed out ({timeout}s)")
                 return None
             # 데이터 조회
             stock_data = self.get_stock_data(symbol, name)
@@ -813,7 +1016,10 @@ class ValueStockFinder:
                         'per_score': value_analysis['details'].get('per_score', 0),
                         'pbr_score': value_analysis['details'].get('pbr_score', 0),
                         'roe_score': value_analysis['details'].get('roe_score', 0),
-                        'margin_score': value_analysis['details'].get('margin_score', 0)
+                        'margin_score': value_analysis['details'].get('margin_score', 0),
+                        # ⬇️ 테이블에서 0으로만 보이던 버그 수정
+                        'mos_score': value_analysis['details'].get('mos_score', 0),
+                        'sector_bonus': value_analysis['details'].get('sector_bonus', 0)
                     }
             
             return None
@@ -849,14 +1055,17 @@ class ValueStockFinder:
     
     def _justified_multiples(self, per, pbr, roe, sector, payout_hint=None):
         """✅ 정당 멀티플 계산 (Justified PER/PBR - CFA 교과서 방식)"""
-        # 1) 섹터별 요구수익률(r)과 유보율(b) 기본값
+        # 1) 섹터별 요구수익률(r)과 유보율(b) 기본값 (정규화 섹터명 일치화)
         sector_r = {
             "금융": 0.10, "금융업": 0.10,
             "통신": 0.105, "통신업": 0.105,
             "제조업": 0.115, "필수소비재": 0.11,
             "운송": 0.12, "운송장비": 0.12,
-            "전기전자": 0.12, "IT": 0.125,
+            "전기전자": 0.12, "IT": 0.125, "기술업": 0.125,  # ✅ 추가
             "건설": 0.12, "건설업": 0.12,
+            "바이오/제약": 0.12, "에너지/화학": 0.115, "소비재": 0.11,
+            "서비스업": 0.115, "철강금속": 0.115, "섬유의복": 0.11,
+            "종이목재": 0.115, "유통업": 0.11,
             "기타": 0.115
         }
         sector_b = {
@@ -864,8 +1073,11 @@ class ValueStockFinder:
             "통신": 0.55, "통신업": 0.55,
             "제조업": 0.35, "필수소비재": 0.40,
             "운송": 0.35, "운송장비": 0.35,
-            "전기전자": 0.35, "IT": 0.30,
+            "전기전자": 0.35, "IT": 0.30, "기술업": 0.30,    # ✅ 추가
             "건설": 0.35, "건설업": 0.35,
+            "바이오/제약": 0.30, "에너지/화학": 0.35, "소비재": 0.40,
+            "서비스업": 0.35, "철강금속": 0.35, "섬유의복": 0.40,
+            "종이목재": 0.35, "유통업": 0.40,
             "기타": 0.35
         }
         
@@ -888,6 +1100,8 @@ class ValueStockFinder:
     
     def compute_mos_score(self, per, pbr, roe, sector):
         """✅ 안전마진(MoS) 점수 계산 (0~100점)"""
+        # ✅ 섹터 정규화 추가 (정확도 향상)
+        sector = self._normalize_sector_name(sector or '')
         pb_star, pe_star = self._justified_multiples(per, pbr, roe, sector)
         
         if pb_star is None and pe_star is None:
@@ -1084,13 +1298,14 @@ class ValueStockFinder:
             roe_pass = roe >= criteria['roe_min'] if roe > 0 else False
             
             # ✅ 추천 결정 로직 단순화 (MoS 반영, 총점 120점 기준)
+            criteria_met_list = details['criteria_met']  # ← 재사용 일관화
             if roe < 0 and pbr > 3:
                 recommendation = "SELL"  # 하드가드: 적자 + 고PBR
-            elif len(criteria_met) == 3 and score >= 70:
+            elif len(criteria_met_list) == 3 and score >= 70:
                 recommendation = "STRONG_BUY"  # 업종 기준 완벽 + 70점 이상
             elif score >= 75:
                 recommendation = "STRONG_BUY"  # 또는 총점 75점 이상
-            elif len(criteria_met) == 3 and score >= 50:
+            elif len(criteria_met_list) == 3 and score >= 50:
                 recommendation = "BUY"  # 업종 기준 완벽 + 50점 이상
             elif score >= 60:
                 recommendation = "BUY"  # 또는 총점 60점 이상
@@ -1148,41 +1363,45 @@ class ValueStockFinder:
         # 분석 모드 선택
         analysis_mode = st.sidebar.radio(
             "분석 모드",
-            ["전체 종목 스크리닝", "개별 종목 분석"]
+            ["전체 종목 스크리닝", "개별 종목 분석"],
+            key="analysis_mode_radio"
         )
         
         # 분석 설정
         st.sidebar.subheader("📊 분석 설정")
         
         # 분석 대상 종목 수 (250종목까지 확장)
-        max_stocks = st.sidebar.slider("분석 대상 종목 수", 5, 250, 15, 1)
+        max_stocks = st.sidebar.slider("분석 대상 종목 수", 5, 250, 15, 1, key="max_stocks_slider")
         
         # API 호출 전략 선택
         api_strategy = st.sidebar.selectbox(
             "API 호출 전략",
             ["안전 모드 (배치 처리)", "빠른 모드 (병렬 처리)", "순차 모드 (안전)"],
-            help="안전 모드: API 한도 고려한 배치 처리\n빠른 모드: 병렬 처리 (API 한도 위험)\n순차 모드: 하나씩 순서대로 처리"
+            help="안전 모드: API 한도 고려한 배치 처리\n빠른 모드: 병렬 처리 (API 한도 위험)\n순차 모드: 하나씩 순서대로 처리",
+            key="api_strategy_selectbox"
         )
         
         # 가치주 기준 설정
         st.sidebar.subheader("🎯 가치주 기준")
         
-        per_max = st.sidebar.slider("PER 최대값", 5.0, 30.0, 15.0, 0.5)
-        pbr_max = st.sidebar.slider("PBR 최대값", 0.5, 3.0, 1.5, 0.1)
-        roe_min = st.sidebar.slider("ROE 최소값", 5.0, 25.0, 10.0, 0.5)
-        score_min = st.sidebar.slider("최소 점수", 40.0, 90.0, 60.0, 5.0)
+        per_max = st.sidebar.slider("PER 최대값", 5.0, 30.0, 15.0, 0.5, key="per_max_slider")
+        pbr_max = st.sidebar.slider("PBR 최대값", 0.5, 3.0, 1.5, 0.1, key="pbr_max_slider")
+        roe_min = st.sidebar.slider("ROE 최소값", 5.0, 25.0, 10.0, 0.5, key="roe_min_slider")
+        score_min = st.sidebar.slider("최소 점수", 40.0, 90.0, 60.0, 5.0, key="score_min_slider")
         
         # 빠른 모드 튜닝 파라미터
         st.sidebar.subheader("⚙️ 성능 튜닝")
         fast_latency = st.sidebar.slider(
             "빠른 모드 지연 추정(초)", 0.3, 1.5, 0.7, 0.1,
-            help="빠른 모드 동시성 계산에 사용됩니다(낮을수록 워커↑)."
+            help="빠른 모드 동시성 계산에 사용됩니다(낮을수록 워커↑).",
+            key="fast_latency_slider"
         )
         
         # 퍼센타일 상한 설정
         percentile_cap = st.sidebar.slider(
             "퍼센타일 상한(표시/스코어)", 98.0, 99.9, 99.5, 0.1,
-            help="퍼센타일 표시와 스코어 계산에 모두 적용됩니다. 낮을수록 과포화 감소하고 점수 계산도 달라집니다."
+            help="퍼센타일 표시와 스코어 계산에 모두 적용됩니다. 낮을수록 과포화 감소하고 점수 계산도 달라집니다.",
+            key="percentile_cap_slider"
         )
         
         # 개별 종목 분석인 경우에만 종목 선택
@@ -1190,7 +1409,7 @@ class ValueStockFinder:
         if analysis_mode == "개별 종목 분석":
             stock_options = {
                 '005930': '삼성전자',
-                '003550': 'LG생활건강',
+                '051900': 'LG생활건강',   # ✅ 003550 → 051900 정정
                 '000270': '기아',
                 '035420': 'NAVER',
                 '012330': '현대모비스',
@@ -1204,13 +1423,14 @@ class ValueStockFinder:
             selected_symbol = st.sidebar.selectbox(
                 "분석 종목 선택",
                 options=list(stock_options.keys()),
-                format_func=lambda x: f"{x} - {stock_options[x]}"
+                format_func=lambda x: f"{x} - {stock_options[x]}",
+                key="selected_symbol_selectbox"
             )
         
         # 개발자 도구 (캐시 클리어)
         dev_exp = st.sidebar.expander("🔧 개발자 도구")
         with dev_exp:
-            if st.button("캐시 클리어", help="모든 캐시를 클리어하여 재계산합니다"):
+            if st.button("캐시 클리어", help="모든 캐시를 클리어하여 재계산합니다", key="cache_clear_button"):
                 st.cache_data.clear()
                 st.cache_resource.clear()
                 st.success("캐시가 클리어되었습니다!")
@@ -1247,6 +1467,13 @@ class ValueStockFinder:
     def get_stock_universe_from_api(self, max_count: int = 250):
         """KIS API로 시가총액순 종목 리스트 가져오기 (캐시 적용)"""
         try:
+            # ✅ 토큰 가드: None이면 즉시 폴백 전환
+            token = self.oauth_manager.get_valid_token()
+            if token is None:
+                logger.warning("KIS 토큰 없음 → API 경로 skip, 폴백 전환")
+                fallback = self._get_fallback_stock_list()
+                return dict(list(fallback.items())[:max_count]), False
+            
             # 캐시된 API 호출
             stock_universe, api_success = _cached_universe_from_api(max_count)
             
@@ -1417,51 +1644,69 @@ class ValueStockFinder:
             
             # 소규모 쓰레드풀로 체크 병렬화 (TokenBucket이 QPS 제한)
             self._is_fallback_filtering = True  # 폴백 필터링 플래그
-            with concurrent.futures.ThreadPoolExecutor(max_workers=6) as ex:
-                futs = []
-                items = list(stock_universe.items())
-                for code, name in items[:max_count * 2]:  # 과도 프리페치 방지
-                    futs.append(ex.submit(self._is_tradeable, code, name))
-                    
-                for ((code, name), fut) in zip(items, futs):
-                    ok, primed_data = fut.result()
-                    if ok: 
-                        filtered[code] = name
-                    if primed_data: 
-                        primed[code] = primed_data
-                    if len(filtered) >= max_count: 
-                        break
-            
-            if filtered:
-                stock_universe = filtered
-                self._primed_cache = primed  # 폴백 시 결과를 프라임 캐시로
-                self._fallback_original_count = original_count  # 원본 개수 저장
-                logger.info(f"폴백 유니버스 필터링: {original_count}개 → {len(stock_universe)}개로 축소")
-                
-                # primed_data에서 섹터명 수집하여 통계 갱신
-                if primed:
-                    sector_stocks = []
-                    for code, primed_data in primed.items():
-                        if 'sector_analysis' in primed_data:
-                            sector_name = primed_data['sector_analysis'].get('sector_name', '기타')
-                            sector_stocks.append({
-                                'code': code,
-                                'name': primed_data.get('name', ''),
-                                'sector': sector_name,
-                                'market_cap': primed_data.get('market_cap', 0)
-                            })
-                    if sector_stocks:
-                        try:
-                            self.refresh_sector_stats_and_clear_cache(sector_stocks)
-                            logger.info(f"폴백에서 수집한 {len(sector_stocks)}개 종목으로 섹터 통계 갱신")
-                        except Exception as e:
-                            logger.warning(f"폴백 섹터 통계 갱신 실패: {e}")
+            try:
+                try:
+                    with concurrent.futures.ThreadPoolExecutor(max_workers=6) as ex:
+                        futs = []
+                        items = list(stock_universe.items())
+                        for code, name in items[:max_count * 2]:  # 과도 프리페치 방지
+                            futs.append(ex.submit(self._is_tradeable, code, name))
                             
-            delattr(self, '_is_fallback_filtering')  # 플래그 정리
+                        for ((code, name), fut) in zip(items, futs):
+                            ok, primed_data = fut.result()
+                            if ok: 
+                                filtered[code] = name
+                            if primed_data: 
+                                primed[code] = primed_data
+                            if len(filtered) >= max_count: 
+                                break
+                    
+                    if filtered:
+                        stock_universe = filtered
+                        self._primed_cache = primed  # 폴백 시 결과를 프라임 캐시로
+                        self._fallback_original_count = original_count  # 원본 개수 저장
+                        logger.info(f"폴백 유니버스 필터링: {original_count}개 → {len(stock_universe)}개로 축소")
+                    
+                    # primed_data에서 섹터명 수집하여 통계 갱신
+                    if primed:
+                        sector_stocks = []
+                        for code, primed_data in primed.items():
+                            if 'sector_analysis' in primed_data:
+                                sector_name = primed_data['sector_analysis'].get('sector_name', '기타')
+                                sector_stocks.append({
+                                    'code': code,
+                                    'name': primed_data.get('name', ''),
+                                    'sector': sector_name,
+                                    'market_cap': primed_data.get('market_cap', 0)
+                                })
+                        if sector_stocks:
+                            try:
+                                self.refresh_sector_stats_and_clear_cache(sector_stocks)
+                                logger.info(f"폴백에서 수집한 {len(sector_stocks)}개 종목으로 섹터 통계 갱신")
+                            except Exception as e:
+                                logger.warning(f"폴백 섹터 통계 갱신 실패: {e}")
+                except Exception as e:
+                    logger.error(f"폴백 필터링 중 예외 발생: {e}")
+            finally:
+                # ✅ 플래그 해제 보장 (어떤 예외에서도 원복)
+                if hasattr(self, "_is_fallback_filtering"):
+                    try:
+                        delattr(self, "_is_fallback_filtering")
+                    except Exception:
+                        pass
         else:
-            # ✅ API 성공 시, 이전 폴백에서 남았을 수 있는 프라임 캐시 초기화
-            if hasattr(self, "_primed_cache"):
-                self._primed_cache.clear()
+            # ✅ API 성공 시, 이전 폴백에서 남았을 수 있는 캐시 초기화 (오염 방지)
+            try:
+                if hasattr(self, "_primed_cache"):
+                    self._primed_cache.clear()
+            except Exception:
+                pass
+            try:
+                # _cached_sector_data는 lru_cache 함수 속성일 수 있음
+                if hasattr(self, "_cached_sector_data") and callable(getattr(self._cached_sector_data, 'cache_clear', None)):
+                    self._cached_sector_data.cache_clear()
+            except Exception:
+                pass
         
         logger.info(f"get_stock_universe 반환: {type(stock_universe)}, 길이: {len(stock_universe) if hasattr(stock_universe, '__len__') else 'N/A'}")
         return stock_universe
@@ -1481,6 +1726,14 @@ class ValueStockFinder:
             logger.error(f"stock_universe가 딕셔너리가 아닙니다: {type(stock_universe)}")
             st.error("종목 데이터 형식 오류가 발생했습니다.")
             return
+        
+        # ✅ API 유니버스 값 타입 불일치 수정 (A안: 호환 유지)
+        if stock_universe and isinstance(next(iter(stock_universe.values())), dict):
+            # 코드→이름 매핑으로 정규화 (이름 없으면 코드 표시로 가독성 보완)
+            stock_universe = {
+                code: (data.get('name') or data.get('stock_name') or data.get('kor_name') or code)
+                for code, data in stock_universe.items()
+            }
         
         # 데이터 소스 표시 - API 성공 여부를 정확하게 판단
         api_success = getattr(self, '_last_api_success', False)
@@ -1580,7 +1833,7 @@ class ValueStockFinder:
                 batch = stock_items[batch_start:batch_end]
                 
                 current_time = time.time()
-                if current_time - last_ui_update > self.UI_UPDATE_INTERVAL:
+                if current_time - last_ui_update > self._get_ui_update_interval(len(stock_items)):
                     status_text.text(f"📊 배치 {batch_start//batch_size + 1} 처리 중: {len(batch)}개 종목")
                     last_ui_update = current_time
                 
@@ -1610,10 +1863,11 @@ class ValueStockFinder:
                 # 진행률 업데이트
                 completed_count = batch_end
                 progress = completed_count / len(stock_items)
-                progress_bar.progress(progress)
+                # ✅ 진행률 텍스트 합치기 (rerender 최적화)
+                progress_bar.progress(progress, text=f"{completed_count}/{len(stock_items)} • {progress*100:.1f}%")
                 
                 current_time = time.time()
-                if current_time - last_ui_update > self.UI_UPDATE_INTERVAL:
+                if current_time - last_ui_update > self._get_ui_update_interval(len(stock_items)):
                     status_text.text(f"📊 배치 완료: {completed_count}/{len(stock_items)} 완료 ({progress*100:.1f}%)")
                     last_ui_update = current_time
                 
@@ -1638,7 +1892,16 @@ class ValueStockFinder:
         elif api_strategy == "빠른 모드 (병렬 처리)":
             # ✅ 워커 수 단순화 (크리티컬 - 내부 속성 접근 제거, 버전 호환성)
             # 고정 상수로 단순화 (세마포어 내부 구현 의존성 제거)
-            max_workers = min(8, max(4, len(stock_universe)))
+            # ✅ 워커 수 보수적 조정: 토큰버킷이 유일한 속도 조절자
+            import os
+            cpu_count = os.cpu_count() or 4
+            # rate를 기준으로 하되 최소 1개는 보장 (단, 8개 초과 금지)
+            soft_cap = int(self.rate_limiter.rate)  # e.g. 2.5 → 2
+            max_workers = max(1, min(8, max(soft_cap, 4), len(stock_universe)))
+            
+            # ✅ 대규모(>150) 처리 시 워커 상한 추가 (Windows 스레드 컨텍스트 스위칭 최적화)
+            if len(stock_universe) > 150:
+                max_workers = min(max_workers, 6)
             
             status_text.text(f"⚡ 빠른 모드 시작: {len(stock_universe)}개 종목, {max_workers}개 워커")
             st.warning("⚠️ 빠른 모드는 API 호출 한도 초과 위험이 있습니다!")
@@ -1667,9 +1930,10 @@ class ValueStockFinder:
                     
                     completed_count += 1
                     progress = completed_count / len(stock_items)
-                    progress_bar.progress(progress)
+                    # ✅ 진행률 텍스트 합치기 (rerender 최적화)
+                    progress_bar.progress(progress, text=f"{completed_count}/{len(stock_items)} • {progress*100:.1f}%")
                     current_time = time.time()
-                    if current_time - last_ui_update > self.UI_UPDATE_INTERVAL:
+                    if current_time - last_ui_update > self._get_ui_update_interval(len(stock_items)):
                         status_text.text(f"📊 분석 진행: {completed_count}/{len(stock_items)} 완료 ({progress*100:.1f}%)")
                         last_ui_update = current_time
                     
@@ -1700,10 +1964,11 @@ class ValueStockFinder:
                 
                 # 진행률 업데이트
                 progress = (i + 1) / len(stock_items)
-                progress_bar.progress(progress)
+                # ✅ 진행률 텍스트 합치기 (rerender 최적화)
+                progress_bar.progress(progress, text=f"{i+1}/{len(stock_items)} • {progress*100:.1f}%")
                 
                 current_time = time.time()
-                if current_time - last_ui_update > self.UI_UPDATE_INTERVAL:
+                if current_time - last_ui_update > self._get_ui_update_interval(len(stock_items)):
                     status_text.text(f"📊 순차 진행: {i+1}/{len(stock_items)} 완료 ({progress*100:.1f}%)")
                     last_ui_update = current_time
                 
@@ -2026,7 +2291,7 @@ class ValueStockFinder:
             return
         stock_options = {
             '005930': '삼성전자',
-            '003550': 'LG생활건강',
+            '051900': 'LG생활건강',   # ✅ 003550 → 051900 정정
             '000270': '기아',
             '035420': 'NAVER',
             '012330': '현대모비스',
@@ -2533,7 +2798,8 @@ class ValueStockFinder:
                     selected_stock = st.selectbox(
                         "종목 선택",
                         options=[(s['symbol'], s['name']) for s in value_stocks],
-                        format_func=lambda x: f"{x[1]} ({x[0]})"
+                        format_func=lambda x: f"{x[1]} ({x[0]})",
+                        key="mcp_selected_stock_selectbox"
                     )
                     
                     if selected_stock:
@@ -2581,15 +2847,14 @@ class ValueStockFinder:
                                 st.warning("📊 **평균적인 가치주**")
                 
                 else:
-                    st.warning(f"""
-                    ⚠️ 조건에 맞는 가치주를 찾을 수 없습니다.
-                    
-                    **조건 완화 제안:**
-                    - PER 최대값 증가 (현재: {per_max})
-                    - PBR 최대값 증가 (현재: {pbr_max})
-                    - ROE 최소값 감소 (현재: {roe_min})
-                    - 후보군 크기 증가 (현재: {candidate_pool})
-                    """)
+                    st.warning(
+                        "⚠️ 조건에 맞는 가치주를 찾을 수 없습니다.\n\n"
+                        "**조건 완화 제안:**\n"
+                        "- 후보군 크기를 늘려보세요 (예: 300 → 400~500)\n"
+                        "- 최소 거래량을 낮춰보세요 (예: 100,000 → 50,000)\n"
+                        "- 업종별 기본 기준을 그대로 두되, MoS 점수 가중을 약간 낮춰보세요\n"
+                        "- (MCP) candidate_pool_size를 키우고 quality_check=False 유지\n"
+                    )
     
     def render_realtime_market(self):
         """실시간 시장 분석"""
@@ -2599,7 +2864,7 @@ class ValueStockFinder:
         
         with col1:
             st.markdown("##### 시장 상태")
-            if st.button("조회", key="market_status"):
+            if st.button("조회", key="market_status_button"):
                 with st.spinner("시장 상태 조회 중..."):
                     status = self.mcp_integration.get_market_status()
                     if status:
@@ -2614,7 +2879,7 @@ class ValueStockFinder:
         
         with col2:
             st.markdown("##### 주요 종목")
-            if st.button("조회", key="major_stocks"):
+            if st.button("조회", key="major_stocks_button"):
                 with st.spinner("주요 종목 조회 중..."):
                     # 거래량 상위 5개
                     rankings = self.mcp_integration.get_volume_ranking(limit=5)
@@ -2634,7 +2899,7 @@ class ValueStockFinder:
         
         symbol = st.text_input("종목 코드", value="005930", key="sector_symbol")
         
-        if st.button("분석", key="sector_analyze"):
+        if st.button("분석", key="sector_analyze_button"):
             with st.spinner("섹터 분석 중..."):
                 analysis = self.analyze_stock_with_mcp(symbol)
                 if analysis:
@@ -2656,32 +2921,64 @@ class ValueStockFinder:
     def render_ranking_analysis(self):
         """순위 분석"""
         st.markdown("#### 📊 순위 분석")
-        
+
         ranking_type = st.selectbox(
             "순위 유형",
             ["거래량", "시가총액", "PER"],
-            key="ranking_type"
+            key="ranking_type_selectbox"
         )
-        
-        limit = st.slider("조회 개수", 10, 100, 30, key="ranking_limit")
-        
-        if st.button("조회", key="ranking_query"):
+
+        limit = st.slider("조회 개수", 10, 100, 30, key="ranking_limit_slider")
+
+        if st.button("조회", key="ranking_query_button"):
             with st.spinner(f"{ranking_type} 순위 조회 중..."):
-                type_map = {"거래량": "volume", "시가총액": "market_cap", "PER": "per"}
-                rankings = self.get_market_rankings(type_map[ranking_type], limit)
-                
-                if rankings:
-                    df = pd.DataFrame({
-                        '순위': range(1, len(rankings) + 1),
-                        '종목코드': [r.get('mksc_shrn_iscd', '') for r in rankings],
-                        '종목명': [r.get('hts_kor_isnm', '') for r in rankings],
-                        '현재가': [f"{int(r.get('stck_prpr', 0)):,}" for r in rankings],
-                        '등락률': [f"{float(r.get('prdy_ctrt', 0)):+.2f}%" for r in rankings],
-                        '거래량': [f"{int(r.get('acml_vol', 0)):,}" for r in rankings]
-                    })
-                    st.dataframe(df, use_container_width=True)
-                else:
-                    st.error("데이터를 가져올 수 없습니다")
+                type_map = {
+                    "거래량": "volume",
+                    "시가총액": "market_cap",
+                    "PER": "per",
+                }
+                try:
+                    data = self.get_market_rankings(ranking_type=type_map[ranking_type], limit=limit)
+                    if not data:
+                        st.warning("조건에 맞는 데이터가 없습니다.")
+                        return
+
+                    # MCP 응답 키를 공통 스키마로 변환해 표시
+                    rows = []
+                    for item in data:
+                        name = item.get("hts_kor_isnm") or item.get("name") or ""
+                        symbol = item.get("srtn_cd") or item.get("symbol") or ""
+                        price = item.get("stck_prpr") or item.get("price") or 0
+                        change = item.get("prdy_ctrt") or item.get("change_rate") or 0
+                        vol = item.get("acml_vol") or item.get("volume") or 0
+                        per = item.get("per") if isinstance(item.get("per"), (int, float)) else None
+                        pbr = item.get("pbr") if isinstance(item.get("pbr"), (int, float)) else None
+                        roe = item.get("roe_val") or item.get("roe") or None
+                        mcap = item.get("hts_avls") or item.get("market_cap") or 0
+
+                        rows.append({
+                            "종목코드": str(symbol),
+                            "종목명": name,
+                            "현재가": f"{int(float(price)):,}",
+                            "등락률": f"{float(change):+.2f}%",
+                            "거래량": f"{int(float(vol)):,}",
+                            "PER": "N/A" if per is None or per >= 100 or per <= 0 else f"{per:.2f}",
+                            "PBR": "N/A" if pbr is None or pbr >= 10 or pbr <= 0 else f"{pbr:.2f}",
+                            "ROE": "N/A" if roe is None else f"{float(roe):.2f}%",
+                            "시가총액(억원)": f"{float(mcap)/1e8:,.0f}",
+                        })
+
+                    df = pd.DataFrame(rows)
+                    st.dataframe(df, use_container_width=True, height=520)
+                    st.download_button(
+                        "📥 순위표 CSV 다운로드",
+                        df.to_csv(index=False).encode("utf-8-sig"),
+                        file_name=f"ranking_{type_map[ranking_type]}_{datetime.now().strftime('%Y%m%d_%H%M')}.csv",
+                        mime="text/csv",
+                    )
+                except Exception as e:
+                    st.error(f"순위 조회 중 오류: {e}")
+                    logger.exception("render_ranking_analysis error")
     
     def render_stock_detail(self):
         """종목 심화 분석"""
@@ -2689,7 +2986,7 @@ class ValueStockFinder:
         
         symbol = st.text_input("종목 코드", value="005930", key="detail_symbol")
         
-        if st.button("분석", key="detail_analyze"):
+        if st.button("분석", key="detail_analyze_button"):
             with st.spinner("심화 분석 중..."):
                 analysis = self.analyze_stock_with_mcp(symbol)
                 
@@ -2745,5 +3042,61 @@ def main():
         st.error(f"시스템 실행 중 오류가 발생했습니다: {e}")
         logger.error(f"시스템 오류: {e}")
 
+# --------------------------------------------
+# 전역 fail-safe 래퍼 (배포 안정성)
+# --------------------------------------------
+def safe_run():
+    """전역 예외 처리로 UI 안정성 보장"""
+    try:
+        ValueStockFinder().run()
+    except ImportError as e:
+        st.error(f"필수 모듈이 없습니다: {e}")
+        st.info("다음 명령어로 필요한 패키지를 설치하세요:")
+        st.code("pip install streamlit pandas numpy requests yfinance")
+        logger.error(f"ImportError: {e}")
+    except Exception as e:
+        st.error("시스템 오류가 발생했습니다. 잠시 후 다시 시도해주세요.")
+        st.error(f"오류 코드: {type(e).__name__}")
+        
+        # 개발자용 디버그 정보 (상세 로그)
+        with st.expander("🔧 개발자용 디버그 정보"):
+            st.code(f"""
+오류 타입: {type(e).__name__}
+오류 메시지: {str(e)}
+발생 시간: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+
+해결 방법:
+1. 브라우저 새로고침 (F5)
+2. 캐시 삭제 후 재시작
+3. 설정 파일 확인 (config.yaml)
+4. 네트워크 연결 상태 확인
+            """)
+        
+        logger.exception("전역 예외 발생")
+        
+        # 복구 제안
+        st.info("""
+        💡 **문제 해결 방법:**
+        - **브라우저 새로고침** (F5 키)
+        - **설정 파일 확인** (config.yaml)
+        - **네트워크 연결** 상태 확인
+        """)
+
+# --------------------------------------------
+# Streamlit 앱 진입점 (필수)
+# --------------------------------------------
+def main_app():
+    """Streamlit 앱 메인 함수"""
+    if "value_app" not in st.session_state:
+        st.session_state["value_app"] = ValueStockFinder()
+    
+    st.session_state["value_app"].run()
+
+# --------------------------------------------
+# Main guard: streamlit 엔트리포인트 명시
+# --------------------------------------------
 if __name__ == "__main__":
-    main()
+    safe_run()
+else:
+    # Streamlit에서 직접 실행될 때
+    main_app()

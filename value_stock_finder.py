@@ -19,6 +19,46 @@ import math
 import statistics
 from collections import Counter
 import textwrap  # ✅ 에러 메시지 길이 제한용
+import json  # ✅ 로깅/디버깅용
+
+# ✅ 개선 모듈 임포트
+try:
+    from value_finder_improvements import (
+        LongTermAnchorCache,
+        QualityMetricsCalculator,
+        DataQualityGuard,
+        AlternativeValuationMetrics,
+        enhance_stock_evaluation_with_quality
+    )
+    HAS_IMPROVEMENTS = True
+except ImportError:
+    HAS_IMPROVEMENTS = False
+    print("⚠️ value_finder_improvements 모듈을 찾을 수 없습니다. 기본 평가 방식을 사용합니다.")
+
+# ✅ v2.1 Quick Patches 임포트
+try:
+    from quick_patches_v2_1 import QuickPatches, ValueStockFinderPatches
+    HAS_QUICK_PATCHES = True
+except ImportError:
+    HAS_QUICK_PATCHES = False
+    # Fallback: 인라인 구현
+    class QuickPatches:
+        @staticmethod
+        def clean_name(s): return ''.join(ch for ch in (s or '').strip() if ch.isprintable())
+        @staticmethod
+        def short_text(s, width=120): return s if len(s or '') <= width else s[:width-3]+'...'
+        @staticmethod
+        def merge_options(opts):
+            defaults = {'per_max': 15.0, 'pbr_max': 1.5, 'roe_min': 10.0, 'score_min': 60.0, 
+                       'percentile_cap': 99.5, 'api_strategy': "안전 모드 (배치 처리)", 
+                       'fast_mode': False, 'fast_latency': 0.7}
+            out = defaults.copy()
+            if opts: out.update({k: v for k, v in opts.items() if v is not None})
+            return out
+    
+    class ValueStockFinderPatches:
+        @staticmethod
+        def cap_mos_score(mos_raw, max_score=35): return min(max_score, round(mos_raw * 0.35))
 
 # ✅ 외부 모듈 의존성 graceful fallback
 try:
@@ -499,6 +539,30 @@ class ValueStockFinder:
         self._failed_codes_max = 500
         self._failed_codes_ttl_sec = 1800  # 30분
         self._failed_lock = threading.Lock()  # 🔒 멀티스레드 안전성
+        
+        # ✅ 개선 모듈 초기화
+        if HAS_IMPROVEMENTS:
+            try:
+                self.long_term_anchor = LongTermAnchorCache()
+                self.quality_calculator = QualityMetricsCalculator()
+                self.data_guard = DataQualityGuard()
+                self.alt_valuation = AlternativeValuationMetrics()
+                logger.info("✅ 개선 모듈 초기화 완료 (장기앵커, 품질지표, 데이터가드)")
+            except Exception as e:
+                logger.warning(f"개선 모듈 초기화 실패: {e}")
+                self.long_term_anchor = None
+                self.quality_calculator = None
+                self.data_guard = None
+                self.alt_valuation = None
+        else:
+            self.long_term_anchor = None
+            self.quality_calculator = None
+            self.data_guard = None
+            self.alt_valuation = None
+        
+        # ✅ 디버깅/로깅용 출력 디렉터리
+        self.debug_output_dir = 'logs/debug_evaluations'
+        os.makedirs(self.debug_output_dir, exist_ok=True)
 
     def _gc_failed_codes(self):
         """실패 캐시 가비지 컬렉션 (TTL 만료 및 크기 제한)"""
@@ -749,6 +813,19 @@ class ValueStockFinder:
             return None
         if not p:
             return None
+        
+        # ✅ v2.1.3: 납작한 분포 조기 탈출 (IQR≈0 방어)
+        p25 = p.get('p25')
+        p50 = p.get('p50') 
+        p75 = p.get('p75')
+        
+        if not all(math.isfinite(x) for x in [p25, p50, p75] if x is not None):
+            return None
+            
+        iqr = p75 - p25 if p75 is not None and p25 is not None else None
+        if iqr is not None and (not math.isfinite(iqr) or abs(iqr) < 1e-9):
+            # 분포가 의미 없으면 중앙값 기준 단순 랭킹으로 대체
+            return 50.0 if (isinstance(value, (int, float)) and math.isfinite(value)) else None
         p25, p50, p75 = p.get("p25"), p.get("p50"), p.get("p75")
         # ✅ 퍼센타일 값도 finite 체크
         if not all(isinstance(x, (int, float)) and math.isfinite(x) for x in (p25, p50, p75)):
@@ -983,6 +1060,11 @@ class ValueStockFinder:
                 if current_price > 0:
                     per_realtime = (current_price / eps) if eps > 0 else 0
                     pbr_realtime = (current_price / bps) if bps > 0 else 0
+                    # ✅ v2.1.1: NaN/Inf 가드 (CSV 안전성)
+                    if not math.isfinite(per_realtime):
+                        per_realtime = 0
+                    if not math.isfinite(pbr_realtime):
+                        pbr_realtime = 0
                 else:
                     per_realtime = fd.get('per', 0) or 0
                     pbr_realtime = fd.get('pbr', 0) or 0
@@ -1002,6 +1084,8 @@ class ValueStockFinder:
                 }
                 # ✅ 종목명 보정 통일 (사용자 권장 - 일관된 키 사용)
                 stock['name'] = stock.get('name') or stock.get('financial_data', {}).get('name') or symbol
+                # ✅ v2.1: 이름 정규화 (공백/이모지/우회문자 제거)
+                stock['name'] = QuickPatches.clean_name(stock['name'])
                 return stock
             
             # 평소 경로 (API 성공 시 실시간 호출, 부분 동시성 허용)
@@ -1019,6 +1103,11 @@ class ValueStockFinder:
                 if current_price > 0:
                     per_realtime = (current_price / eps) if eps > 0 else 0
                     pbr_realtime = (current_price / bps) if bps > 0 else 0
+                    # ✅ v2.1.1: NaN/Inf 가드 (CSV 안전성)
+                    if not math.isfinite(per_realtime):
+                        per_realtime = 0
+                    if not math.isfinite(pbr_realtime):
+                        pbr_realtime = 0
                 else:
                     # 현재가 없으면 KIS API 값 사용
                     per_realtime = fd.get('per', 0) or 0
@@ -1042,6 +1131,8 @@ class ValueStockFinder:
                 }
                 # ✅ 종목명 보정 통일 (사용자 권장 - 일관된 키 사용)
                 stock['name'] = stock.get('name') or stock.get('financial_data', {}).get('name') or symbol
+                # ✅ v2.1: 이름 정규화 (공백/이모지/우회문자 제거)
+                stock['name'] = QuickPatches.clean_name(stock['name'])
                 return stock
             else:
                 return None
@@ -1226,7 +1317,10 @@ class ValueStockFinder:
         
         # 0~100% 클리핑 후 점수화
         mos = max(0.0, min(mos, 1.0))
-        return round(mos * 100)  # 0~100 점수
+        mos_raw_score = round(mos * 100)  # 0~100 원점수
+        
+        # ✅ v2.1: MoS 점수 상한 캡 (과도한 가점 방지, 점수 분포 균형)
+        return ValueStockFinderPatches.cap_mos_score(mos_raw_score, max_score=35)
     
     def calculate_intrinsic_value(self, stock_data):
         """내재가치 계산 (섹터 타깃 PBR 기반, 가드 포함)"""
@@ -1254,8 +1348,15 @@ class ValueStockFinder:
             target_pbr = max(0.5, min(3.0, pbr_med * roe_adj))
             
             # ✅ 퀄리티 방어막 (사용자 권장) - 저품질 기업 상한 하향
-            debt_ratio = float(stock_data.get('debt_ratio', 0) or 0)
-            current_ratio = float(stock_data.get('current_ratio', 0) or 0)
+            # v2.1.1: None 및 더미값 150.0 안전 처리
+            debt_ratio_raw = stock_data.get('debt_ratio')
+            current_ratio_raw = stock_data.get('current_ratio')
+            
+            # 더미값 150.0 또는 None 제거
+            # ✅ v2.1.2: 더미값 상수화 (매직넘버 제거)
+            DUMMY_SENTINEL = 150.0  # mcp_kis_integration.py의 결측 채움값
+            debt_ratio = float(debt_ratio_raw) if debt_ratio_raw and debt_ratio_raw != DUMMY_SENTINEL else 0
+            current_ratio = float(current_ratio_raw) if current_ratio_raw and current_ratio_raw != DUMMY_SENTINEL else 0
             
             if roe < 5.0 or debt_ratio > 200.0:
                 target_pbr = min(target_pbr, 1.5)  # 저ROE 또는 고부채 → PBR 상한 1.5
@@ -1286,10 +1387,25 @@ class ValueStockFinder:
             return None
     
     def evaluate_value_stock(self, stock_data, percentile_cap: float = 99.5):
-        """가치주 평가"""
+        """가치주 평가 (개선 버전)"""
         try:
             score = 0
             details = {}
+            
+            # ✅ 1. 데이터 품질 가드 (우선 체크)
+            if self.data_guard and self.data_guard.is_dummy_data(stock_data):
+                logger.warning(f"더미 데이터 감지 - 평가 제외: {stock_data.get('symbol', 'UNKNOWN')}")
+                return None
+            
+            # 회계 이상 징후 체크
+            if self.data_guard:
+                anomalies = self.data_guard.detect_accounting_anomalies(stock_data)
+                if anomalies:
+                    details['accounting_anomalies'] = anomalies
+                    # 심각한 이상 징후 시 경고
+                    high_severity = [k for k, v in anomalies.items() if v.get('severity') == 'HIGH']
+                    if high_severity:
+                        logger.warning(f"⚠️ {stock_data.get('symbol')}: 회계 이상 징후 감지 - {high_severity}")
             
             dao = self._evaluate_sector_adjusted_metrics(stock_data, percentile_cap)
 
@@ -1308,31 +1424,93 @@ class ValueStockFinder:
                 'raw_component_scores': dao.get('raw_component_scores')
             })
             
-            # ✅ 업종별 기준 충족 보너스 (가치주 선정 강화)
+            # ✅ 2. 음수 PER 대체 평가 (개선)
+            per = stock_data.get('per', 0)
+            if per <= 0 and self.alt_valuation:
+                # 대체 밸류에이션 메트릭 사용
+                sector_stats = stock_data.get('sector_stats', {})
+                alt_score = self.alt_valuation.calculate_alternative_score(stock_data, sector_stats)
+                # PER 점수 대체 (최대 20점)
+                score = score - dao['per_score'] + alt_score
+                details['per_score'] = alt_score
+                details['alternative_valuation_used'] = True
+                details['alternative_reason'] = 'negative_per'
+                logger.info(f"음수 PER 대체 평가 적용: {stock_data.get('symbol')} - 대체점수 {alt_score:.1f}점")
+            
+            # ✅ 3. 품질 지표 추가 평가 (최대 43점)
+            quality_score = 0
+            if self.quality_calculator:
+                # FCF Yield (0-15점)
+                fcf = stock_data.get('fcf', stock_data.get('operating_cash_flow', 0))
+                market_cap = stock_data.get('market_cap', 0)
+                fcf_yield = self.quality_calculator.calculate_fcf_yield(fcf, market_cap)
+                
+                if fcf_yield:
+                    details['fcf_yield'] = fcf_yield
+                    if fcf_yield > 10:
+                        quality_score += 15
+                    elif fcf_yield > 7:
+                        quality_score += 12
+                    elif fcf_yield > 5:
+                        quality_score += 9
+                    elif fcf_yield > 3:
+                        quality_score += 6
+                    elif fcf_yield > 0:
+                        quality_score += 3
+                
+                # Interest Coverage (0-10점)
+                operating_income = stock_data.get('operating_income', 0)
+                interest_expense = stock_data.get('interest_expense', 0)
+                interest_coverage = self.quality_calculator.calculate_interest_coverage(operating_income, interest_expense)
+                
+                if interest_coverage:
+                    details['interest_coverage'] = interest_coverage
+                    if interest_coverage > 10:
+                        quality_score += 10
+                    elif interest_coverage > 5:
+                        quality_score += 8
+                    elif interest_coverage > 3:
+                        quality_score += 6
+                    elif interest_coverage > 2:
+                        quality_score += 4
+                    elif interest_coverage > 1:
+                        quality_score += 2
+                
+                # Piotroski F-Score (0-18점, 2점/점)
+                try:
+                    fscore, fscore_details = self.quality_calculator.calculate_piotroski_fscore(stock_data)
+                    details['piotroski_fscore'] = fscore
+                    details['piotroski_details'] = fscore_details
+                    quality_score += fscore * 2  # 최대 18점
+                except Exception as e:
+                    logger.debug(f"Piotroski F-Score 계산 실패: {e}")
+            
+            score += quality_score
+            details['quality_score'] = quality_score
+            
+            # ✅ 4. 업종별 기준 충족 보너스 (축소: 최대 10점)
             sector_name = stock_data.get('sector_name', stock_data.get('sector', ''))
             criteria = self.get_sector_specific_criteria(sector_name)
             
-            per = stock_data.get('per', 0)
             pbr = stock_data.get('pbr', 0)
             roe = stock_data.get('roe', 0)
             
             sector_bonus = 0
             criteria_met = []
             
-            # 각 기준 충족 시 보너스 (최대 15점)
+            # 각 기준 충족 시 보너스 (축소: 최대 10점)
             if per > 0 and per <= criteria['per_max']:
-                sector_bonus += 5
+                sector_bonus += 3
                 criteria_met.append('PER')
             if pbr > 0 and pbr <= criteria['pbr_max']:
-                sector_bonus += 5
+                sector_bonus += 3
                 criteria_met.append('PBR')
             if roe > 0 and roe >= criteria['roe_min']:
-                sector_bonus += 5
+                sector_bonus += 4
                 criteria_met.append('ROE')
             
-            # 3개 기준 모두 충족 시 추가 보너스 (완벽한 가치주)
+            # 3개 기준 모두 충족 시 추가 보너스 없음 (이중카운팅 방지)
             if len(criteria_met) == 3:
-                sector_bonus += 10
                 logger.info(f"✅ {stock_data.get('name', stock_data.get('symbol'))}: 업종 기준 완벽 충족 (+{sector_bonus}점)")
             elif criteria_met:
                 logger.debug(f"⚠️ {stock_data.get('name', stock_data.get('symbol'))}: 부분 충족 {criteria_met} (+{sector_bonus}점)")
@@ -1347,14 +1525,14 @@ class ValueStockFinder:
             pbr = stock_data.get('pbr', 0)
             roe = stock_data.get('roe', 0)
             
-            # Justified Multiple 기반 MoS 점수 (0~100점)
-            mos_raw_score = self.compute_mos_score(per, pbr, roe, sector_name)
-            # 35점 만점으로 스케일링
-            mos_score = round(mos_raw_score * 0.35)
+            # ✅ v2.1.3: Justified Multiple 기반 MoS 점수 (이미 35점 만점)
+            # ⚠️ 중요: mos_score는 이미 0~35 점수로 스케일된 값입니다. 추가 스케일 금지!
+            # compute_mos_score() 내부에서 cap_mos_score()가 *0.35 적용하여 0-35점 반환
+            mos_score = self.compute_mos_score(per, pbr, roe, sector_name)
             
             score += mos_score
             details['mos_score'] = mos_score
-            details['mos_raw'] = mos_raw_score
+            details['mos_points'] = mos_score  # ✅ v2.1.2: 일관성 개선 (mos_raw → mos_points)
             
             # 기존 내재가치도 참고용으로 보관
             intrinsic_data = self.calculate_intrinsic_value(stock_data)
@@ -1367,20 +1545,26 @@ class ValueStockFinder:
                 details['intrinsic_value'] = 0
                 details['confidence'] = 'UNKNOWN'
             
-            # ✅ 등급 결정 (MoS 반영으로 점수 체계 변경)
-            # 총점 구성: PER/PBR/ROE(~60점) + 섹터보너스(최대25점) + MoS(35점) = 최대 120점
-            if score >= 90:
+            # ✅ 5. 등급 결정 (개선된 점수 체계)
+            # 총점 구성: PER/PBR/ROE(~60점) + 품질(43점) + 섹터보너스(10점) + MoS(35점) = 최대 148점
+            # 백분율 환산 후 등급 부여
+            score_pct = (score / 148) * 100
+            
+            if score_pct >= 75:
                 grade = "A+ (매우 우수)"
-            elif score >= 75:
+            elif score_pct >= 65:
                 grade = "A (우수)"
-            elif score >= 60:
+            elif score_pct >= 55:
                 grade = "B+ (양호)"
-            elif score >= 50:
+            elif score_pct >= 45:
                 grade = "B (보통)"
-            elif score >= 40:
+            elif score_pct >= 35:
                 grade = "C+ (주의)"
             else:
                 grade = "C (위험)"
+            
+            details['score_percentage'] = score_pct
+            details['max_possible_score'] = 148
             
             # 업종별 기준으로 추천 결정
             sector_name = stock_data.get('sector_name', stock_data.get('sector', ''))
@@ -1396,42 +1580,91 @@ class ValueStockFinder:
             pbr_pass = pbr <= criteria['pbr_max'] if pbr > 0 else False
             roe_pass = roe >= criteria['roe_min'] if roe > 0 else False
             
-            # ✅ 추천 결정 로직 단순화 (MoS 반영, 총점 120점 기준)
-            criteria_met_list = details['criteria_met']  # ← 재사용 일관화
-            if roe < 0 and pbr > 3:
-                recommendation = "SELL"  # 하드가드: 적자 + 고PBR
-            elif len(criteria_met_list) == 3 and score >= 70:
-                recommendation = "STRONG_BUY"  # 업종 기준 완벽 + 70점 이상
-            elif score >= 75:
-                recommendation = "STRONG_BUY"  # 또는 총점 75점 이상
-            elif len(criteria_met_list) == 3 and score >= 50:
-                recommendation = "BUY"  # 업종 기준 완벽 + 50점 이상
-            elif score >= 60:
-                recommendation = "BUY"  # 또는 총점 60점 이상
-            elif score >= 50:
+            # ✅ 추천 결정 로직 (백분율 기준으로 조정)
+            criteria_met_list = details['criteria_met']
+            
+            # ✅ STEP 1: 기본 추천 산출 (점수 기반)
+            # 우수 가치주
+            if len(criteria_met_list) == 3 and score_pct >= 60:
+                recommendation = "STRONG_BUY"
+            elif score_pct >= 65:
+                recommendation = "STRONG_BUY"
+            # 양호 가치주
+            elif len(criteria_met_list) >= 2 and score_pct >= 50:
+                recommendation = "BUY"
+            elif score_pct >= 55:
+                recommendation = "BUY"
+            # 보류
+            elif score_pct >= 45:
                 recommendation = "HOLD"
             else:
                 recommendation = "SELL"
             
-            # ✅ 보수화 패널티 시스템 (사용자 권장 - 중복 방지, 명확한 의도)
+            # ✅ STEP 2: 다운그레이드 함수 정의
+            def downgrade(r):
+                order = ["STRONG_BUY", "BUY", "HOLD", "SELL"]
+                try:
+                    idx = order.index(r)
+                except ValueError:
+                    idx = 2  # 기본값 HOLD
+                return order[min(idx + 1, len(order) - 1)]
+            
+            # ✅ STEP 3: 예외 처리 및 다운그레이드 적용
+            # v2.1: 하드 가드 완화 (섹터 특성/일시적 손실 고려)
+            # 기존: ROE < 0 and PBR > 3 → 즉시 SELL
+            # 개선: ROE < 0 and PBR > 3 → 한 단계만 하향 (과도한 즉시 SELL 방지)
+            if roe < 0 and pbr > 3:
+                recommendation = downgrade(recommendation)  # 한 단계만 하향
+                logger.debug(f"하드 가드 적용 (완화): ROE<0 & PBR>3 → 한 단계 하향 ({recommendation})")
+            
+            # 회계 이상 징후 심각한 경우
+            if details.get('accounting_anomalies', {}) and \
+               any(v.get('severity') == 'HIGH' for v in details['accounting_anomalies'].values()):
+                recommendation = "HOLD"  # 최대 HOLD로 제한
+                logger.warning(f"회계 이상 징후 감지 → HOLD로 제한")
+            
+            # ✅ v2.1.2: 보수화 패널티 시스템 (가독성/안정성 개선)
             penalties = 0
-            if per <= 0:
-                penalties += 1
+            alt_used = details.get('alternative_valuation_used', False)  # 명시적 변수
+            
+            if per <= 0 and not alt_used:
+                penalties += 1  # 대체 평가 사용 시 패널티 면제
             if roe < 0:
                 penalties += 1
             if (pbr and pbr > 5) and (roe and roe < 5):
                 penalties += 1
             
-            # 패널티에 따라 한 단계씩 하향
-            def downgrade(r):
-                order = ["STRONG_BUY", "BUY", "HOLD", "SELL"]
-                idx = order.index(r) if r in order else 2
-                return order[min(idx + 1, len(order) - 1)]
-            
-            # ✅ 패널티 상한 적용 (크리티컬 - 한 방에 SELL까지 떨어지는 것 방지)
+            # 패널티에 따라 최대 2단계까지 하향 (downgrade 함수 재사용)
             max_downgrade_steps = 2
             for _ in range(min(penalties, max_downgrade_steps)):
                 recommendation = downgrade(recommendation)
+            
+            # ✅ 6. 디버깅 로깅 (JSON 출력)
+            if hasattr(self, 'debug_output_dir'):
+                try:
+                    debug_data = {
+                        'symbol': stock_data.get('symbol'),
+                        'name': stock_data.get('name'),
+                        'timestamp': datetime.now().isoformat(),
+                        'score': score,
+                        'score_percentage': score_pct,
+                        'grade': grade,
+                        'recommendation': recommendation,
+                        'details': details,
+                        'raw_metrics': {
+                            'per': per,
+                            'pbr': pbr,
+                            'roe': roe,
+                            'market_cap': stock_data.get('market_cap'),
+                            'current_price': stock_data.get('current_price')
+                        }
+                    }
+                    
+                    debug_file = os.path.join(self.debug_output_dir, f"{stock_data.get('symbol', 'UNKNOWN')}_{int(time.time())}.json")
+                    with open(debug_file, 'w', encoding='utf-8') as f:
+                        json.dump(debug_data, f, ensure_ascii=False, indent=2)
+                except Exception as e:
+                    logger.debug(f"디버그 로깅 실패: {e}")
             
             return {
                 'value_score': score,
@@ -1502,6 +1735,9 @@ class ValueStockFinder:
             help="퍼센타일 표시와 스코어 계산에 모두 적용됩니다. 낮을수록 과포화 감소하고 점수 계산도 달라집니다.",
             key="percentile_cap_slider"
         )
+        
+        # ✅ v2.1.2: 퍼센타일 캡 효과 표시
+        st.sidebar.caption(f"📊 **퍼센타일 상한 {percentile_cap:.1f}%** 적용 중")
         
         # 개별 종목 분석인 경우에만 종목 선택
         selected_symbol = None
@@ -1793,6 +2029,9 @@ class ValueStockFinder:
         """전체 종목 스크리닝"""
         st.header("📊 가치주 스크리닝 결과")
         
+        # ✅ v2.1: 옵션 스키마 가드 (사이드바 변경 시 키 누락 방지)
+        options = QuickPatches.merge_options(options)
+        
         max_stocks = options['max_stocks']
         
         # 사용자가 선택한 종목 수만 로딩
@@ -1913,19 +2152,22 @@ class ValueStockFinder:
             # 동적 백오프 변수
             backoff = 1.0
             
+            # ✅ v2.1.3: ThreadPoolExecutor 한 번만 생성 후 재사용 (성능 최적화)
+            max_workers = min(3, batch_size)  # 배치 크기에 맞춘 워커 수
+            
             # 배치별로 처리
-            for batch_start in range(0, len(stock_items), batch_size):
-                batch_end = min(batch_start + batch_size, len(stock_items))
-                batch = stock_items[batch_start:batch_end]
-                
-                current_time = time.time()
-                if current_time - last_ui_update > self._get_ui_update_interval(len(stock_items)):
-                    status_text.text(f"📊 배치 {batch_start//batch_size + 1} 처리 중: {len(batch)}개 종목")
-                    last_ui_update = current_time
-                
-                # 현재 배치 병렬 처리
-                batch_error = False
-                with concurrent.futures.ThreadPoolExecutor(max_workers=min(3, len(batch))) as executor:
+            with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
+                for batch_start in range(0, len(stock_items), batch_size):
+                    batch_end = min(batch_start + batch_size, len(stock_items))
+                    batch = stock_items[batch_start:batch_end]
+                    
+                    current_time = time.time()
+                    if current_time - last_ui_update > self._get_ui_update_interval(len(stock_items)):
+                        status_text.text(f"📊 배치 {batch_start//batch_size + 1} 처리 중: {len(batch)}개 종목")
+                        last_ui_update = current_time
+                    
+                    # 현재 배치 병렬 처리
+                    batch_error = False
                     future_to_stock = {
                         executor.submit(self.analyze_single_stock_parallel, (symbol, name), options): (symbol, name)
                         for symbol, name in batch
@@ -2891,8 +3133,9 @@ class ValueStockFinder:
                                 stock.get('roe', 0),
                                 stock.get('sector', '')
                             )
-                            stock['mos_score'] = round(mos_raw * 0.35)
-                            stock['mos_raw'] = mos_raw
+                            # ✅ v2.1.2: 이중 스케일링 제거 (compute_mos_score가 이미 0-35 반환)
+                            stock['mos_score'] = mos_raw  # 이미 최종 점수
+                            stock['mos_points'] = mos_raw  # ✅ v2.1.2: 일관성 개선 (mos_raw → mos_points)
                     
                     df = pd.DataFrame([
                         {
@@ -2955,10 +3198,19 @@ class ValueStockFinder:
                             col1, col2, col3 = st.columns(3)
                             with col1:
                                 debt_ratio = stock_detail.get('debt_ratio', 0)
-                                st.metric("부채비율", f"{debt_ratio:.1f}%")
+                                # ✅ v2.1.2: 더미값 상수화 (매직넘버 제거)
+                                DUMMY_SENTINEL = 150.0  # mcp_kis_integration.py의 결측 채움값
+                                if debt_ratio == DUMMY_SENTINEL or debt_ratio == 0 or debt_ratio is None:
+                                    st.metric("부채비율", "N/A", help="데이터 없음")
+                                else:
+                                    st.metric("부채비율", f"{debt_ratio:.1f}%")
                             with col2:
                                 current_ratio = stock_detail.get('current_ratio', 0)
-                                st.metric("유동비율", f"{current_ratio:.1f}%")
+                                # ✅ v2.1.2: 더미값 상수화 (매직넘버 제거)
+                                if current_ratio == DUMMY_SENTINEL or current_ratio == 0 or current_ratio is None:
+                                    st.metric("유동비율", "N/A", help="데이터 없음")
+                                else:
+                                    st.metric("유동비율", f"{current_ratio:.1f}%")
                             with col3:
                                 volume = stock_detail['volume']
                                 st.metric("거래량", f"{volume:,}주")
@@ -2968,14 +3220,188 @@ class ValueStockFinder:
                             score = stock_detail['score']
                             st.progress(score / 100)
                             
-                            if score >= 80:
-                                st.success("🌟 **매우 우수한 가치주**")
-                            elif score >= 70:
-                                st.info("✅ **우수한 가치주**")
-                            elif score >= 60:
-                                st.warning("⚠️ **괜찮은 가치주**")
+                            # ✅ v2.1.2: 추천 등급 표시 (STRONG_BUY/BUY/HOLD/SELL)
+                            recommendation = stock_detail.get('recommendation', 'HOLD')
+                            recommendation_colors = {
+                                'STRONG_BUY': ('success', '🌟 **매우 우수한 가치주** (STRONG_BUY)'),
+                                'BUY': ('info', '✅ **우수한 가치주** (BUY)'),
+                                'HOLD': ('warning', '⚠️ **관망 추천** (HOLD)'),
+                                'SELL': ('error', '❌ **투자 부적합** (SELL)')
+                            }
+                            
+                            color_type, message = recommendation_colors.get(recommendation, ('warning', f'📊 **평가 중** ({recommendation})'))
+                            
+                            if color_type == 'success':
+                                st.success(message)
+                            elif color_type == 'info':
+                                st.info(message)
+                            elif color_type == 'warning':
+                                st.warning(message)
                             else:
-                                st.warning("📊 **평균적인 가치주**")
+                                st.error(message)
+                            
+                            # ✅ v2.1.2: 세부 점수 테이블
+                            st.markdown("##### 📊 세부 점수 분석")
+                            score_details = stock_detail.get('score_details', {})
+                            
+                            # 점수 구성 테이블
+                            score_breakdown = pd.DataFrame([
+                                {'항목': 'PER 점수', '점수': f"{score_details.get('per_score', 0):.1f}", '가중치': '20점', '상태': '✅' if score_details.get('per_score', 0) > 15 else '⚠️'},
+                                {'항목': 'PBR 점수', '점수': f"{score_details.get('pbr_score', 0):.1f}", '가중치': '20점', '상태': '✅' if score_details.get('pbr_score', 0) > 15 else '⚠️'},
+                                {'항목': 'ROE 점수', '점수': f"{score_details.get('roe_score', 0):.1f}", '가중치': '20점', '상태': '✅' if score_details.get('roe_score', 0) > 15 else '⚠️'},
+                                {'항목': '품질 점수', '점수': f"{score_details.get('quality_score', 0):.1f}", '가중치': '43점', '상태': '✅' if score_details.get('quality_score', 0) > 25 else '⚠️'},
+                                {'항목': 'MoS 점수', '점수': f"{score_details.get('mos_score', 0):.1f}", '가중치': '35점', '상태': '✅' if score_details.get('mos_score', 0) > 20 else '⚠️'},
+                                {'항목': '섹터 보너스', '점수': f"{score_details.get('sector_bonus', 0):.1f}", '가중치': '10점', '상태': '✅' if score_details.get('sector_bonus', 0) > 5 else '📊'},
+                            ])
+                            
+                            st.dataframe(score_breakdown, use_container_width=True)
+                            
+                            # ✅ v2.1.2: 점수 분포 차트
+                            st.markdown("##### 📈 점수 분포 시각화")
+                            col1, col2 = st.columns(2)
+                            
+                            with col1:
+                                # 점수 구성 파이 차트
+                                import plotly.express as px
+                                import plotly.graph_objects as go
+                                
+                                score_values = [
+                                    score_details.get('per_score', 0),
+                                    score_details.get('pbr_score', 0), 
+                                    score_details.get('roe_score', 0),
+                                    score_details.get('quality_score', 0),
+                                    score_details.get('mos_score', 0),
+                                    score_details.get('sector_bonus', 0)
+                                ]
+                                score_labels = ['PER', 'PBR', 'ROE', '품질', 'MoS', '섹터']
+                                
+                                fig = go.Figure(data=[go.Pie(
+                                    labels=score_labels,
+                                    values=score_values,
+                                    hole=0.3,
+                                    textinfo='label+percent+value',
+                                    texttemplate='%{label}<br>%{value:.1f}점<br>(%{percent})'
+                                )])
+                                fig.update_layout(
+                                    title="점수 구성 분석",
+                                    showlegend=True,
+                                    height=400
+                                )
+                                st.plotly_chart(fig, use_container_width=True)
+                            
+                            with col2:
+                                # 점수 레이더 차트
+                                categories = ['PER', 'PBR', 'ROE', '품질', 'MoS', '섹터']
+                                max_values = [20, 20, 20, 43, 35, 10]  # 각 항목 최대 점수
+                                current_values = [
+                                    min(score_details.get('per_score', 0), 20),
+                                    min(score_details.get('pbr_score', 0), 20),
+                                    min(score_details.get('roe_score', 0), 20),
+                                    min(score_details.get('quality_score', 0), 43),
+                                    min(score_details.get('mos_score', 0), 35),
+                                    min(score_details.get('sector_bonus', 0), 10)
+                                ]
+                                
+                                fig_radar = go.Figure()
+                                fig_radar.add_trace(go.Scatterpolar(
+                                    r=current_values,
+                                    theta=categories,
+                                    fill='toself',
+                                    name='현재 점수',
+                                    line_color='blue'
+                                ))
+                                fig_radar.add_trace(go.Scatterpolar(
+                                    r=max_values,
+                                    theta=categories,
+                                    fill='toself',
+                                    name='최대 점수',
+                                    line_color='red',
+                                    opacity=0.3
+                                ))
+                                fig_radar.update_layout(
+                                    polar=dict(
+                                        radialaxis=dict(
+                                            visible=True,
+                                            range=[0, 45]  # 최대값에 맞춤
+                                        )),
+                                    showlegend=True,
+                                    title="점수 레이더 차트",
+                                    height=400
+                                )
+                                st.plotly_chart(fig_radar, use_container_width=True)
+                            
+                            # ✅ v2.1.2: 투자 의견 요약
+                            st.markdown("##### 💡 투자 의견 요약")
+                            
+                            # 주요 지표 요약
+                            col1, col2, col3 = st.columns(3)
+                            
+                            with col1:
+                                st.metric(
+                                    "종합 점수", 
+                                    f"{score:.1f}/148", 
+                                    help="PER(20) + PBR(20) + ROE(20) + 품질(43) + MoS(35) + 섹터(10)"
+                                )
+                            
+                            with col2:
+                                criteria_met = stock_detail.get('criteria_met', [])
+                                criteria_count = len(criteria_met) if isinstance(criteria_met, list) else 0
+                                st.metric(
+                                    "기준 충족", 
+                                    f"{criteria_count}/3",
+                                    help="PER/PBR/ROE 업종 기준 충족 개수"
+                                )
+                            
+                            with col3:
+                                confidence = stock_detail.get('confidence', 'UNKNOWN')
+                                confidence_icon = {'HIGH': '🟢', 'MEDIUM': '🟡', 'LOW': '🔴'}.get(confidence, '⚪')
+                                st.metric(
+                                    "신뢰도", 
+                                    f"{confidence_icon} {confidence}",
+                                    help="섹터 표본 수 기반 신뢰도"
+                                )
+                            
+                            # 투자 권고사항
+                            st.markdown("##### 🎯 투자 권고사항")
+                            
+                            if recommendation == 'STRONG_BUY':
+                                st.success("""
+                                **🌟 적극 매수 추천**
+                                - 매우 우수한 가치주로 평가됩니다
+                                - 장기 투자 관점에서 포트폴리오 핵심 종목으로 적합
+                                - 단기 변동성을 감안하여 분할 매수 권장
+                                """)
+                            elif recommendation == 'BUY':
+                                st.info("""
+                                **✅ 매수 추천**
+                                - 우수한 가치주로 평가됩니다
+                                - 포트폴리오 구성 종목으로 고려 가능
+                                - 시장 상황과 함께 종합 판단 필요
+                                """)
+                            elif recommendation == 'HOLD':
+                                st.warning("""
+                                **⚠️ 관망 추천**
+                                - 현재 수준에서는 관망이 적절합니다
+                                - 추가적인 호재나 하락 시 재검토 필요
+                                - 보유 중이라면 유지하되 신규 매수는 보류
+                                """)
+                            else:  # SELL
+                                st.error("""
+                                **❌ 매도 추천**
+                                - 투자 부적합으로 평가됩니다
+                                - 보유 중이라면 매도 검토 필요
+                                - 다른 투자 기회를 찾아보시기 바랍니다
+                                """)
+                            
+                            # 리스크 고지
+                            st.markdown("---")
+                            st.caption("""
+                            ⚠️ **투자 주의사항**
+                            - 본 분석은 리서치 보조 목적으로만 사용하세요
+                            - 투자 결정은 본인의 판단과 책임입니다
+                            - 시장 상황 변화에 따라 평가가 달라질 수 있습니다
+                            - 과거 성과가 미래 수익을 보장하지 않습니다
+                            """)
                 
                 else:
                     st.warning(

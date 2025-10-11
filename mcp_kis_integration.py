@@ -3742,9 +3742,9 @@ class MCPKISIntegration:
                                 'eps': str(preloaded.get('eps', 0)),
                                 'bps': str(preloaded.get('bps', 0)),
                                 'roe': str(preloaded.get('roe', 0)),
-                                # 기타 재무 데이터 (없으면 기본값)
-                                'debt_ratio': str(preloaded.get('debt_ratio', 150.0)),  # 기본값: 150%
-                                'current_ratio': str(preloaded.get('current_ratio', 150.0)),  # 기본값: 150% (1.5배)
+                                # ✅ v2.1.1: 기타 재무 데이터 (없으면 None - 더미값 150.0 제거)
+                                'debt_ratio': str(preloaded.get('debt_ratio')) if preloaded.get('debt_ratio') else None,
+                                'current_ratio': str(preloaded.get('current_ratio')) if preloaded.get('current_ratio') else None
                             }
                             financial_cache[symbol] = financial
                             # ✅ 첫 번째 종목만 디버깅 로그
@@ -3760,13 +3760,13 @@ class MCPKISIntegration:
                         if financial:
                             financial_cache[symbol] = financial
                     elif financial is None:
-                        # 품질 체크 OFF면 외부 데이터만으로 처리
+                        # ✅ v2.1.1: 품질 체크 OFF면 외부 데이터만으로 처리 (더미값 제거)
                         financial = {
                             'per': str(current_price_data.get('per', 0)),
                             'pbr': str(current_price_data.get('pbr', 0)),
-                            'roe': '10.0',  # 기본값
-                            'debt_ratio': '150.0',
-                            'current_ratio': '150.0',
+                            'roe': str(current_price_data.get('roe', 0)) if current_price_data.get('roe') else None,
+                            'debt_ratio': None,  # 데이터 없음 (더미값 150.0 제거)
+                            'current_ratio': None,  # 데이터 없음 (더미값 150.0 제거)
                         }
                         # ✅ 디버깅: 외부 데이터 확인
                         if checked_count == 1:

@@ -92,6 +92,9 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
+# ✅ 전역 상수 (UI 일관성)
+ERROR_MSG_WIDTH = 120  # 에러 메시지 최대 길이
+
 # ✅ 로깅 설정 (중복 방지 + 환경변수 레벨 제어)
 LOG_LEVEL = os.environ.get('LOG_LEVEL', 'INFO').upper()
 _logger = logging.getLogger(__name__)
@@ -124,8 +127,8 @@ def _get_analyzer():
     """분석기 캐시 (재실행 비용 절감)"""
     logger.info("✅ 분석기 초기화 (최초 1회만)")
     try:
-        from enhanced_integrated_analyzer_refactored import EnhancedIntegratedAnalyzer
-        return EnhancedIntegratedAnalyzer()
+        from enhanced_integrated_analyzer_refactored import EnhancedIntegratedAnalyzer as _EIA
+        return _EIA()
     except Exception as e:
         logger.warning(f"EnhancedIntegratedAnalyzer 로드 실패: {e}")
         
@@ -155,7 +158,11 @@ def _get_mcp_integration():
 def _get_value_stock_finder():
     """ValueStockFinder 인스턴스 캐시 (최초 1회만 생성, OAuth 토큰 24시간 재사용)"""
     logger.info("✅ ValueStockFinder 초기화 (최초 1회만, OAuth 토큰 24시간 재사용)")
-    return ValueStockFinder()
+    # ▶ 지연 바인딩: 클래스 정의 순서 문제로 인한 NameError 방지
+    cls = globals().get("ValueStockFinder", None)
+    if cls is None:
+        raise RuntimeError("ValueStockFinder 클래스가 아직 정의되지 않았습니다. 함수 호출 순서를 확인하세요.")
+    return cls()
 
 @st.cache_data(ttl=300)  # 5분 TTL
 def _cached_universe_from_api(max_count: int):
@@ -303,11 +310,18 @@ class ValueStockFinder:
                 import time
                 import os
                 
-                cache_file = '.kis_token_cache.json'
+                # ▶ 캐시 파일 우선순위: 홈 디렉터리 → 현재 디렉터리 (기존 토큰 보존)
+                cache_file_home = os.path.join(os.path.expanduser("~"), '.kis_token_cache.json')
+                cache_file_local = '.kis_token_cache.json'
                 
-                # 캐시 파일 존재 확인
-                if not os.path.exists(cache_file):
-                    logger.debug(f"토큰 캐시 파일 없음: {cache_file}")
+                # 우선 홈 디렉터리 확인, 없으면 현재 디렉터리 확인 (기존 캐시 재사용)
+                if os.path.exists(cache_file_home):
+                    cache_file = cache_file_home
+                elif os.path.exists(cache_file_local):
+                    cache_file = cache_file_local
+                    logger.info(f"💡 기존 토큰 캐시 발견: {cache_file_local} (다음 발급 시 {cache_file_home}로 이동 예정)")
+                else:
+                    logger.debug(f"토큰 캐시 파일 없음: {cache_file_home} 및 {cache_file_local}")
                     return None
                 
                 try:
@@ -378,7 +392,9 @@ class ValueStockFinder:
                         'issued_at': time.time()
                     }
                     
-                    cache_file = '.kis_token_cache.json'
+                    # ▶ 사용자 홈 디렉터리의 보안 경로 사용(플랫폼 호환)
+                    import os
+                    cache_file = os.path.join(os.path.expanduser("~"), '.kis_token_cache.json')
                     with open(cache_file, 'w', encoding='utf-8') as f:
                         json.dump(cache_data, f, indent=2)
                     
@@ -386,8 +402,7 @@ class ValueStockFinder:
                     
                     # 파일 권한 설정 (보안)
                     try:
-                        import os
-                        os.chmod('.kis_token_cache.json', 0o600)
+                        os.chmod(cache_file, 0o600)
                     except Exception:
                         pass
                     
@@ -603,6 +618,7 @@ class ValueStockFinder:
             (['소비','유통','식품','리테일','소비재'], '소비재'),
             (['통신','텔레콤','통신업'], '통신업'),
             (['건설','부동산','디벨로퍼','건설업'], '건설업'),
+            (['2차전지','배터리','전지'], '전기전자'),  # ✅ 한국 시장 특성 반영
             (['전기전자'], '전기전자'),   # 세부 섹터를 그대로 인정
             (['운송장비'], '운송장비'),
             (['운송','해운','항공','운수창고'], '운송'),
@@ -618,39 +634,49 @@ class ValueStockFinder:
                 return label
         return '기타'
     
-    def _get_sector_criteria_display(self, sector_name: str) -> str:
-        """업종별 기준을 간단한 문자열로 표시"""
+    def _get_sector_criteria_display(self, sector_name: str, options: Dict[str, Any] = None) -> str:
+        """업종별 기준을 간단한 문자열로 표시 (사용자 슬라이더 반영)"""
         c = self.get_sector_specific_criteria(sector_name) or self.default_value_criteria
-        per = self._safe_num(c.get('per_max'), 0)
-        pbr = self._safe_num(c.get('pbr_max'), 1)
-        roe = self._safe_num(c.get('roe_min'), 0)
-        return f"PER≤{per}, PBR≤{pbr}, ROE≥{roe}%"
+        
+        # 🔧 업종 기준과 사용자 슬라이더를 결합하여 표시
+        if options:
+            per = min(c.get('per_max', 15), options.get('per_max', c.get('per_max', 15)))
+            pbr = min(c.get('pbr_max', 1.5), options.get('pbr_max', c.get('pbr_max', 1.5)))
+            roe = max(c.get('roe_min', 10), options.get('roe_min', c.get('roe_min', 10)))
+        else:
+            per = self._safe_num(c.get('per_max'), 0)
+            pbr = self._safe_num(c.get('pbr_max'), 1)
+            roe = self._safe_num(c.get('roe_min'), 0)
+        
+        return f"PER≤{per:.1f}, PBR≤{pbr:.1f}, ROE≥{roe:.1f}%"
     
     def is_value_stock_unified(self, stock_data: Dict[str, Any], options: Dict[str, Any]) -> bool:
-        """✅ 가치주 판단 로직 통일 (업종별 기준 완화)"""
+        """✅ 가치주 판단 로직 통일 (업종별 기준 + 사용자 슬라이더 결합)"""
         # 업종별 가치주 기준 체크
         sector_name = stock_data.get('sector_name', stock_data.get('sector', ''))
-        criteria = self.get_sector_specific_criteria(sector_name)
+        policy = self.get_sector_specific_criteria(sector_name)
+        
+        # 🔧 업종 기준과 사용자 기준을 결합 (더 보수적인 쪽 사용)
+        per_max = min(policy['per_max'], options.get('per_max', policy['per_max']))
+        pbr_max = min(policy['pbr_max'], options.get('pbr_max', policy['pbr_max']))
+        roe_min = max(policy['roe_min'], options.get('roe_min', policy['roe_min']))
         
         per = stock_data.get('per', 0) or 0
         pbr = stock_data.get('pbr', 0) or 0
         roe = stock_data.get('roe', 0) or 0
         
-        # 이상치 하드 클립 (분포/퍼센타일 안정화)
-        per = per if 0 < per < 200 else 0
-        pbr = pbr if 0 < pbr < 20 else 0
+        # 이상치 하드 클립 (분포/퍼센타일 안정화) - 보수적 상한으로 노이즈 감소
+        per = per if 0 < per < 120 else 0
+        pbr = pbr if 0 < pbr < 10 else 0
         value_score = stock_data.get('value_score', 0)
+        score_min = options.get('score_min', 60.0)
         
-        per_ok = per <= criteria['per_max'] if per > 0 else False
-        pbr_ok = pbr <= criteria['pbr_max'] if pbr > 0 else False
-        roe_ok = roe >= criteria['roe_min'] if roe > 0 else False
+        per_ok = per > 0 and per <= per_max
+        pbr_ok = pbr > 0 and pbr <= pbr_max
+        roe_ok = roe > 0 and roe >= roe_min
         
-        # ✅ 업종별 기준 3개 모두 충족 + 점수 임계값 (사이드바 옵션 반영)
-        criteria_met_count = sum([per_ok, pbr_ok, roe_ok])
-        user_score_min = options.get('score_min', 60.0)
-        
-        # PATCH-001: 3가지 기준 충족과 사용자 설정 최소 점수 통과를 명확하게 AND 조건으로 결합
-        return criteria_met_count == 3 and value_score >= user_score_min
+        # 3가지 기준 모두 충족 AND 사용자 설정 최소 점수 통과
+        return (per_ok and pbr_ok and roe_ok) and (value_score >= score_min)
         
     def format_pct_or_na(self, value: Optional[float], precision: int = 1) -> str:
         """퍼센트 값 포맷팅 (None/NaN일 경우 N/A)"""
@@ -658,7 +684,10 @@ class ValueStockFinder:
     
     def format_percentile(self, percentile: Optional[float], cap: float = 99.5) -> str:
         """백분위(높을수록 좋음) 그대로 표시 - 사용자 설정 상한 적용"""
-        return "N/A" if percentile is None else f"{min(cap, percentile):.1f}%"
+        # 🔧 NaN/Inf 체크 추가
+        if percentile is None or not isinstance(percentile, (int, float)) or not math.isfinite(percentile):
+            return "N/A"
+        return f"{min(cap, percentile):.1f}%"
     
     def _safe_num(self, x, d=1, default='N/A'):
         """안전한 숫자 포맷팅"""
@@ -1074,8 +1103,7 @@ class ValueStockFinder:
                         'per_score': value_analysis['details'].get('per_score', 0),
                         'pbr_score': value_analysis['details'].get('pbr_score', 0),
                         'roe_score': value_analysis['details'].get('roe_score', 0),
-                        'margin_score': value_analysis['details'].get('margin_score', 0),
-                        # ⬇️ 테이블에서 0으로만 보이던 버그 수정
+                        # ✅ margin_score 제거, mos_score만 사용 (일관성 확보)
                         'mos_score': value_analysis['details'].get('mos_score', 0),
                         'sector_bonus': value_analysis['details'].get('sector_bonus', 0)
                     }
@@ -1090,7 +1118,8 @@ class ValueStockFinder:
         """분석 예상 소요 시간 계산 (레이트리미터 기반 정확도 향상)"""
         if api_strategy == "빠른 모드 (병렬 처리)":
             # QPS 기반 현실적 계산
-            qps = max(0.5, self.rate_limiter.rate)  # ex) 2.0
+            # ▶ 분모 0 방지 + 하한 보정
+            qps = max(0.5, float(self.rate_limiter.rate) if getattr(self.rate_limiter, "rate", None) else 0.5)
             time_seconds = stock_count / qps
         elif api_strategy == "안전 모드 (배치 처리)":
             if stock_count <= 50:
@@ -1614,6 +1643,12 @@ class ValueStockFinder:
             # ✅ 중복 제거: 028260, 025890 등
         }
         
+        # ✅ 폴백 원본/검증 개수 UI 표기를 위한 진단 값 세팅
+        try:
+            self._fallback_original_count = len(fallback_stocks)
+        except Exception:
+            pass
+        
         # ✅ 품질 검증 + 블랙리스트 제거 + 중복 제거 (사용자 권장)
         validated_stocks = {}
         seen_names = set()
@@ -1625,6 +1660,11 @@ class ValueStockFinder:
                 and name not in seen_names):
                 validated_stocks[code] = name.strip()
                 seen_names.add(name.strip())
+        
+        try:
+            self._fallback_validated_count = len(validated_stocks)
+        except Exception:
+            pass
         
         logger.info(f"✅ Fallback 종목 리스트 검증 완료: {len(validated_stocks)}개 종목 (중복 제거)")
         return validated_stocks
@@ -1727,6 +1767,14 @@ class ValueStockFinder:
                 pass
         
         logger.info(f"get_stock_universe 반환: {type(stock_universe)}, 길이: {len(stock_universe) if hasattr(stock_universe, '__len__') else 'N/A'}")
+        
+        # ✅ 공통: BAD_CODES 1차 필터링 (실제 분석에서 제외)
+        try:
+            stock_universe = {c: n for c, n in stock_universe.items() if c not in self.BAD_CODES}
+            logger.info(f"BAD_CODES 필터 적용 후: {len(stock_universe)}개 종목")
+        except Exception:
+            pass
+        
         return stock_universe
     
     def screen_all_stocks(self, options):
@@ -1761,8 +1809,16 @@ class ValueStockFinder:
         else:
             # 폴백 필터링 정보 표시
             if hasattr(self, '_fallback_original_count'):
-                original_count = self._fallback_original_count
-                st.warning(f"⚠️ **기본 종목 사용**: {len(stock_universe)}개 종목 (원본 {original_count}개 중 거래성 검증 후 {len(stock_universe)}개)")
+                original_count = getattr(self, '_fallback_original_count', None)
+                validated_count = getattr(self, '_fallback_validated_count', None)
+                # 원본/검증/최종 개수 모두 표기
+                if original_count is not None and validated_count is not None:
+                    st.warning(
+                        f"⚠️ **기본 종목 사용**: 최종 {len(stock_universe)}개 "
+                        f"(원본 {original_count}개 → 검증 {validated_count}개 → BAD_CODES 필터 후 {len(stock_universe)}개)"
+                    )
+                else:
+                    st.warning(f"⚠️ **기본 종목 사용**: {len(stock_universe)}개 종목 (API 연결 실패)")
             else:
                 st.warning(f"⚠️ **기본 종목 사용**: {len(stock_universe)}개 종목 (API 연결 실패)")
         
@@ -1909,18 +1965,10 @@ class ValueStockFinder:
             
         elif api_strategy == "빠른 모드 (병렬 처리)":
             # ✅ 워커 수 단순화 (크리티컬 - 내부 속성 접근 제거, 버전 호환성)
-            # 고정 상수로 단순화 (세마포어 내부 구현 의존성 제거)
-            # ✅ 워커 수 보수적 조정: 토큰버킷이 유일한 속도 조절자
             import os
             cpu_count = os.cpu_count() or 4
-            # ✅ 워커 수 산정: 레이트리미터·데이터 규모·CPU 균형
-            soft_cap = max(1, int(self.rate_limiter.rate))  # e.g., 2.5 → 2
-            # 기본: min(데이터, CPU*2, 8) 를 상한으로, 하한 4 보장
-            max_workers = max(1, min(8, max(4, soft_cap), len(stock_items), cpu_count * 2))
-            
-            # ✅ 대규모(>150) 처리 시 워커 상한 추가 (Windows 스레드 컨텍스트 스위칭 최적화)
-            if len(stock_items) > 150:
-                max_workers = min(max_workers, 6)
+            # 🔧 보수적 상한: API 사고 방지 (토큰버킷이 TPS 제한하므로 체감 속도 유지)
+            max_workers = max(1, min(6, len(stock_items), cpu_count))
             
             status_text.text(f"⚡ 빠른 모드 시작: {len(stock_universe)}개 종목, {max_workers}개 워커")
             st.warning("⚠️ 빠른 모드는 API 호출 한도 초과 위험이 있습니다!")
@@ -2078,78 +2126,114 @@ class ValueStockFinder:
             # STRONG_BUY 종목
             if strong_buy_stocks:
                 with st.expander(f"🌟 STRONG_BUY ({len(strong_buy_stocks)}개)", expanded=True):
-                    strong_buy_df = pd.DataFrame([
+                    strong_buy_rows = [
                         {
                             '종목코드': s['symbol'],
                             '종목명': s['name'],
                             '섹터': s.get('sector', 'N/A'),
-                            '현재가': f"{s.get('current_price', 0):,.0f}원",
-                            'PER': f"{s.get('per', 0):.1f}배" if s.get('per') else 'N/A',
-                            'PBR': f"{s.get('pbr', 0):.2f}배" if s.get('pbr') else 'N/A',
-                            'ROE': f"{s.get('roe', 0):.1f}%" if s.get('roe') else 'N/A',
-                            '안전마진': f"{s.get('safety_margin', 0):.1f}%",
-                            '가치점수': f"{s.get('value_score', 0):.1f}점"
+                            # ✅ 숫자 컬럼 유지(정렬 정확성) + 표시용 컬럼 별도 생성
+                            '_value_score_num': float(s.get('value_score', 0) or 0),
+                            '_price_num': float(s.get('current_price', 0) or 0),
+                            '_per_num': float(s.get('per', 0) or 0),
+                            '_pbr_num': float(s.get('pbr', 0) or 0),
+                            '_roe_num': float(s.get('roe', 0) or 0),
+                            '_mos_num': float(s.get('safety_margin', 0) or 0),
                         }
                         for s in strong_buy_stocks
-                    ])
-                    st.dataframe(strong_buy_df, use_container_width=True, hide_index=True)
+                    ]
+                    strong_buy_df = pd.DataFrame(strong_buy_rows)
+                    strong_buy_df = strong_buy_df.sort_values('_value_score_num', ascending=False)
+                    # 표시용 문자열 컬럼 추가
+                    strong_buy_df['현재가'] = strong_buy_df['_price_num'].map(lambda v: f"{v:,.0f}원" if v > 0 else "N/A")
+                    strong_buy_df['PER'] = strong_buy_df['_per_num'].map(lambda v: f"{v:.1f}배" if v > 0 else "N/A")
+                    strong_buy_df['PBR'] = strong_buy_df['_pbr_num'].map(lambda v: f"{v:.2f}배" if v > 0 else "N/A")
+                    strong_buy_df['ROE'] = strong_buy_df['_roe_num'].map(lambda v: f"{v:.1f}%" if v != 0 else "N/A")
+                    strong_buy_df['안전마진'] = strong_buy_df['_mos_num'].map(lambda v: f"{v:.1f}%")
+                    strong_buy_df['가치점수'] = strong_buy_df['_value_score_num'].map(lambda v: f"{v:.1f}점")
+                    # 최종 표시 컬럼만 노출
+                    strong_buy_view = strong_buy_df[['종목코드','종목명','섹터','현재가','PER','PBR','ROE','안전마진','가치점수']]
+                    st.dataframe(strong_buy_view, use_container_width=True, hide_index=True)
             
             # BUY 종목
             if buy_stocks:
                 with st.expander(f"✅ BUY ({len(buy_stocks)}개)", expanded=True):
-                    buy_df = pd.DataFrame([
+                    buy_rows = [
                         {
                             '종목코드': s['symbol'],
                             '종목명': s['name'],
                             '섹터': s.get('sector', 'N/A'),
-                            '현재가': f"{s.get('current_price', 0):,.0f}원",
-                            'PER': f"{s.get('per', 0):.1f}배" if s.get('per') else 'N/A',
-                            'PBR': f"{s.get('pbr', 0):.2f}배" if s.get('pbr') else 'N/A',
-                            'ROE': f"{s.get('roe', 0):.1f}%" if s.get('roe') else 'N/A',
-                            '안전마진': f"{s.get('safety_margin', 0):.1f}%",
-                            '가치점수': f"{s.get('value_score', 0):.1f}점"
+                            '_value_score_num': float(s.get('value_score', 0) or 0),
+                            '_price_num': float(s.get('current_price', 0) or 0),
+                            '_per_num': float(s.get('per', 0) or 0),
+                            '_pbr_num': float(s.get('pbr', 0) or 0),
+                            '_roe_num': float(s.get('roe', 0) or 0),
+                            '_mos_num': float(s.get('safety_margin', 0) or 0),
                         }
                         for s in buy_stocks
-                    ])
-                    st.dataframe(buy_df, use_container_width=True, hide_index=True)
+                    ]
+                    buy_df = pd.DataFrame(buy_rows).sort_values('_value_score_num', ascending=False)
+                    buy_df['현재가'] = buy_df['_price_num'].map(lambda v: f"{v:,.0f}원" if v > 0 else "N/A")
+                    buy_df['PER'] = buy_df['_per_num'].map(lambda v: f"{v:.1f}배" if v > 0 else "N/A")
+                    buy_df['PBR'] = buy_df['_pbr_num'].map(lambda v: f"{v:.2f}배" if v > 0 else "N/A")
+                    buy_df['ROE'] = buy_df['_roe_num'].map(lambda v: f"{v:.1f}%" if v != 0 else "N/A")
+                    buy_df['안전마진'] = buy_df['_mos_num'].map(lambda v: f"{v:.1f}%")
+                    buy_df['가치점수'] = buy_df['_value_score_num'].map(lambda v: f"{v:.1f}점")
+                    buy_view = buy_df[['종목코드','종목명','섹터','현재가','PER','PBR','ROE','안전마진','가치점수']]
+                    st.dataframe(buy_view, use_container_width=True, hide_index=True)
             
             # HOLD 종목
             if hold_stocks:
                 with st.expander(f"⚠️ HOLD ({len(hold_stocks)}개)", expanded=False):
-                    hold_df = pd.DataFrame([
+                    hold_rows = [
                         {
                             '종목코드': s['symbol'],
                             '종목명': s['name'],
                             '섹터': s.get('sector', 'N/A'),
-                            '현재가': f"{s.get('current_price', 0):,.0f}원",
-                            'PER': f"{s.get('per', 0):.1f}배" if s.get('per') else 'N/A',
-                            'PBR': f"{s.get('pbr', 0):.2f}배" if s.get('pbr') else 'N/A',
-                            'ROE': f"{s.get('roe', 0):.1f}%" if s.get('roe') else 'N/A',
-                            '안전마진': f"{s.get('safety_margin', 0):.1f}%",
-                            '가치점수': f"{s.get('value_score', 0):.1f}점"
+                            '_value_score_num': float(s.get('value_score', 0) or 0),
+                            '_price_num': float(s.get('current_price', 0) or 0),
+                            '_per_num': float(s.get('per', 0) or 0),
+                            '_pbr_num': float(s.get('pbr', 0) or 0),
+                            '_roe_num': float(s.get('roe', 0) or 0),
+                            '_mos_num': float(s.get('safety_margin', 0) or 0),
                         }
                         for s in hold_stocks
-                    ])
-                    st.dataframe(hold_df, use_container_width=True, hide_index=True)
+                    ]
+                    hold_df = pd.DataFrame(hold_rows).sort_values('_value_score_num', ascending=False)
+                    hold_df['현재가'] = hold_df['_price_num'].map(lambda v: f"{v:,.0f}원" if v > 0 else "N/A")
+                    hold_df['PER'] = hold_df['_per_num'].map(lambda v: f"{v:.1f}배" if v > 0 else "N/A")
+                    hold_df['PBR'] = hold_df['_pbr_num'].map(lambda v: f"{v:.2f}배" if v > 0 else "N/A")
+                    hold_df['ROE'] = hold_df['_roe_num'].map(lambda v: f"{v:.1f}%" if v != 0 else "N/A")
+                    hold_df['안전마진'] = hold_df['_mos_num'].map(lambda v: f"{v:.1f}%")
+                    hold_df['가치점수'] = hold_df['_value_score_num'].map(lambda v: f"{v:.1f}점")
+                    hold_view = hold_df[['종목코드','종목명','섹터','현재가','PER','PBR','ROE','안전마진','가치점수']]
+                    st.dataframe(hold_view, use_container_width=True, hide_index=True)
             
             # SELL 종목
             if sell_stocks:
                 with st.expander(f"❌ SELL ({len(sell_stocks)}개)", expanded=False):
-                    sell_df = pd.DataFrame([
+                    sell_rows = [
                         {
                             '종목코드': s['symbol'],
                             '종목명': s['name'],
                             '섹터': s.get('sector', 'N/A'),
-                            '현재가': f"{s.get('current_price', 0):,.0f}원",
-                            'PER': f"{s.get('per', 0):.1f}배" if s.get('per') else 'N/A',
-                            'PBR': f"{s.get('pbr', 0):.2f}배" if s.get('pbr') else 'N/A',
-                            'ROE': f"{s.get('roe', 0):.1f}%" if s.get('roe') else 'N/A',
-                            '안전마진': f"{s.get('safety_margin', 0):.1f}%",
-                            '가치점수': f"{s.get('value_score', 0):.1f}점"
+                            '_value_score_num': float(s.get('value_score', 0) or 0),
+                            '_price_num': float(s.get('current_price', 0) or 0),
+                            '_per_num': float(s.get('per', 0) or 0),
+                            '_pbr_num': float(s.get('pbr', 0) or 0),
+                            '_roe_num': float(s.get('roe', 0) or 0),
+                            '_mos_num': float(s.get('safety_margin', 0) or 0),
                         }
                         for s in sell_stocks
-                    ])
-                    st.dataframe(sell_df, use_container_width=True, hide_index=True)
+                    ]
+                    sell_df = pd.DataFrame(sell_rows).sort_values('_value_score_num', ascending=False)
+                    sell_df['현재가'] = sell_df['_price_num'].map(lambda v: f"{v:,.0f}원" if v > 0 else "N/A")
+                    sell_df['PER'] = sell_df['_per_num'].map(lambda v: f"{v:.1f}배" if v > 0 else "N/A")
+                    sell_df['PBR'] = sell_df['_pbr_num'].map(lambda v: f"{v:.2f}배" if v > 0 else "N/A")
+                    sell_df['ROE'] = sell_df['_roe_num'].map(lambda v: f"{v:.1f}%" if v != 0 else "N/A")
+                    sell_df['안전마진'] = sell_df['_mos_num'].map(lambda v: f"{v:.1f}%")
+                    sell_df['가치점수'] = sell_df['_value_score_num'].map(lambda v: f"{v:.1f}점")
+                    sell_view = sell_df[['종목코드','종목명','섹터','현재가','PER','PBR','ROE','안전마진','가치점수']]
+                    st.dataframe(sell_view, use_container_width=True, hide_index=True)
             
             # 가치주 결과 테이블
             if value_stocks:
@@ -2253,14 +2337,21 @@ class ValueStockFinder:
                     '종목명': stock['name'],
                     '종목코드': f"{stock['symbol']}".zfill(6),
                     '섹터': stock.get('sector', ''),
-                    '현재가': f"{stock['current_price']:,}원",
-                    'PER': "N/A" if stock['per'] <= 0 else f"{stock['per']:.1f}배",
-                    'PBR': "N/A" if stock['pbr'] <= 0 else f"{stock['pbr']:.2f}배",
-                    'ROE': f"{stock['roe']:.1f}%",
-                    '가치주점수': f"{stock['value_score']:.1f}점",
-                    '등급': stock['grade'],
-                    '가치주여부': "✅" if stock['is_value_stock'] else "❌",
-                    '업종기준': self._get_sector_criteria_display(stock.get('sector', '')),
+                    # ✅ 숫자형 정렬 키 유지
+                    '_value_score_num': float(stock.get('value_score', 0) or 0),
+                    '_price_num': float(stock.get('current_price', 0) or 0),
+                    '_per_num': float(stock.get('per', 0) or 0),
+                    '_pbr_num': float(stock.get('pbr', 0) or 0),
+                    '_roe_num': float(stock.get('roe', 0) or 0),
+                    # 표시용 문자열 컬럼
+                    '현재가': f"{stock.get('current_price', 0):,}원" if stock.get('current_price', 0) > 0 else "N/A",
+                    'PER': "N/A" if stock.get('per', 0) <= 0 else f"{stock.get('per', 0):.1f}배",
+                    'PBR': "N/A" if stock.get('pbr', 0) <= 0 else f"{stock.get('pbr', 0):.2f}배",
+                    'ROE': f"{stock.get('roe', 0):.1f}%",
+                    '가치주점수': f"{stock.get('value_score', 0):.1f}점",
+                    '등급': stock.get('grade', 'N/A'),
+                    '가치주여부': "✅" if stock.get('is_value_stock', False) else "❌",
+                    '업종기준': self._get_sector_criteria_display(stock.get('sector', ''), options),
                     '섹터 대비 PER': self.format_pct_or_na(stock.get('relative_per')),
                     '섹터 대비 PBR': self.format_pct_or_na(stock.get('relative_pbr')),
                     'ROE 퍼센타일': self.format_percentile(stock.get('sector_percentile'), options.get('percentile_cap', 99.5)),
@@ -2273,7 +2364,9 @@ class ValueStockFinder:
                 })
             
             summary_df = pd.DataFrame(summary_data)
-            summary_df = summary_df.sort_values('가치주점수', ascending=False)
+            # ✅ 숫자형 키로 정렬 후 CSV 생성
+            summary_df = summary_df.sort_values('_value_score_num', ascending=False)
+            # 다운로드에는 숫자 키를 포함하지 않아도 되지만, 진단용으로 남겨도 무방
             
             # 전체 분석 결과 CSV 다운로드 버튼 (UI 간결화를 위해 테이블은 제거, 다운로드만 유지)
             st.download_button(
@@ -2608,7 +2701,20 @@ class ValueStockFinder:
         """MCP 실시간 분석 탭 렌더링"""
         st.markdown("### 🚀 MCP KIS API 실시간 데이터")
         
-        # 서브탭
+        # ✅ MCP 통합 안전 가드 (필수!)
+        if not self.mcp_integration:
+            st.warning("⚠️ **MCP 통합이 비활성화되었습니다**")
+            st.info("""
+            **MCP 기능을 활성화하려면:**
+            1. `mcp_kis_integration.py` 파일 확인
+            2. `config.yaml`에 KIS API 키 설정
+            3. 필수 패키지 설치: `pip install requests`
+            
+            현재는 기본 가치주 스크리닝만 사용 가능합니다.
+            """)
+            return
+        
+        # 서브탭 (MCP 활성화 시에만 표시)
         sub_tab1, sub_tab2, sub_tab3, sub_tab4, sub_tab5 = st.tabs([
             "💎 자동 가치주 발굴", "📈 실시간 시장", "🏢 섹터 분석", "📊 순위 분석", "🔍 종목 심화"
         ])
@@ -2617,6 +2723,7 @@ class ValueStockFinder:
             self.render_mcp_value_finder()
         
         with sub_tab2:
+            # ✅ 안전 스텁: 구현 전이라도 앱이 깨지지 않도록 가드
             self.render_realtime_market()
         
         with sub_tab3:
@@ -2651,32 +2758,37 @@ class ValueStockFinder:
         
         st.success("✅ **업종별 기준 자동 적용**: 각 업종에 맞는 PER/PBR/ROE 기준으로 필터링됩니다.")
         
-        col1, col2 = st.columns(2)
+        # FIX: st.form 사용하여 UI 중복 방지
+        with st.form("mcp_value_finder_form"):
+            col1, col2 = st.columns(2)
+            
+            with col1:
+                limit = st.number_input("발굴할 종목 수", min_value=5, max_value=50, value=20, step=5)
+            
+            with col2:
+                candidate_pool = st.number_input("후보군 크기", min_value=50, max_value=500, value=300, step=50)
+            
+            # ✅ UI 기본값은 참고용으로만 표시 (실제로는 업종별 기준 사용)
+            st.caption("💡 아래 값은 참고용입니다. 실제로는 업종별 기준이 적용됩니다.")
+            
+            col3, col4, col5, col6 = st.columns(4)
+            
+            with col3:
+                per_max = st.number_input("참고: 최대 PER", min_value=5.0, max_value=50.0, value=15.0, step=1.0, disabled=True)
+            
+            with col4:
+                pbr_max = st.number_input("참고: 최대 PBR", min_value=0.5, max_value=5.0, value=1.5, step=0.1, disabled=True)
+            
+            with col5:
+                roe_min = st.number_input("참고: 최소 ROE (%)", min_value=0.0, max_value=30.0, value=10.0, step=1.0, disabled=True)
+            
+            with col6:
+                min_volume = st.number_input("최소 거래량", min_value=10000, max_value=1000000, value=100000, step=10000)
+            
+            # Form submit button
+            submitted = st.form_submit_button("🚀 MCP 가치주 자동 발굴 시작", type="primary", use_container_width=True)
         
-        with col1:
-            limit = st.number_input("발굴할 종목 수", min_value=5, max_value=50, value=20, step=5)
-        
-        with col2:
-            candidate_pool = st.number_input("후보군 크기", min_value=50, max_value=500, value=300, step=50)
-        
-        # ✅ UI 기본값은 참고용으로만 표시 (실제로는 업종별 기준 사용)
-        st.caption("💡 아래 값은 참고용입니다. 실제로는 업종별 기준이 적용됩니다.")
-        
-        col3, col4, col5, col6 = st.columns(4)
-        
-        with col3:
-            per_max = st.number_input("참고: 최대 PER", min_value=5.0, max_value=50.0, value=15.0, step=1.0, disabled=True)
-        
-        with col4:
-            pbr_max = st.number_input("참고: 최대 PBR", min_value=0.5, max_value=5.0, value=1.5, step=0.1, disabled=True)
-        
-        with col5:
-            roe_min = st.number_input("참고: 최소 ROE (%)", min_value=0.0, max_value=30.0, value=10.0, step=1.0, disabled=True)
-        
-        with col6:
-            min_volume = st.number_input("최소 거래량", min_value=10000, max_value=1000000, value=100000, step=10000)
-        
-        if st.button("🚀 MCP 가치주 자동 발굴 시작", type="primary", key="mcp_find"):
+        if submitted:
             with st.spinner(f"MCP로 {candidate_pool}개 종목 분석 중... (약 {candidate_pool//10}초 소요)"):
                 start_time = time.time()
                 
@@ -2868,6 +2980,12 @@ class ValueStockFinder:
         """실시간 시장 분석"""
         st.markdown("#### 📈 실시간 시장 분석")
         
+        # ✅ MCP 안전 가드
+        if not self.mcp_integration:
+            st.info("⏳ 실시간 시장 대시보드는 MCP 연동이 필요합니다. 기본 가치주 스크리닝을 이용해 주세요.")
+            st.caption("개발 메모: 실시간 체결/호가/지수 요약 위젯을 여기에 추가 예정.")
+            return
+        
         col1, col2 = st.columns(2)
         
         with col1:
@@ -2905,6 +3023,12 @@ class ValueStockFinder:
         """섹터 분석"""
         st.markdown("#### 🏢 섹터별 분석")
         
+        # ✅ MCP 안전 가드
+        if not self.mcp_integration:
+            st.info("⏳ 섹터 분석은 MCP 연동이 필요합니다. 현재는 가치주 스크리닝에서 섹터 퍼센타일/벤치마크를 참고하세요.")
+            st.caption("개발 메모: 섹터별 PER/PBR/ROE 분포, 중앙값 대비 상대지표 히트맵 추가 예정.")
+            return
+        
         symbol = st.text_input("종목 코드", value="005930", key="sector_symbol")
         
         if st.button("분석", key="sector_analyze_button"):
@@ -2929,6 +3053,12 @@ class ValueStockFinder:
     def render_ranking_analysis(self):
         """순위 분석"""
         st.markdown("#### 📊 순위 분석")
+        
+        # ✅ MCP 안전 가드
+        if not self.mcp_integration:
+            st.info("⏳ 순위 분석은 MCP 연동이 필요합니다. MCP의 거래량/시총/밸류에이션 랭킹 연동 예정입니다.")
+            st.caption("개발 메모: get_market_rankings() 결과 표/차트 렌더링 예정.")
+            return
 
         ranking_type = st.selectbox(
             "순위 유형",
@@ -2992,6 +3122,12 @@ class ValueStockFinder:
         """종목 심화 분석"""
         st.markdown("#### 🔍 종목 심화 분석")
         
+        # ✅ MCP 안전 가드
+        if not self.mcp_integration:
+            st.info("⏳ 종목 심화 분석은 MCP 연동이 필요합니다. 기본 탭의 '개별 종목 분석'을 먼저 활용해 주세요.")
+            st.caption("개발 메모: 재무제표 트렌드, 멀티플-퀀텀 점프 탐지, 내재가치 민감도 그래프 추가 예정.")
+            return
+        
         symbol = st.text_input("종목 코드", value="005930", key="detail_symbol")
         
         if st.button("분석", key="detail_analyze_button"):
@@ -3041,10 +3177,21 @@ class ValueStockFinder:
                     st.error("분석 실패")
 
 # --------------------------------------------
-# PATCH-004: 애플리케이션 진입점 통일 (main_app으로 단일화)
+# 애플리케이션 진입점
 # --------------------------------------------
+def main():
+    """Streamlit 엔트리포인트 (명확한 실행 흐름)"""
+    try:
+        # ✅ 캐시된 인스턴스 재사용 (OAuth 토큰 24시간 재사용 보장)
+        finder = _get_value_stock_finder()
+        finder.run()
+    except Exception as e:
+        logger.error("메인 함수 오류", exc_info=True)
+        st.error("예기치 못한 오류가 발생했습니다. 아래 상세 정보를 확인하세요.")
+        st.exception(e)
+
 def main_app():
-    """Streamlit 앱 메인 함수 (유일한 진입점)"""
+    """Streamlit 앱 메인 함수 (세션 상태 기반)"""
     try:
         # st.session_state를 사용하여 ValueStockFinder 인스턴스를 한 번만 생성하고 재사용
         if "value_app" not in st.session_state:
@@ -3065,6 +3212,17 @@ def main_app():
             st.exception(e)
         st.info("💡 브라우저를 새로고침(F5)하거나, config.yaml 파일 및 네트워크 연결을 확인해보세요.")
 
-# __main__ guard가 직접 main_app을 호출하도록 통일
+def _render_app():
+    """메인 앱 렌더링(실행 엔트리포인트)"""
+    finder = _get_value_stock_finder()
+    finder.render_header()
+    options = finder.render_sidebar()
+    if options['analysis_mode'] == "전체 종목 스크리닝":
+        finder.screen_all_stocks(options)
+    else:
+        finder.render_individual_analysis(options)
+
+# __main__ guard: streamlit run 또는 python 직접 실행 모두 지원
 if __name__ == "__main__":
-    main_app()
+    # ▶ Streamlit: run 시 바로 동작하도록 명시적 엔트리포인트 제공
+    main_app()  # 세션 상태 기반 (권장)

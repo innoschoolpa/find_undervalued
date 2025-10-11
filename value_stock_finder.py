@@ -647,11 +647,10 @@ class ValueStockFinder:
         
         # ✅ 업종별 기준 3개 모두 충족 + 점수 임계값 (사이드바 옵션 반영)
         criteria_met_count = sum([per_ok, pbr_ok, roe_ok])
-        # 사이드바 최소 점수를 반영하여 UX 일관성 확보
         user_score_min = options.get('score_min', 60.0)
-        score_threshold = min(50.0, user_score_min) if criteria_met_count == 3 else user_score_min
         
-        return criteria_met_count == 3 and value_score >= score_threshold
+        # PATCH-001: 3가지 기준 충족과 사용자 설정 최소 점수 통과를 명확하게 AND 조건으로 결합
+        return criteria_met_count == 3 and value_score >= user_score_min
         
     def format_pct_or_na(self, value: Optional[float], precision: int = 1) -> str:
         """퍼센트 값 포맷팅 (None/NaN일 경우 N/A)"""
@@ -1704,64 +1703,15 @@ class ValueStockFinder:
             stock_universe = result
             self._last_api_success = True
         
-        # ✅ 공통 경로에서 폴백 후처리 수행 (소규모 병렬 처리로 가속화)
+        # ✅ PATCH-002: Fallback 시에는 네트워크 호출 없이, 미리 정의된 리스트를 그대로 신뢰하고 사용
         if not self._last_api_success:
-            filtered = {}
-            primed = {}  # 프라임 데이터 저장
-            original_count = len(stock_universe)  # 원본 개수 추적
-            
-            # 소규모 쓰레드풀로 체크 병렬화 (TokenBucket이 QPS 제한)
-            self._is_fallback_filtering = True  # 폴백 필터링 플래그
+            logger.info(f"폴백 유니버스 사용: {len(stock_universe)}개 종목 (실거래성 검증 생략)")
+            # Fallback 시 이전에 사용되었을 수 있는 캐시만 정리
             try:
-                try:
-                    with concurrent.futures.ThreadPoolExecutor(max_workers=6) as ex:
-                        items = list(stock_universe.items())
-                        # ✅ 커버리지 명확화: 앞에서부터 max_count*2개만 검사
-                        prefetch = items[:max_count * 2]  # 과도 프리페치 방지
-                        futs = [ex.submit(self._is_tradeable, code, name) for code, name in prefetch]
-                        
-                        for ((code, name), fut) in zip(prefetch, futs):
-                            ok, primed_data = fut.result()
-                            if ok: 
-                                filtered[code] = name
-                            if primed_data: 
-                                primed[code] = primed_data
-                            if len(filtered) >= max_count: 
-                                break
-                    
-                    if filtered:
-                        stock_universe = filtered
-                        self._primed_cache = primed  # 폴백 시 결과를 프라임 캐시로
-                        self._fallback_original_count = original_count  # 원본 개수 저장
-                        logger.info(f"폴백 유니버스 필터링: {original_count}개 → {len(stock_universe)}개로 축소")
-                    
-                    # primed_data에서 섹터명 수집하여 통계 갱신
-                    if primed:
-                        sector_stocks = []
-                        for code, primed_data in primed.items():
-                            if 'sector_analysis' in primed_data:
-                                sector_name = primed_data['sector_analysis'].get('sector_name', '기타')
-                                sector_stocks.append({
-                                    'code': code,
-                                    'name': primed_data.get('name', ''),
-                                    'sector': sector_name,
-                                    'market_cap': primed_data.get('market_cap', 0)
-                                })
-                        if sector_stocks:
-                            try:
-                                self.refresh_sector_stats_and_clear_cache(sector_stocks)
-                                logger.info(f"폴백에서 수집한 {len(sector_stocks)}개 종목으로 섹터 통계 갱신")
-                            except Exception as e:
-                                logger.warning(f"폴백 섹터 통계 갱신 실패: {e}")
-                except Exception as e:
-                    logger.error(f"폴백 필터링 중 예외 발생: {e}")
-            finally:
-                # ✅ 플래그 해제 보장 (어떤 예외에서도 원복)
-                if hasattr(self, "_is_fallback_filtering"):
-                    try:
-                        delattr(self, "_is_fallback_filtering")
-                    except Exception:
-                        pass
+                if hasattr(self, "_primed_cache"):
+                    self._primed_cache.clear()
+            except Exception:
+                pass
         else:
             # ✅ API 성공 시, 이전 폴백에서 남았을 수 있는 캐시 초기화 (오염 방지)
             try:
@@ -2294,11 +2244,9 @@ class ValueStockFinder:
             
             # ✅ 추천 종목은 위에 이미 표시됨 (1563-1656) - 중복 제거!
             
-            # 전체 결과 요약 테이블
-            st.markdown("---")  # 구분선
-            st.subheader(f"📋 전체 분석 결과 요약 ({len(results)}개 종목)")
-            st.caption("💡 모든 종목의 상세 정보를 한눈에 확인")
-            
+            # PATCH-003: UI 중복 제거 - CSV 다운로드만 유지
+            st.markdown("---")
+            # CSV 다운로드용 데이터 생성 (UI에는 표시 안함)
             summary_data = []
             for stock in results:
                 summary_data.append({
@@ -2309,38 +2257,31 @@ class ValueStockFinder:
                     'PER': "N/A" if stock['per'] <= 0 else f"{stock['per']:.1f}배",
                     'PBR': "N/A" if stock['pbr'] <= 0 else f"{stock['pbr']:.2f}배",
                     'ROE': f"{stock['roe']:.1f}%",
-                    '가치주점수': stock['value_score'],  # 숫자로 저장
-                    '가치주점수_표시': f"{stock['value_score']:.1f}점",  # 표시용
+                    '가치주점수': f"{stock['value_score']:.1f}점",
                     '등급': stock['grade'],
                     '가치주여부': "✅" if stock['is_value_stock'] else "❌",
                     '업종기준': self._get_sector_criteria_display(stock.get('sector', '')),
                     '섹터 대비 PER': self.format_pct_or_na(stock.get('relative_per')),
                     '섹터 대비 PBR': self.format_pct_or_na(stock.get('relative_pbr')),
                     'ROE 퍼센타일': self.format_percentile(stock.get('sector_percentile'), options.get('percentile_cap', 99.5)),
-                    # 진단용 컬럼 추가
                     'PER점수': f"{stock.get('per_score', 0):.1f}",
                     'PBR점수': f"{stock.get('pbr_score', 0):.1f}",
                     'ROE점수': f"{stock.get('roe_score', 0):.1f}",
-                    'MoS점수': f"{stock.get('mos_score', 0):.1f}",  # ✅ MoS 점수
-                    '섹터보너스': f"+{stock.get('sector_bonus', 0):.0f}",  # ✅ 섹터 보너스
+                    'MoS점수': f"{stock.get('mos_score', 0):.1f}",
+                    '섹터보너스': f"+{stock.get('sector_bonus', 0):.0f}",
                     '섹터조정': f"{stock.get('sector_adjustment', 1.0):.2f}x"
                 })
             
             summary_df = pd.DataFrame(summary_data)
-            # 가치주 점수순 정렬 (내림차순)
             summary_df = summary_df.sort_values('가치주점수', ascending=False)
             
-            # 표시용 컬럼으로 변경
-            summary_df['가치주점수'] = summary_df['가치주점수_표시']
-            summary_df = summary_df.drop('가치주점수_표시', axis=1)
-            st.dataframe(summary_df, use_container_width=True)
-            
-            # 전체 요약 CSV 다운로드 버튼
+            # 전체 분석 결과 CSV 다운로드 버튼 (UI 간결화를 위해 테이블은 제거, 다운로드만 유지)
             st.download_button(
-                label="📥 전체 요약 CSV 다운로드",
+                label="📥 전체 분석 결과 CSV 다운로드",
                 data=summary_df.to_csv(index=False).encode("utf-8-sig"),
-                file_name=f"summary_{datetime.now().strftime('%Y%m%d_%H%M')}.csv",
-                mime="text/csv"
+                file_name=f"all_analysis_summary_{datetime.now().strftime('%Y%m%d_%H%M')}.csv",
+                mime="text/csv",
+                use_container_width=True
             )
             
             # (중복 제거됨 - 위쪽에 이미 표시됨)
@@ -2644,27 +2585,24 @@ class ValueStockFinder:
     
     def run(self):
         """메인 실행 함수"""
-        try:
-            self.render_header()
-            options = self.render_sidebar()
-            self._last_fast_latency = options.get('fast_latency', 0.7)
+        # REFINEMENT: try...except 블록 제거하여 예외 처리를 main_app()으로 위임
+        # 이를 통해 모든 예외가 중앙 오류 처리 로직에서 일관되게 관리됨
+        self.render_header()
+        options = self.render_sidebar()
+        self._last_fast_latency = options.get('fast_latency', 0.7)
+        
+        # 탭 추가: MCP 고급 분석 + 기본 가치주 스크리닝
+        if self.mcp_integration:
+            tab1, tab2 = st.tabs(["🚀 MCP 실시간 분석", "🎯 가치주 스크리닝"])
             
-            # 탭 추가: MCP 고급 분석 + 기본 가치주 스크리닝
-            if self.mcp_integration:
-                tab1, tab2 = st.tabs(["🚀 MCP 실시간 분석", "🎯 가치주 스크리닝"])
-                
-                with tab1:
-                    self.render_mcp_tab()
-                
-                with tab2:
-                    self.render_value_analysis(options)
-            else:
-                st.warning("⚠️ MCP 통합이 비활성화되었습니다. 기본 가치주 스크리닝만 제공됩니다.")
+            with tab1:
+                self.render_mcp_tab()
+            
+            with tab2:
                 self.render_value_analysis(options)
-            
-        except Exception as e:
-            st.error(f"시스템 실행 중 오류가 발생했습니다: {e}")
-            logger.error(f"시스템 오류: {e}")
+        else:
+            st.warning("⚠️ MCP 통합이 비활성화되었습니다. 기본 가치주 스크리닝만 제공됩니다.")
+            self.render_value_analysis(options)
     
     def render_mcp_tab(self):
         """MCP 실시간 분석 탭 렌더링"""
@@ -3102,71 +3040,31 @@ class ValueStockFinder:
                 else:
                     st.error("분석 실패")
 
-def main():
-    """메인 실행 함수"""
-    try:
-        # ✅ 캐시된 인스턴스 재사용 (OAuth 토큰 24시간 재사용 보장)
-        finder = _get_value_stock_finder()
-        finder.run()
-    except Exception as e:
-        st.error(f"시스템 실행 중 오류가 발생했습니다: {e}")
-        logger.error(f"시스템 오류: {e}")
-
 # --------------------------------------------
-# 전역 fail-safe 래퍼 (배포 안정성)
-# --------------------------------------------
-def safe_run():
-    """전역 예외 처리로 UI 안정성 보장"""
-    try:
-        ValueStockFinder().run()
-    except ImportError as e:
-        st.error(f"필수 모듈이 없습니다: {e}")
-        st.info("다음 명령어로 필요한 패키지를 설치하세요:")
-        st.code("pip install streamlit pandas numpy requests yfinance")
-        logger.error(f"ImportError: {e}")
-    except Exception as e:
-        st.error("시스템 오류가 발생했습니다. 잠시 후 다시 시도해주세요.")
-        st.error(f"오류 코드: {type(e).__name__}")
-        
-        # 개발자용 디버그 정보 (상세 로그)
-        with st.expander("🔧 개발자용 디버그 정보"):
-            st.code(f"""
-오류 타입: {type(e).__name__}
-오류 메시지: {str(e)}
-발생 시간: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
-
-해결 방법:
-1. 브라우저 새로고침 (F5)
-2. 캐시 삭제 후 재시작
-3. 설정 파일 확인 (config.yaml)
-4. 네트워크 연결 상태 확인
-            """)
-        
-        logger.exception("전역 예외 발생")
-        
-        # 복구 제안
-        st.info("""
-        💡 **문제 해결 방법:**
-        - **브라우저 새로고침** (F5 키)
-        - **설정 파일 확인** (config.yaml)
-        - **네트워크 연결** 상태 확인
-        """)
-
-# --------------------------------------------
-# Streamlit 앱 진입점 (필수)
+# PATCH-004: 애플리케이션 진입점 통일 (main_app으로 단일화)
 # --------------------------------------------
 def main_app():
-    """Streamlit 앱 메인 함수"""
-    if "value_app" not in st.session_state:
-        st.session_state["value_app"] = ValueStockFinder()
-    
-    st.session_state["value_app"].run()
+    """Streamlit 앱 메인 함수 (유일한 진입점)"""
+    try:
+        # st.session_state를 사용하여 ValueStockFinder 인스턴스를 한 번만 생성하고 재사용
+        if "value_app" not in st.session_state:
+            st.session_state["value_app"] = ValueStockFinder()
 
-# --------------------------------------------
-# Main guard: streamlit 엔트리포인트 명시
-# --------------------------------------------
+        st.session_state["value_app"].run()
+
+    except ImportError as e:
+        # 모든 예외 처리를 이곳에서 통합 관리
+        st.error(f"❌ 필수 모듈을 찾을 수 없습니다: {e}")
+        st.info("터미널에서 아래 명령어로 필요한 패키지를 설치해주세요:")
+        st.code("pip install streamlit pandas requests plotly PyYAML")
+        logger.error("ImportError 발생", exc_info=True)
+    except Exception as e:
+        logger.error("전역 예외 발생", exc_info=True)
+        st.error("🚨 예기치 못한 오류가 발생했습니다. 잠시 후 다시 시도해주세요.")
+        with st.expander("🔧 오류 상세 정보 보기"):
+            st.exception(e)
+        st.info("💡 브라우저를 새로고침(F5)하거나, config.yaml 파일 및 네트워크 연결을 확인해보세요.")
+
+# __main__ guard가 직접 main_app을 호출하도록 통일
 if __name__ == "__main__":
-    safe_run()
-else:
-    # Streamlit에서 직접 실행될 때
     main_app()

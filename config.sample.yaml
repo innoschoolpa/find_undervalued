@@ -1,0 +1,67 @@
+# 저평가 가치주 발굴 시스템 - 설정 파일 샘플
+# 사용법: 이 파일을 복사하여 config.yaml로 저장하고 실제 값으로 수정하세요
+# 
+# cp config.sample.yaml config.yaml
+# 
+# 주의: config.yaml이 없어도 시스템은 폴백 모드로 동작합니다!
+
+# === KIS (한국투자증권) API 설정 ===
+kis_api:
+  # 앱키 (필수) - KIS OpenAPI 페이지에서 발급
+  app_key: "YOUR_APP_KEY_HERE"
+  
+  # 앱 시크릿 (필수) - KIS OpenAPI 페이지에서 발급
+  app_secret: "YOUR_APP_SECRET_HERE"
+  
+  # 테스트 모드 (true: 모의투자, false: 실투자)
+  test_mode: false
+  
+  # API 호출 제한 (선택, 환경변수 우선)
+  # max_tps: 2.5        # 초당 최대 요청 수
+  # token_bucket_cap: 12  # 토큰 버킷 용량
+
+# === 가치주 평가 기준 (선택, 기본값 사용) ===
+# value_criteria:
+#   per_max: 15.0       # PER 최대값
+#   pbr_max: 1.5        # PBR 최대값
+#   roe_min: 10.0       # ROE 최소값 (%)
+#   score_min: 60.0     # 최소 점수
+
+# === 업종별 기준 (자동 적용, 수정 불필요) ===
+# 시스템에서 자동으로 다음 기준을 적용합니다:
+# 
+# 금융: PER≤12, PBR≤1.2, ROE≥12%
+# 제조: PER≤18, PBR≤2.0, ROE≥10%
+# 통신: PER≤15, PBR≤2.0, ROE≥8%
+# 건설: PER≤12, PBR≤1.5, ROE≥8%
+# IT: PER≤25, PBR≤3.0, ROE≥15%
+# 바이오/제약: PER≤50, PBR≤5.0, ROE≥8%
+# 에너지/화학: PER≤15, PBR≤1.8, ROE≥8%
+# 소비재: PER≤20, PBR≤2.5, ROE≥12%
+
+# === 로깅 설정 (선택, 환경변수 우선) ===
+# logging:
+#   level: INFO         # DEBUG, INFO, WARNING, ERROR
+#   format: "%(levelname)s:%(name)s:%(message)s"
+
+# === 캐시 설정 (선택) ===
+# cache:
+#   token_path: ".kis_token_cache.json"  # 토큰 캐시 파일 경로
+#   ttl_seconds: 86400                   # 토큰 유효 기간 (24시간)
+
+# === 성능 튜닝 (고급, 기본값 권장) ===
+# performance:
+#   max_workers: 8      # 빠른 모드 최대 워커 수
+#   batch_size: 5       # 안전 모드 배치 크기
+#   ui_update_interval: 0.5  # UI 업데이트 간격 (초)
+
+# === 보안 (중요!) ===
+# 
+# ⚠️ 이 파일에는 민감한 정보(API 키)가 포함됩니다!
+# 
+# 1. .gitignore에 config.yaml 추가 (공개 저장소에 업로드 금지)
+# 2. 파일 권한 설정: chmod 600 config.yaml (Linux/Mac)
+# 3. 프로덕션 환경에서는 환경변수 사용 권장:
+#    export KIS_APP_KEY="..."
+#    export KIS_APP_SECRET="..."
+

@@ -1,0 +1,31 @@
+# 저평가 가치주 발굴 시스템 - Streamlit 실행용 최소 의존성
+# 설치: pip install -r requirements_streamlit.txt
+
+# === 필수 패키지 (Core) ===
+streamlit>=1.28.0
+pandas>=2.0.0
+plotly>=5.15.0
+requests>=2.31.0
+PyYAML>=6.0
+
+# === 추가 기능 (Optional, 있으면 더 좋음) ===
+# numpy>=1.24.0  # 통계 계산 고도화
+# scipy>=1.10.0  # 정규분포 근사
+# openpyxl>=3.1.0  # Excel 내보내기 지원
+
+# === 환경별 최적화 ===
+# 윈도우에서 성능 향상
+# pywin32>=305  # Windows 전용
+
+# === 개발/디버깅 ===
+# streamlit-autorefresh>=0.0.1  # 자동 새로고침
+# watchdog>=3.0.0  # 파일 변경 감지
+
+# === 참고: 프로젝트 내부 모듈 (별도 설치 불필요) ===
+# - financial_data_provider.py
+# - sector_contextualizer.py
+# - sector_utils.py
+# - enhanced_integrated_analyzer_refactored.py
+# - mcp_kis_integration.py (선택)
+# - kis_data_provider.py (선택)
+

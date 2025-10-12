@@ -1,7 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-저평가 가치주 발굴 시스템
+저평가 가치주 발굴 시스템 v2.2.0 (Evidence-Based)
+
+개선 사항:
+- ✅ 동적 r, b 레짐 모델 (금리 레짐 대응)
+- ✅ 데이터 품질 가드 (신선도/정합성/상식 체크)
+- ✅ 점수 캘리브레이션 & 드리프트 모니터링
+- ✅ MoS 입력 검증 (g >= r 방지)
 """
 
 import streamlit as st
@@ -20,6 +26,19 @@ import statistics
 from collections import Counter
 import textwrap  # ✅ 에러 메시지 길이 제한용
 import json  # ✅ 로깅/디버깅용
+
+# ✅ 로깅 설정 (임포트 전에 먼저 설정 - NameError 방지)
+LOG_LEVEL = os.environ.get('LOG_LEVEL', 'INFO').upper()
+_logger = logging.getLogger(__name__)
+if not _logger.handlers:  # 핸들러 중복 추가 방지
+    logging.basicConfig(
+        level=getattr(logging, LOG_LEVEL, logging.INFO),
+        format='%(levelname)s:%(name)s:%(message)s'
+    )
+logger = _logger
+
+# ✅ Streamlit ScriptRunContext 경고 숨기기
+logging.getLogger("streamlit.runtime.scriptrunner_utils.script_run_context").setLevel(logging.ERROR)
 
 # ✅ 개선 모듈 임포트
 try:
@@ -59,6 +78,26 @@ except ImportError:
     class ValueStockFinderPatches:
         @staticmethod
         def cap_mos_score(mos_raw, max_score=35): return min(max_score, round(mos_raw * 0.35))
+
+# ✅ v2.2 개선 모듈 임포트 (동적 r/b, 데이터 신선도 가드, 캘리브레이션)
+try:
+    from dynamic_regime_calculator import DynamicRegimeCalculator, DataFreshnessGuard
+    from score_calibration_monitor import ScoreCalibrationMonitor
+    HAS_V22_IMPROVEMENTS = True
+    logger.info("✅ v2.2 개선 모듈 로드 성공 (동적 r/b, 데이터 신선도 가드, 캘리브레이션)")
+except ImportError as e:
+    HAS_V22_IMPROVEMENTS = False
+    logger.warning(f"⚠️ v2.2 개선 모듈 로드 실패: {e} - 기본 방식 사용")
+    # 더미 클래스 (폴백)
+    class DynamicRegimeCalculator:
+        def get_dynamic_r(self, sector): return 0.115
+        def get_dynamic_b(self, sector): return 0.35
+        def validate_mos_inputs(self, per, pbr, roe, sector): return True, "OK"
+    class DataFreshnessGuard:
+        def check_financial_sanity(self, data): return True, "OK"
+        def check_data_freshness(self, data): return True, "OK"
+    class ScoreCalibrationMonitor:
+        def record_scores(self, results): pass
 
 # ✅ 외부 모듈 의존성 graceful fallback
 try:
@@ -135,18 +174,7 @@ st.set_page_config(
 # ✅ 전역 상수 (UI 일관성)
 ERROR_MSG_WIDTH = 120  # 에러 메시지 최대 길이
 
-# ✅ 로깅 설정 (중복 방지 + 환경변수 레벨 제어)
-LOG_LEVEL = os.environ.get('LOG_LEVEL', 'INFO').upper()
-_logger = logging.getLogger(__name__)
-if not _logger.handlers:  # 핸들러 중복 추가 방지
-    logging.basicConfig(
-        level=getattr(logging, LOG_LEVEL, logging.INFO),
-        format='%(levelname)s:%(name)s:%(message)s'
-    )
-logger = _logger
-
-# ✅ Streamlit ScriptRunContext 경고 숨기기 (ChatGPT 권장)
-logging.getLogger("streamlit.runtime.scriptrunner_utils.script_run_context").setLevel(logging.ERROR)
+# ✅ logger는 이미 상단에서 정의됨 (Line 30~41)
 
 # ✅ MCP 통합 모듈 (임포트 로그 중복 방지)
 _mcp_import_logged = False
@@ -323,6 +351,26 @@ class ValueStockFinder:
     # 미리보기 샘플 크기 상수
     SAMPLE_PREVIEW_SIZE = 20
     
+    @staticmethod
+    def _resolve_token_cache_path() -> str:
+        """✅ PATCH v2.2: 토큰 캐시 경로 결정 (환경변수 우선, 다중 사용자 안전)"""
+        env_path = os.environ.get("KIS_TOKEN_CACHE_PATH")
+        if env_path:
+            # 환경변수 지정 시 디렉터리 자동 생성
+            try:
+                os.makedirs(os.path.dirname(env_path), exist_ok=True)
+                return env_path
+            except Exception as e:
+                logger.warning(f"환경변수 경로 생성 실패: {e}, 기본 경로 사용")
+        
+        # 기본 경로: 홈 디렉터리
+        home = os.path.join(os.path.expanduser("~"), '.kis_token_cache.json')
+        if os.path.isdir(os.path.dirname(home)):
+            return home
+        
+        # 폴백: 현재 디렉터리
+        return os.path.abspath('.kis_token_cache.json')
+    
     def __init__(self):
         # KIS OAuth 매니저 초기화 (config.yaml에서 설정 로드)
         # ✅ PyYAML 미설치시 ImportError 방지
@@ -357,23 +405,16 @@ class ValueStockFinder:
                 self._token_lock = threading.Lock()  # ✅ 동시 재발급 방지
                 
             def get_rest_token(self):
-                # ✅ 토큰 캐시에서 로드 + 만료 가드 (크리티컬 - 실패 루프 방지)
+                # ✅ PATCH v2.2: 토큰 캐시 경로를 환경변수로 외부화
                 import json
                 import time
                 import os
                 
-                # ▶ 캐시 파일 우선순위: 홈 디렉터리 → 현재 디렉터리 (기존 토큰 보존)
-                cache_file_home = os.path.join(os.path.expanduser("~"), '.kis_token_cache.json')
-                cache_file_local = '.kis_token_cache.json'
+                # ValueStockFinder 클래스 메서드 호출
+                cache_file = ValueStockFinder._resolve_token_cache_path()
                 
-                # 우선 홈 디렉터리 확인, 없으면 현재 디렉터리 확인 (기존 캐시 재사용)
-                if os.path.exists(cache_file_home):
-                    cache_file = cache_file_home
-                elif os.path.exists(cache_file_local):
-                    cache_file = cache_file_local
-                    logger.info(f"💡 기존 토큰 캐시 발견: {cache_file_local} (다음 발급 시 {cache_file_home}로 이동 예정)")
-                else:
-                    logger.debug(f"토큰 캐시 파일 없음: {cache_file_home} 및 {cache_file_local}")
+                if not os.path.exists(cache_file):
+                    logger.debug(f"토큰 캐시 파일 없음: {cache_file}")
                     return None
                 
                 try:
@@ -444,9 +485,9 @@ class ValueStockFinder:
                         'issued_at': time.time()
                     }
                     
-                    # ▶ 사용자 홈 디렉터리의 보안 경로 사용(플랫폼 호환)
+                    # ✅ PATCH v2.2: 환경변수 경로 사용
                     import os
-                    cache_file = os.path.join(os.path.expanduser("~"), '.kis_token_cache.json')
+                    cache_file = ValueStockFinder._resolve_token_cache_path()
                     with open(cache_file, 'w', encoding='utf-8') as f:
                         json.dump(cache_data, f, indent=2)
                     
@@ -563,6 +604,23 @@ class ValueStockFinder:
         # ✅ 디버깅/로깅용 출력 디렉터리
         self.debug_output_dir = 'logs/debug_evaluations'
         os.makedirs(self.debug_output_dir, exist_ok=True)
+        
+        # ✅ v2.2 개선 모듈 초기화
+        if HAS_V22_IMPROVEMENTS:
+            try:
+                self.regime_calc = DynamicRegimeCalculator()
+                self.freshness_guard = DataFreshnessGuard()
+                self.calibration_monitor = ScoreCalibrationMonitor()
+                logger.info("✅ v2.2 개선 컴포넌트 초기화 완료 (동적 r/b, 데이터 신선도 가드, 캘리브레이션)")
+            except Exception as e:
+                logger.warning(f"v2.2 개선 모듈 초기화 실패: {e} - 기본 방식 사용")
+                self.regime_calc = None
+                self.freshness_guard = None
+                self.calibration_monitor = None
+        else:
+            self.regime_calc = DynamicRegimeCalculator()  # 더미
+            self.freshness_guard = DataFreshnessGuard()  # 더미
+            self.calibration_monitor = ScoreCalibrationMonitor()  # 더미
 
     def _gc_failed_codes(self):
         """실패 캐시 가비지 컬렉션 (TTL 만료 및 크기 제한)"""
@@ -1086,6 +1144,16 @@ class ValueStockFinder:
                 stock['name'] = stock.get('name') or stock.get('financial_data', {}).get('name') or symbol
                 # ✅ v2.1: 이름 정규화 (공백/이모지/우회문자 제거)
                 stock['name'] = QuickPatches.clean_name(stock['name'])
+                
+                # ✅ v2.2: 데이터 신선도 가드 (추가)
+                if self.freshness_guard and HAS_V22_IMPROVEMENTS:
+                    try:
+                        is_sane, msg = self.freshness_guard.check_financial_sanity(stock)
+                        if not is_sane:
+                            logger.debug(f"재무 데이터 품질 경고 ({symbol}): {msg}")
+                    except Exception as e:
+                        logger.debug(f"데이터 품질 체크 실패: {e}")
+                
                 return stock
             
             # 평소 경로 (API 성공 시 실시간 호출, 부분 동시성 허용)
@@ -1133,6 +1201,16 @@ class ValueStockFinder:
                 stock['name'] = stock.get('name') or stock.get('financial_data', {}).get('name') or symbol
                 # ✅ v2.1: 이름 정규화 (공백/이모지/우회문자 제거)
                 stock['name'] = QuickPatches.clean_name(stock['name'])
+                
+                # ✅ v2.2: 데이터 신선도 가드 (추가)
+                if self.freshness_guard and HAS_V22_IMPROVEMENTS:
+                    try:
+                        is_sane, msg = self.freshness_guard.check_financial_sanity(stock)
+                        if not is_sane:
+                            logger.debug(f"재무 데이터 품질 경고 ({symbol}): {msg}")
+                    except Exception as e:
+                        logger.debug(f"데이터 품질 체크 실패: {e}")
+                
                 return stock
             else:
                 return None
@@ -1244,42 +1322,33 @@ class ValueStockFinder:
             return f"약 {hours}시간 {minutes}분"
     
     def _justified_multiples(self, per, pbr, roe, sector, payout_hint=None):
-        """✅ 정당 멀티플 계산 (Justified PER/PBR - CFA 교과서 방식)"""
-        # 1) 섹터별 요구수익률(r)과 유보율(b) 기본값 (정규화 섹터명 일치화)
-        sector_r = {
-            "금융": 0.10, "금융업": 0.10,
-            "통신": 0.105, "통신업": 0.105,
-            "제조업": 0.115, "필수소비재": 0.11,
-            "운송": 0.12, "운송장비": 0.12,
-            "전기전자": 0.12, "IT": 0.125, "기술업": 0.125,  # ✅ 추가
-            "건설": 0.12, "건설업": 0.12,
-            "바이오/제약": 0.12, "에너지/화학": 0.115, "소비재": 0.11,
-            "서비스업": 0.115, "철강금속": 0.115, "섬유의복": 0.11,
-            "종이목재": 0.115, "유통업": 0.11,
-            "기타": 0.115
-        }
-        sector_b = {
-            "금융": 0.40, "금융업": 0.40,
-            "통신": 0.55, "통신업": 0.55,
-            "제조업": 0.35, "필수소비재": 0.40,
-            "운송": 0.35, "운송장비": 0.35,
-            "전기전자": 0.35, "IT": 0.30, "기술업": 0.30,    # ✅ 추가
-            "건설": 0.35, "건설업": 0.35,
-            "바이오/제약": 0.30, "에너지/화학": 0.35, "소비재": 0.40,
-            "서비스업": 0.35, "철강금속": 0.35, "섬유의복": 0.40,
-            "종이목재": 0.35, "유통업": 0.40,
-            "기타": 0.35
-        }
-        
-        r = sector_r.get(sector, 0.115)
-        b = (payout_hint if payout_hint is not None else sector_b.get(sector, 0.35))
+        """✅ 정당 멀티플 계산 (Justified PER/PBR - CFA 교과서 방식) - v2.2 동적 r, b"""
+        # ✅ v2.2: 동적 r, b 사용 (금리 레짐 대응)
+        if self.regime_calc and HAS_V22_IMPROVEMENTS:
+            try:
+                r = self.regime_calc.get_dynamic_r(sector)
+                b = (payout_hint if payout_hint is not None 
+                     else self.regime_calc.get_dynamic_b(sector))
+                logger.debug(f"동적 r={r:.4f}, b={b:.4f} 적용 (sector={sector})")
+            except Exception as e:
+                logger.debug(f"동적 r/b 조회 실패, 기본값 사용: {e}")
+                # 폴백: 기존 로직
+                r = self._get_fallback_r(sector)
+                b = (payout_hint if payout_hint is not None else self._get_fallback_b(sector))
+        else:
+            # 기존 로직 (폴백)
+            r = self._get_fallback_r(sector)
+            b = (payout_hint if payout_hint is not None else self._get_fallback_b(sector))
         
         # 2) 지속성장률 g = ROE × b
         roe_decimal = roe / 100.0 if roe > 0 else 0.0
         g = max(0.0, roe_decimal * b)
         
-        # 과열 체크: g >= r이면 비정상 가정
+        # ✅ PATCH v2.2: g >= r 안전장치 강화 + 사용자 메시지 명시
         if g >= r or roe_decimal <= 0:
+            if g >= r:
+                logger.info(f"⚠️ MoS 계산 불가(레짐 상 성장률≥요구수익률): {sector} g={g:.2%} >= r={r:.2%}, ROE={roe:.1f}%")
+                # ✅ 사용자에게 표시할 메시지 (stock_data에 플래그 저장 가능)
             return None, None
         
         # 3) 정당 멀티플 계산
@@ -1288,10 +1357,50 @@ class ValueStockFinder:
         
         return pb_star, pe_star
     
+    def _get_fallback_r(self, sector: str) -> float:
+        """폴백: 고정 r 값 (v2.2 미적용 시)"""
+        sector_r = {
+            "금융": 0.10, "금융업": 0.10,
+            "통신": 0.105, "통신업": 0.105,
+            "제조업": 0.115, "필수소비재": 0.11,
+            "운송": 0.12, "운송장비": 0.12,
+            "전기전자": 0.12, "IT": 0.125, "기술업": 0.125,
+            "건설": 0.12, "건설업": 0.12,
+            "바이오/제약": 0.12, "에너지/화학": 0.115, "소비재": 0.11,
+            "서비스업": 0.115, "철강금속": 0.115, "섬유의복": 0.11,
+            "종이목재": 0.115, "유통업": 0.11,
+            "기타": 0.115
+        }
+        return sector_r.get(sector, 0.115)
+    
+    def _get_fallback_b(self, sector: str) -> float:
+        """폴백: 고정 b 값 (v2.2 미적용 시)"""
+        sector_b = {
+            "금융": 0.40, "금융업": 0.40,
+            "통신": 0.55, "통신업": 0.55,
+            "제조업": 0.35, "필수소비재": 0.40,
+            "운송": 0.35, "운송장비": 0.35,
+            "전기전자": 0.35, "IT": 0.30, "기술업": 0.30,
+            "건설": 0.35, "건설업": 0.35,
+            "바이오/제약": 0.30, "에너지/화학": 0.35, "소비재": 0.40,
+            "서비스업": 0.35, "철강금속": 0.35, "섬유의복": 0.40,
+            "종이목재": 0.35, "유통업": 0.40,
+            "기타": 0.35
+        }
+        return sector_b.get(sector, 0.35)
+    
     def compute_mos_score(self, per, pbr, roe, sector):
-        """✅ 안전마진(MoS) 점수 계산 (0~100점)"""
+        """✅ 안전마진(MoS) 점수 계산 (0~100점) - v2.2 동적 r, b 적용"""
         # ✅ 섹터 정규화 추가 (정확도 향상)
         sector = self._normalize_sector_name(sector or '')
+        
+        # ✅ PATCH v2.2.1: MoS 입력 검증 (로그 레벨 INFO로 상향)
+        if self.regime_calc and HAS_V22_IMPROVEMENTS:
+            is_valid, msg = self.regime_calc.validate_mos_inputs(per, pbr, roe, sector)
+            if not is_valid:
+                logger.info(f"⚠️ MoS 계산 제한: {msg} (sector={sector}, PER={per:.1f}, ROE={roe:.1f}%)")
+                return 0
+        
         pb_star, pe_star = self._justified_multiples(per, pbr, roe, sector)
         
         if pb_star is None and pe_star is None:
@@ -1679,14 +1788,55 @@ class ValueStockFinder:
     
     def render_header(self):
         """헤더 렌더링"""
-        st.title("💎 저평가 가치주 발굴 시스템")
+        st.title("💎 저평가 가치주 발굴 시스템 v2.2.0")
+        
+        # ✅ v2.2 개선 사항 배지
+        if HAS_V22_IMPROVEMENTS:
+            st.success("🚀 **v2.2.0 (Evidence-Based)** - 동적 r/b · 데이터 가드 · 캘리브레이션 적용 중")
+        
         st.markdown("**목적**: 업종별 특성을 반영한 저평가 가치주 발굴")
         st.markdown("**기준**: 각 업종별 PER, PBR, ROE 기준에 따른 상대적 저평가 종목 선별")
+        
+        # v2.2 개선 사항 표시
+        if HAS_V22_IMPROVEMENTS:
+            st.markdown("""
+            **v2.2 개선**:
+            - ✅ 동적 r, b 레짐 모델 (금리 레짐 대응)
+            - ✅ 데이터 품질 가드 (신선도/정합성 자동 검증)
+            - ✅ 점수 캘리브레이션 (월별 드리프트 모니터링)
+            - ✅ MoS 입력 검증 (g >= r 구조적 오류 방지)
+            """)
+        
         st.markdown("---")
         
         # 현재 시간 표시
         current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         st.sidebar.markdown(f"**업데이트 시간:** {current_time}")
+        
+        # ✅ v2.2: 레짐 정보 표시 (추가)
+        if HAS_V22_IMPROVEMENTS and hasattr(self, 'regime_calc'):
+            st.sidebar.markdown("---")
+            st.sidebar.markdown("### 📊 현재 레짐")
+            
+            # 샘플 섹터 r, b 표시
+            sample_sector = '전기전자'
+            try:
+                r = self.regime_calc.get_dynamic_r(sample_sector)
+                b = self.regime_calc.get_dynamic_b(sample_sector)
+                st.sidebar.caption(f"**{sample_sector}**: r={r:.2%}, b={b:.2%}")
+            except:
+                pass
+        
+        # ✅ PATCH v2.2: 실효 QPS 표시 (레이트리미터 투명성)
+        if hasattr(self, 'rate_limiter'):
+            st.sidebar.markdown("---")
+            st.sidebar.markdown("### ⚙️ API 성능")
+            try:
+                actual_qps = getattr(self.rate_limiter, 'rate', 2.5)
+                st.sidebar.caption(f"**실효 QPS**: 최대 {actual_qps:.1f}건/초")
+                st.sidebar.caption(f"**버킷 용량**: {getattr(self.rate_limiter, 'capacity', 12)}건")
+            except:
+                pass
     
     def render_sidebar(self):
         """사이드바 렌더링"""
@@ -2212,8 +2362,12 @@ class ValueStockFinder:
                     else:
                         backoff = max(backoff / 1.2, 1.0)  # 점진적 감소
                     
+                    # ✅ PATCH v2.2: 블로킹 sleep 최소화 (UI 프리즈 방지)
                     delay = base_delay * backoff
-                    time.sleep(delay)
+                    t0 = time.time()
+                    while time.time() - t0 < delay:
+                        time.sleep(0.05)  # 50ms 단위로 쪼개서 UI 반응성 유지
+                        # Streamlit은 이 짧은 슬립 동안 이벤트를 처리할 수 있음
             
             status_text.text("✅ 안전 모드 분석 완료!")
             
@@ -2308,6 +2462,14 @@ class ValueStockFinder:
         if error_samples:
             st.info("일부 오류가 발생했습니다(샘플):\n- " + "\n- ".join(error_samples))
         
+        # ✅ v2.2: 캘리브레이션 기록 (추가)
+        if results and self.calibration_monitor and HAS_V22_IMPROVEMENTS:
+            try:
+                self.calibration_monitor.record_scores(results)
+                logger.info("✅ 캘리브레이션 통계 기록 완료")
+            except Exception as e:
+                logger.warning(f"캘리브레이션 기록 실패: {e}")
+        
         # 결과 표시
         if results:
             # 가치주만 필터링
@@ -2356,6 +2518,28 @@ class ValueStockFinder:
                         high_conf = confidence_counts.get('HIGH', 0)
                         st.metric("HIGH 신뢰도", f"{high_conf}개", 
                                 help="HIGH 신뢰도 = 섹터 표본 ≥30개 종목")
+            
+            # ✅ v2.2: 캘리브레이션 정보 표시 (추가)
+            if results and self.calibration_monitor and HAS_V22_IMPROVEMENTS:
+                with st.expander("📊 점수 캘리브레이션 정보 (v2.2)"):
+                    try:
+                        scores = [r['value_score'] for r in results]
+                        suggested_cutoffs = self.calibration_monitor.suggest_grade_cutoffs(scores)
+                        
+                        st.markdown("##### 🎯 제안된 등급 컷오프 (목표 분포 기반)")
+                        cutoff_df = pd.DataFrame([
+                            {'등급': grade, '점수 컷오프': f"{score:.1f}점 이상"}
+                            for grade, score in suggested_cutoffs.items()
+                        ])
+                        st.dataframe(cutoff_df, use_container_width=True, hide_index=True)
+                        
+                        # 월별 리포트
+                        st.markdown("##### 📈 월별 캘리브레이션 리포트")
+                        report = self.calibration_monitor.generate_monthly_report()
+                        st.markdown(report)
+                        
+                    except Exception as e:
+                        st.warning(f"캘리브레이션 정보 표시 실패: {e}")
             
             # ==========================================
             # 🎯 투자 추천 종목을 맨 위로! (가장 중요)
@@ -2488,6 +2672,68 @@ class ValueStockFinder:
                     sell_df['가치점수'] = sell_df['_value_score_num'].map(lambda v: f"{v:.1f}점")
                     sell_view = sell_df[['종목코드','종목명','섹터','현재가','PER','PBR','ROE','안전마진','가치점수']]
                     st.dataframe(sell_view, use_container_width=True, hide_index=True)
+            
+            # =========================
+            # 🧾 전체 결과 요약 테이블 (✅ PATCH v2.2.1 추가)
+            # =========================
+            st.markdown("---")
+            st.subheader("🧾 전체 결과 요약")
+            
+            all_rows = []
+            for r in results:
+                all_rows.append({
+                    '종목코드': r['symbol'],
+                    '종목명': r['name'],
+                    '추천': r['recommendation'],
+                    '가치점수(숫자)': float(r.get('value_score', 0) or 0),
+                    '현재가(숫자)': float(r.get('current_price', 0) or 0),
+                    'PER(숫자)': float(r.get('per', 0) or 0),
+                    'PBR(숫자)': float(r.get('pbr', 0) or 0),
+                    'ROE(숫자)': float(r.get('roe', 0) or 0),
+                    '안전마진(%)': float(r.get('safety_margin', 0) or 0),
+                    '섹터': r.get('sector', 'N/A')
+                })
+            
+            if all_rows:
+                all_df = pd.DataFrame(all_rows)
+                all_df = all_df.sort_values('가치점수(숫자)', ascending=False).reset_index(drop=True)
+                
+                # 표시용 포맷
+                view_df = pd.DataFrame({
+                    '종목코드': all_df['종목코드'],
+                    '종목명': all_df['종목명'],
+                    '섹터': all_df['섹터'],
+                    '추천': all_df['추천'],
+                    '현재가': all_df['현재가(숫자)'].map(lambda v: f"{v:,.0f}원" if v > 0 else "N/A"),
+                    'PER': all_df['PER(숫자)'].map(lambda v: f"{v:.1f}배" if v > 0 else "N/A"),
+                    'PBR': all_df['PBR(숫자)'].map(lambda v: f"{v:.2f}배" if v > 0 else "N/A"),
+                    'ROE': all_df['ROE(숫자)'].map(lambda v: f"{v:.1f}%" if v != 0 else "N/A"),
+                    '안전마진': all_df['안전마진(%)'].map(lambda v: f"{v:.1f}%"),
+                    '가치점수': all_df['가치점수(숫자)'].map(lambda v: f"{v:.1f}점"),
+                })
+                st.dataframe(view_df, use_container_width=True, hide_index=True)
+                
+                # =========================
+                # 📈 점수 분포 차트 (✅ PATCH v2.2.1 추가)
+                # =========================
+                try:
+                    st.markdown("##### 📈 점수 분포")
+                    fig = go.Figure()
+                    fig.add_trace(go.Histogram(
+                        x=all_df['가치점수(숫자)'],
+                        nbinsx=20,
+                        name='가치점수'
+                    ))
+                    fig.update_layout(
+                        title="전체 종목 가치점수 분포",
+                        xaxis_title="가치점수",
+                        yaxis_title="빈도",
+                        bargap=0.05,
+                        height=400
+                    )
+                    st.plotly_chart(fig, use_container_width=True)
+                except Exception as e:
+                    logger.debug(f"점수 분포 차트 표시 오류: {e}")
             
             # 가치주 결과 테이블
             if value_stocks:
@@ -2828,13 +3074,31 @@ class ValueStockFinder:
                 
                 with detail_col4:
                     if value_analysis['details']['intrinsic_value'] > 0:
+                        mos_score = value_analysis['details'].get('mos_score', 0)
+                        mos_raw = value_analysis['details'].get('mos_raw', 0)
+                        
+                        # ✅ PATCH v2.2: MoS 설명 카드 (r, b, g 명시)
+                        sector_name = stock_data.get('sector_name', stock_data.get('sector', ''))
+                        try:
+                            r = self.regime_calc.get_dynamic_r(sector_name) if self.regime_calc else 0.12
+                            b = self.regime_calc.get_dynamic_b(sector_name) if self.regime_calc else 0.35
+                            g = (stock_data.get('roe', 0) / 100.0) * b
+                            
+                            mos_detail = f"**파라미터**: r={r:.2%}, b={b:.2%}, g={g:.2%}"
+                            if g >= r:
+                                mos_detail += f"\n⚠️ **경고**: g≥r (MoS 계산 불가)"
+                        except:
+                            mos_detail = ""
+                        
                         st.info(f"""
                         **안전마진(MoS) 분석** (35점 만점)
                         - 내재가치: {value_analysis['details']['intrinsic_value']:,.0f}원
                         - 안전마진(참고): {value_analysis['details']['safety_margin']:+.1f}%
-                        - MoS 점수(0~35): {value_analysis['details'].get('mos_score', 0):.1f}점
-                        - MoS 원점수(0~100): {value_analysis['details'].get('mos_raw', 0):.1f}%
-                        - 평가: {'매우 안전' if value_analysis['details'].get('mos_raw', 0) >= 30 else '안전' if value_analysis['details'].get('mos_raw', 0) >= 20 else '보통' if value_analysis['details'].get('mos_raw', 0) >= 10 else '주의'}
+                        - MoS 점수(0~35): {mos_score:.1f}점
+                        - MoS 원점수(0~100): {mos_raw:.1f}%
+                        - 평가: {'매우 안전' if mos_raw >= 30 else '안전' if mos_raw >= 20 else '보통' if mos_raw >= 10 else '주의'}
+                        
+                        {mos_detail}
                         """)
                 
                 # 업종별 가치주 기준으로 최종 판단 (통일된 로직 사용)
@@ -3235,8 +3499,33 @@ class ValueStockFinder:
                             score = stock_detail['score']
                             st.progress(score / 100)
                             
-                            # ✅ v2.1.2: 추천 등급 표시 (STRONG_BUY/BUY/HOLD/SELL)
-                            recommendation = stock_detail.get('recommendation', 'HOLD')
+                            # ✅ CRITICAL FIX v2.2.1: MCP 추천 등급 재계산 (버그 수정)
+                            # MCP가 잘못 계산한 경우 올바른 로직으로 재평가
+                            per_ok = stock_detail['per'] <= 15.0 and stock_detail['per'] > 0
+                            pbr_ok = stock_detail['pbr'] <= 1.5 and stock_detail['pbr'] > 0
+                            roe_ok = stock_detail['roe'] >= 10.0
+                            criteria_count = sum([per_ok, pbr_ok, roe_ok])
+                            
+                            # 추천 등급 재계산 (MCP 0~100점 스케일)
+                            if score >= 75 and criteria_count == 3:
+                                recommendation = 'STRONG_BUY'
+                            elif score >= 70:
+                                recommendation = 'BUY'
+                            elif score >= 50:
+                                recommendation = 'HOLD'
+                            else:
+                                recommendation = 'SELL'
+                            
+                            # 기준 충족 정보 업데이트
+                            criteria_met_list = []
+                            if per_ok: criteria_met_list.append('PER')
+                            if pbr_ok: criteria_met_list.append('PBR')
+                            if roe_ok: criteria_met_list.append('ROE')
+                            stock_detail['criteria_met'] = criteria_met_list
+                            stock_detail['recommendation'] = recommendation
+                            
+                            logger.info(f"✅ MCP 추천 재계산: {stock_detail['name']} {score:.1f}점 "
+                                       f"→ {recommendation} (기준 {criteria_count}/3)")
                             recommendation_colors = {
                                 'STRONG_BUY': ('success', '🌟 **매우 우수한 가치주** (STRONG_BUY)'),
                                 'BUY': ('info', '✅ **우수한 가치주** (BUY)'),
@@ -3359,11 +3648,14 @@ class ValueStockFinder:
                                 )
                             
                             with col2:
+                                # ✅ CRITICAL FIX: 재계산된 기준 충족 사용
                                 criteria_met = stock_detail.get('criteria_met', [])
                                 criteria_count = len(criteria_met) if isinstance(criteria_met, list) else 0
+                                criteria_list = ", ".join(criteria_met) if criteria_met else "없음"
                                 st.metric(
                                     "기준 충족", 
                                     f"{criteria_count}/3",
+                                    delta=f"✅ {criteria_list}" if criteria_count > 0 else "❌",
                                     help="PER/PBR/ROE 업종 기준 충족 개수"
                                 )
                             

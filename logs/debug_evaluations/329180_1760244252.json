@@ -1,0 +1,68 @@
+{
+  "symbol": "329180",
+  "name": "HD현대중공업",
+  "timestamp": "2025-10-12T13:44:12.164478",
+  "score": 13.094971910549495,
+  "score_percentage": 8.847953993614524,
+  "grade": "C (위험)",
+  "recommendation": "SELL",
+  "details": {
+    "per_score": 0.1,
+    "pbr_score": 0.1,
+    "roe_score": 8.894971910549495,
+    "relative_per": 267.804599342951,
+    "relative_pbr": 300.7220778412362,
+    "sector_percentile": 44.474859552747475,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "329180",
+      "sector_name": "운송장비",
+      "original_score": 9.094971910549495,
+      "adjusted_score": 2.9103910113758387,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_penalty_40_below_adjusted_7.3",
+      "sector_sample_adequate": false,
+      "sector_sample_penalty": 0.4,
+      "sample_adequacy_reason": "critical_sample_size_0_penalty_0.4",
+      "sector_score": 30.0,
+      "total_adjustment_factor": 0.32000000000000006
+    },
+    "raw_component_scores": {
+      "per": 0.1,
+      "pbr": 0.1,
+      "roe": 8.894971910549495,
+      "total": 9.094971910549495
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 4,
+    "criteria_met": [
+      "ROE"
+    ],
+    "mos_score": 0,
+    "mos_points": 0,
+    "safety_margin": -77.34304207119742,
+    "intrinsic_value": 116683.33333333333,
+    "confidence": "LOW",
+    "score_percentage": 8.847953993614524,
+    "max_possible_score": 148
+  },
+  "raw_metrics": {
+    "per": 73.5609198685902,
+    "pbr": 8.014441556824725,
+    "roe": 10.894971910549495,
+    "market_cap": 45718200000000.0,
+    "current_price": 515000.0
+  }
+}

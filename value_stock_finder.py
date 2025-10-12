@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-저평가 가치주 발굴 시스템 v2.2.0 (Evidence-Based)
+저평가 가치주 발굴 시스템 v2.2.2 (Evidence-Based + Risk Management)
 
 개선 사항:
 - ✅ 동적 r, b 레짐 모델 (금리 레짐 대응)
 - ✅ 데이터 품질 가드 (신선도/정합성/상식 체크)
 - ✅ 점수 캘리브레이션 & 드리프트 모니터링
 - ✅ MoS 입력 검증 (g >= r 방지)
+- ✅ v2.2.2: 리스크 플래그 강화 (회계/이벤트/유동성 리스크)
 """
 
 import streamlit as st
@@ -621,6 +622,19 @@ class ValueStockFinder:
             self.regime_calc = DynamicRegimeCalculator()  # 더미
             self.freshness_guard = DataFreshnessGuard()  # 더미
             self.calibration_monitor = ScoreCalibrationMonitor()  # 더미
+        
+        # ✅ v2.2.2: 리스크 플래그 평가기 초기화
+        try:
+            from risk_flag_evaluator import RiskFlagEvaluator
+            self.risk_evaluator = RiskFlagEvaluator()
+            self.risk_evaluator.load_management_stocks()
+            logger.info("✅ 리스크 플래그 평가기 초기화 완료")
+        except ImportError as e:
+            logger.warning(f"⚠️ 리스크 평가기 로드 실패: {e} - 리스크 감점 비활성화")
+            self.risk_evaluator = None
+        except Exception as e:
+            logger.error(f"❌ 리스크 평가기 초기화 실패: {e}")
+            self.risk_evaluator = None
 
     def _gc_failed_codes(self):
         """실패 캐시 가비지 컬렉션 (TTL 만료 및 크기 제한)"""
@@ -928,6 +942,103 @@ class ValueStockFinder:
         if value <= p75: return lin(p50,p75,50.0,75.0,value)
         return lin(p75,p90,75.0,90.0,value)
 
+    @lru_cache(maxsize=1)
+    def _get_global_percentiles_cached(self):
+        """
+        ✅ v2.2.2: 전시장 글로벌 퍼센타일 (캐시)
+        
+        실제로는 전체 KOSPI/KOSDAQ 계산 필요
+        현재: 합리적 기본값 (추후 실데이터로 교체 권장)
+        """
+        return {
+            'per': {
+                'p10': 5.0, 'p25': 8.0, 'p50': 12.0, 
+                'p75': 18.0, 'p90': 30.0, 'sample_size': 2000
+            },
+            'pbr': {
+                'p10': 0.5, 'p25': 0.8, 'p50': 1.2, 
+                'p75': 2.0, 'p90': 3.5, 'sample_size': 2000
+            },
+            'roe': {
+                'p10': 3.0, 'p25': 6.0, 'p50': 10.0, 
+                'p75': 15.0, 'p90': 22.0, 'sample_size': 2000
+            }
+        }
+    
+    def _percentile_from_breakpoints_v2(self, value, sector_percentiles, 
+                                         metric_name='per', use_global=True):
+        """
+        ✅ v2.2.2: 퍼센타일 계산 (글로벌 대체 지원)
+        
+        섹터 표본 부족 시 전시장 분포로 대체하여 안정성 확보
+        
+        Args:
+            value: 계산할 값
+            sector_percentiles: 섹터 퍼센타일
+            metric_name: 'per', 'pbr', 'roe' 중 하나
+            use_global: 글로벌 대체 사용 여부
+        
+        Returns:
+            퍼센타일 (0-100) 또는 None
+        """
+        
+        # 1. 섹터 퍼센타일 유효성 체크
+        if not sector_percentiles or not isinstance(sector_percentiles, dict):
+            if use_global:
+                logger.debug(f"섹터 퍼센타일 없음 → 글로벌 사용 ({metric_name})")
+                global_pcts = self._get_global_percentiles_cached()[metric_name]
+                return self._percentile_from_breakpoints(value, global_pcts)
+            return None
+        
+        sample_size = sector_percentiles.get('sample_size', 0)
+        
+        # 2. 표본 크기별 전략
+        if sample_size < 10:
+            # 극소 표본 → 글로벌만 사용
+            if use_global:
+                logger.info(f"⚠️ 섹터 표본 부족 (n={sample_size}) → 글로벌 분포 사용 ({metric_name})")
+                global_pcts = self._get_global_percentiles_cached()[metric_name]
+                return self._percentile_from_breakpoints(value, global_pcts)
+            return 50.0  # 중립
+        
+        elif 10 <= sample_size < 30:
+            # 소표본 → 가중 평균 (섹터 + 글로벌)
+            sector_pct = self._percentile_from_breakpoints(value, sector_percentiles)
+            
+            if use_global and sector_pct is not None:
+                global_pcts = self._get_global_percentiles_cached()[metric_name]
+                global_pct = self._percentile_from_breakpoints(value, global_pcts)
+                
+                if global_pct is not None:
+                    # 가중치: n=10 → 섹터 0%, n=30 → 섹터 100%
+                    weight_sector = (sample_size - 10) / 20
+                    weight_global = 1.0 - weight_sector
+                    
+                    blended = sector_pct * weight_sector + global_pct * weight_global
+                    logger.debug(f"가중 평균 (n={sample_size}): 섹터 {sector_pct:.1f}% × {weight_sector:.2f} "
+                                f"+ 글로벌 {global_pct:.1f}% × {weight_global:.2f} = {blended:.1f}%")
+                    return blended
+            
+            return sector_pct
+        
+        else:
+            # 충분한 표본 → 섹터만 사용
+            sector_pct = self._percentile_from_breakpoints(value, sector_percentiles)
+            
+            # 3. IQR ≈ 0 체크 (추가 안전장치)
+            if sector_pct is None and sector_percentiles:
+                p25 = sector_percentiles.get('p25', 0)
+                p75 = sector_percentiles.get('p75', 0)
+                iqr = abs(p75 - p25)
+                
+                if iqr < 1e-6:
+                    logger.warning(f"⚠️ IQR≈0 감지 (p25={p25}, p75={p75}) → 글로벌 대체 ({metric_name})")
+                    if use_global:
+                        global_pcts = self._get_global_percentiles_cached()[metric_name]
+                        return self._percentile_from_breakpoints(value, global_pcts)
+                    return 50.0
+            
+            return sector_pct
     
     def _percentile_or_range_score(self, value, percentiles, rng, higher_is_better, cap=20.0, percentile_cap=99.5):
         """
@@ -1006,6 +1117,7 @@ class ValueStockFinder:
         }
 
     def _evaluate_sector_adjusted_metrics(self, stock_data: Dict[str, Any], percentile_cap: float = 99.5) -> Dict[str, Any]:
+        """✅ v2.2.2: 글로벌 퍼센타일 대체 적용"""
         stats = stock_data.get('sector_stats', {}) or {}
         benchmarks = stock_data.get('sector_benchmarks') or get_sector_benchmarks(stock_data.get('sector_name', '기타'), None, stats)
 
@@ -1013,7 +1125,7 @@ class ValueStockFinder:
         pbr = stock_data.get('pbr') or 0
         roe = stock_data.get('roe') or 0
 
-        # 퍼센타일 기반 스코어링 (PER/PBR/ROE 통일) + fallback
+        # ✅ v2.2.2: 퍼센타일 기반 스코어링 (글로벌 대체 사용)
         per_percentiles = stats.get('per_percentiles', {}) if stats else {}
         pbr_percentiles = stats.get('pbr_percentiles', {}) if stats else {}
         roe_percentiles = stats.get('roe_percentiles', {}) if stats else {}
@@ -1027,10 +1139,46 @@ class ValueStockFinder:
         pbr_val = stock_data.get('pbr') or 0.0
         roe_val = stock_data.get('roe') or 0.0
 
-        # ✅ 각 20점 캡 (총점 120 정합성: 60+25+35=120)
-        per_raw = 0.0 if per_val <= 0 else self._percentile_or_range_score(per_val, per_percentiles, per_range, higher_is_better=False, cap=20.0, percentile_cap=percentile_cap)
-        pbr_raw = self._percentile_or_range_score(pbr_val, pbr_percentiles, pbr_range, higher_is_better=False, cap=20.0, percentile_cap=percentile_cap)
-        roe_raw = self._percentile_or_range_score(roe_val, roe_percentiles, roe_range, higher_is_better=True, cap=20.0, percentile_cap=percentile_cap)
+        # ✅ v2.2.2: 글로벌 대체를 사용하여 퍼센타일 계산
+        per_pct = None
+        pbr_pct = None
+        roe_pct = None
+        
+        if per_val > 0:
+            per_pct = self._percentile_from_breakpoints_v2(
+                per_val, per_percentiles, 'per', use_global=True
+            )
+        
+        pbr_pct = self._percentile_from_breakpoints_v2(
+            pbr_val, pbr_percentiles, 'pbr', use_global=True
+        )
+        
+        roe_pct = self._percentile_from_breakpoints_v2(
+            roe_val, roe_percentiles, 'roe', use_global=True
+        )
+        
+        # 퍼센타일 → 점수 변환 (각 20점 캡)
+        cap = 20.0
+        
+        if per_pct is not None:
+            per_pct_capped = min(percentile_cap, per_pct)
+            per_pct_inverted = 100.0 - per_pct_capped  # PER은 낮을수록 좋음
+            per_raw = max(0.0, min(cap, cap * (per_pct_inverted / 100.0)))
+        else:
+            per_raw = 0.0
+        
+        if pbr_pct is not None:
+            pbr_pct_capped = min(percentile_cap, pbr_pct)
+            pbr_pct_inverted = 100.0 - pbr_pct_capped  # PBR은 낮을수록 좋음
+            pbr_raw = max(0.0, min(cap, cap * (pbr_pct_inverted / 100.0)))
+        else:
+            pbr_raw = 0.0
+        
+        if roe_pct is not None:
+            roe_pct_capped = min(percentile_cap, roe_pct)
+            roe_raw = max(0.0, min(cap, cap * (roe_pct_capped / 100.0)))  # ROE는 높을수록 좋음
+        else:
+            roe_raw = 0.0
 
         raw_total = per_raw + pbr_raw + roe_raw
 
@@ -1653,6 +1801,25 @@ class ValueStockFinder:
                 details['safety_margin'] = 0
                 details['intrinsic_value'] = 0
                 details['confidence'] = 'UNKNOWN'
+            
+            # ✅ v2.2.2: 리스크 플래그 감점 적용
+            if self.risk_evaluator:
+                risk_penalty, risk_warnings = self.risk_evaluator.evaluate_all_risks(stock_data)
+                
+                if risk_penalty < 0:
+                    logger.info(f"⚠️ {stock_data.get('symbol', 'N/A')}: 리스크 감점 {risk_penalty}점")
+                    score += risk_penalty  # 감점 적용
+                    details['risk_penalty'] = risk_penalty
+                    details['risk_warnings'] = risk_warnings
+                    details['risk_count'] = len(risk_warnings)
+                else:
+                    details['risk_penalty'] = 0
+                    details['risk_warnings'] = []
+                    details['risk_count'] = 0
+            else:
+                details['risk_penalty'] = 0
+                details['risk_warnings'] = []
+                details['risk_count'] = 0
             
             # ✅ 5. 등급 결정 (개선된 점수 체계)
             # 총점 구성: PER/PBR/ROE(~60점) + 품질(43점) + 섹터보너스(10점) + MoS(35점) = 최대 148점

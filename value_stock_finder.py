@@ -3123,19 +3123,34 @@ class ValueStockFinder:
                     
                     # 상위 가치주
                     st.markdown("##### 🏆 상위 가치주 (점수순)")
-                    # ✅ MoS 점수 계산 (표시용)
+                    # ✅ MoS 점수 및 백분율 계산 (표시용)
                     for stock in value_stocks[:30]:
-                        if 'mos_score' not in stock:
-                            # MCP 결과에 MoS 없으면 즉시 계산
-                            mos_raw = self.compute_mos_score(
-                                stock.get('per', 0),
-                                stock.get('pbr', 0),
-                                stock.get('roe', 0),
-                                stock.get('sector', '')
-                            )
-                            # ✅ v2.1.2: 이중 스케일링 제거 (compute_mos_score가 이미 0-35 반환)
-                            stock['mos_score'] = mos_raw  # 이미 최종 점수
-                            stock['mos_points'] = mos_raw  # ✅ v2.1.2: 일관성 개선 (mos_raw → mos_points)
+                        if 'mos_score' not in stock or 'mos_raw' not in stock:
+                            per = stock.get('per', 0)
+                            pbr = stock.get('pbr', 0)
+                            roe = stock.get('roe', 0)
+                            sector = stock.get('sector', '')
+                            
+                            # MoS 점수 계산 (0-35점)
+                            mos_score = self.compute_mos_score(per, pbr, roe, sector)
+                            stock['mos_score'] = mos_score
+                            stock['mos_points'] = mos_score
+                            
+                            # ✅ MoS 백분율 계산 (표시용)
+                            pb_star, pe_star = self._justified_multiples(per, pbr, roe, sector)
+                            mos_list = []
+                            
+                            if pb_star and pbr > 0:
+                                mos_pb = max(0.0, (pb_star / pbr - 1.0) * 100)  # 백분율로 변환
+                                mos_list.append(mos_pb)
+                            
+                            if pe_star and per > 0:
+                                mos_pe = max(0.0, (pe_star / per - 1.0) * 100)  # 백분율로 변환
+                                mos_list.append(mos_pe)
+                            
+                            # 보수적 접근: 더 작은 값 채택
+                            mos_percentage = min(mos_list) if mos_list else 0.0
+                            stock['mos_raw'] = mos_percentage  # 백분율 (0-100%)
                     
                     df = pd.DataFrame([
                         {

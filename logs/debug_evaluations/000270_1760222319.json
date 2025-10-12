@@ -1,0 +1,70 @@
+{
+  "symbol": "000270",
+  "name": "기아",
+  "timestamp": "2025-10-12T07:38:39.654812",
+  "score": 100.1872983175785,
+  "score_percentage": 67.69412048485034,
+  "grade": "A (우수)",
+  "recommendation": "STRONG_BUY",
+  "details": {
+    "per_score": 20.0,
+    "pbr_score": 20.0,
+    "roe_score": 15.187298317578497,
+    "relative_per": -79.39622332363905,
+    "relative_pbr": -64.39467406615653,
+    "sector_percentile": 75.93649158789249,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "000270",
+      "sector_name": "운송장비",
+      "original_score": 55.187298317578495,
+      "adjusted_score": 17.65993546162512,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_penalty_40_below_adjusted_44.1",
+      "sector_sample_adequate": false,
+      "sector_sample_penalty": 0.4,
+      "sample_adequacy_reason": "critical_sample_size_0_penalty_0.4",
+      "sector_score": 30.0,
+      "total_adjustment_factor": 0.32000000000000006
+    },
+    "raw_component_scores": {
+      "per": 20.0,
+      "pbr": 20.0,
+      "roe": 15.187298317578497,
+      "total": 55.187298317578495
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 10,
+    "criteria_met": [
+      "PER",
+      "PBR",
+      "ROE"
+    ],
+    "mos_score": 35,
+    "mos_points": 35,
+    "safety_margin": 293.19960238568586,
+    "intrinsic_value": 395558.8,
+    "confidence": "LOW",
+    "score_percentage": 67.69412048485034,
+    "max_possible_score": 148
+  },
+  "raw_metrics": {
+    "per": 4.120755335272191,
+    "pbr": 0.7121065186768692,
+    "roe": 17.280970616757863,
+    "market_cap": 39615200000000.0,
+    "current_price": 100600.0
+  }
+}

@@ -17,6 +17,7 @@ from pathlib import Path
 from typing import Any, Dict, Optional, List, Callable, Tuple
 
 import requests
+from kis_rate_limiter import KISGlobalRateLimiter  # ✅ 전역 Rate Limiter
 
 logger = logging.getLogger(__name__)
 
@@ -1196,23 +1197,21 @@ class MCPKISIntegration:
             return None
     
     def _rate_limit(self):
-        """API 요청 속도를 제어합니다 (멀티스레드 안전 + 적응형)"""
-        with self._lock:  # ✅ Lock으로 보호
-            # ✅ 적응형 레이트 리밋: 슬로우 모드 확인
-            if self._adaptive_rate and time.time() < self._slow_mode_until:
-                interval = self.request_interval * 4.0  # 4배 느리게 (2.0초, 0.5건/초, 차단 복구 모드)
-                logger.debug(f"🐢 슬로우 모드: 간격 {interval:.2f}초 (남은 시간: {self._slow_mode_until - time.time():.1f}초)")
-            else:
-                interval = self.request_interval
-                # 슬로우 모드 종료
-                if self._adaptive_rate and time.time() >= self._slow_mode_until:
-                    self._adaptive_rate = False
-                    logger.info("⚡ 슬로우 모드 종료, 정상 속도 복귀")
-            
-            elapsed_time = time.time() - self.last_request_time
-            if elapsed_time < interval:
-                time.sleep(interval - elapsed_time)
-            self.last_request_time = time.time()
+        """API 요청 속도를 제어합니다 (전역 Rate Limiter 사용)"""
+        # ✅ 전역 Rate Limiter 사용 - KISDataProvider와 동일한 Lock 공유
+        # 적응형 레이트 리밋 (슬로우 모드)
+        if self._adaptive_rate and time.time() < self._slow_mode_until:
+            interval = self.request_interval * 4.0  # 4배 느리게
+            logger.debug(f"🐢 슬로우 모드: 간격 {interval:.2f}초 (남은 시간: {self._slow_mode_until - time.time():.1f}초)")
+        else:
+            interval = self.request_interval
+            # 슬로우 모드 종료
+            if self._adaptive_rate and time.time() >= self._slow_mode_until:
+                self._adaptive_rate = False
+                logger.info("⚡ 슬로우 모드 종료, 정상 속도 복귀")
+        
+        # 전역 Rate Limiter 호출
+        KISGlobalRateLimiter.rate_limit(interval)
     
     def _load_cached_token(self) -> Optional[str]:
         """

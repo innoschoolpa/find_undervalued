@@ -4,10 +4,12 @@ import time
 import random
 import pandas as pd
 import logging
+import threading  # ✅ 멀티스레드 안전성을 위한 Lock
 from datetime import datetime, timedelta
 from typing import Dict, Optional, List, Any
 from functools import lru_cache  # ✅ 중복 호출 방지용 캐시
 from kis_token_manager import KISTokenManager
+from kis_rate_limiter import KISGlobalRateLimiter  # ✅ 전역 Rate Limiter
 
 logger = logging.getLogger(__name__)
 
@@ -29,6 +31,7 @@ class KISDataProvider:
             "appkey": self.token_manager.app_key,
             "appsecret": self.token_manager.app_secret,
         }
+        
         # 세션 설정 개선 (연결 재사용 및 안정성 향상)
         self.session = requests.Session()
         
@@ -47,7 +50,6 @@ class KISDataProvider:
             'Accept-Encoding': 'gzip, deflate'
         })
         
-        self.last_request_time = 0
         # KIS API 제한: 실전 20건/초, 모의 2건/초
         # ⚠️ AppKey 차단 방지: 0.5초 간격 (2건/초, 90% 마진)
         self.request_interval = 0.5  # 0.5초 간격 (초당 2건) - 안전 우선!
@@ -81,13 +83,9 @@ class KISDataProvider:
             KISDataProvider._stock_name_cache = {}  # 빈 캐시로 초기화
     
     def _rate_limit(self):
-        """✅ API 요청 속도를 제어합니다 (지터 추가 - 버스트 방지)"""
-        elapsed_time = time.time() - self.last_request_time
-        wait = self.request_interval - elapsed_time
-        if wait > 0:
-            # 0~30ms 지터 추가로 동시 다발 호출 시 버스트 방지
-            time.sleep(wait + random.uniform(0, 0.03))
-        self.last_request_time = time.time()
+        """✅ API 요청 속도를 제어합니다 (전역 Rate Limiter 사용)"""
+        # ✅ 전역 Rate Limiter 사용 - KISDataProvider와 MCPKISIntegration 모두 동일한 Lock 공유
+        KISGlobalRateLimiter.rate_limit(self.request_interval)
 
     def _send_request(self, path: str, tr_id: str, params: dict, max_retries: int = 2) -> Optional[dict]:
         """중앙 집중화된 API GET 요청 메서드 (재시도 로직 포함)"""

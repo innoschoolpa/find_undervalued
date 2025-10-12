@@ -1,0 +1,68 @@
+{
+  "symbol": "068270",
+  "name": "셀트리온",
+  "timestamp": "2025-10-12T09:38:35.632772",
+  "score": 28.82505010806438,
+  "score_percentage": 19.47638520815161,
+  "grade": "C (위험)",
+  "recommendation": "SELL",
+  "details": {
+    "per_score": 0.1,
+    "pbr_score": 20.0,
+    "roe_score": 5.72505010806438,
+    "relative_per": 115.6387801999876,
+    "relative_pbr": -67.75251167253195,
+    "sector_percentile": 28.6252505403219,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "068270",
+      "sector_name": "바이오/제약",
+      "original_score": 25.82505010806438,
+      "adjusted_score": 8.264016034580603,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_penalty_40_below_adjusted_20.7",
+      "sector_sample_adequate": false,
+      "sector_sample_penalty": 0.4,
+      "sample_adequacy_reason": "critical_sample_size_0_penalty_0.4",
+      "sector_score": 30.0,
+      "total_adjustment_factor": 0.32000000000000006
+    },
+    "raw_component_scores": {
+      "per": 0.1,
+      "pbr": 20.0,
+      "roe": 5.72505010806438,
+      "total": 25.82505010806438
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 3,
+    "criteria_met": [
+      "PBR"
+    ],
+    "mos_score": 0,
+    "mos_points": 0,
+    "safety_margin": -28.43807603686636,
+    "intrinsic_value": 124231.5,
+    "confidence": "LOW",
+    "score_percentage": 19.47638520815161,
+    "max_possible_score": 148
+  },
+  "raw_metrics": {
+    "per": 97.0374510899944,
+    "pbr": 2.096086741285423,
+    "roe": 2.1600801729030077,
+    "market_cap": 40091000000000.0,
+    "current_price": 173600.0
+  }
+}

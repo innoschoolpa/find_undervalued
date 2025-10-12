@@ -87,8 +87,8 @@ kis_api:
   hts_id: "KIS_USER"
 
   # KIS API 키 설정 (중복 제거 수정)
-  app_key: "PSPHJ2iipIj3zJCUue7Ja2Fa56v2u6cjtDOo"
-  app_secret: "G7Rr5GVd8OxAcn+gzYk2M21a6f1+75QrWy4n0cZmp8KlYcsQu1dyFJBlsUxswAB6W2Xv5LUrIW0WGwf1XK+9vwwGdXHe3HgdDRAm2htBtO8auoiZeLynQWIUR2o+c/coHg3/Q80BFurw37ZKT3GhaO4ybhOOSz0VkNY+vEfZzc6qxQH60jI="
+  app_key: "PSJktNSrUZeS6Mh93xbrNdz4FqYdhqFFaTJF"
+  app_secret: "ldZ77Z12LTEUH/DpzTxms2BF1tBWY/tGb71cAuEdkoDiKIlo/MJ0uX6rsm97eUdGHRuEFqoci8AbdV/1vPBiQBBQYr316LDN8vEDCZPG9AzPjAQUmUYHGO8m18A//Ix2peMGsBFQL6KTLU6fDVbAqr/vQBZB0wuOKrfUxqb3XnhkZ1ROzO0="
 
   # 실시간 데이터 설정
   realtime:

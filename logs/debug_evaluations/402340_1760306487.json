@@ -1,0 +1,72 @@
+{
+  "symbol": "402340",
+  "name": "SK스퀘어",
+  "timestamp": "2025-10-13T07:01:27.612282",
+  "score": 66.42709221593404,
+  "score_percentage": 46.452512039114715,
+  "grade": "B (보통)",
+  "recommendation": "HOLD",
+  "details": {
+    "per_score": 9.42709221593405,
+    "pbr_score": 0.1,
+    "roe_score": 19.9,
+    "relative_per": 3.176913234147616,
+    "relative_pbr": 165.91278060796054,
+    "sector_percentile": 99.5,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "402340",
+      "sector_name": "금융",
+      "original_score": 29.427092215934046,
+      "adjusted_score": 29.427092215934046,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_positive_no_adjustment",
+      "sector_sample_adequate": true,
+      "sector_sample_penalty": 1.0,
+      "sample_adequacy_reason": "sufficient_sample_size",
+      "sector_score": 60.0,
+      "total_adjustment_factor": 1.0
+    },
+    "raw_component_scores": {
+      "per": 9.42709221593405,
+      "pbr": 0.1,
+      "roe": 19.9,
+      "total": 29.427092215934046
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 7,
+    "criteria_met": [
+      "PER",
+      "ROE"
+    ],
+    "mos_score": 30,
+    "mos_points": 30,
+    "safety_margin": -47.35115789473685,
+    "intrinsic_value": 130042.63999999998,
+    "confidence": "HIGH",
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "score_percentage": 46.452512039114715,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 8.893849920783524,
+    "pbr": 1.7284330739517437,
+    "roe": 19.434025639590214,
+    "market_cap": 32737600000000.0,
+    "current_price": 247000.0
+  }
+}

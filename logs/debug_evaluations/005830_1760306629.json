@@ -1,0 +1,73 @@
+{
+  "symbol": "005830",
+  "name": "DB손해보험",
+  "timestamp": "2025-10-13T07:03:49.905907",
+  "score": 91.36179859460576,
+  "score_percentage": 63.88936964657746,
+  "grade": "B+ (양호)",
+  "recommendation": "STRONG_BUY",
+  "details": {
+    "per_score": 20.0,
+    "pbr_score": 14.254482277565362,
+    "roe_score": 17.1073163170404,
+    "relative_per": -78.41948245670926,
+    "relative_pbr": -57.01792911026145,
+    "sector_percentile": 84.72277053353034,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "005830",
+      "sector_name": "보험",
+      "original_score": 51.36179859460576,
+      "adjusted_score": 16.435775550273842,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_penalty_40_below_adjusted_41.1",
+      "sector_sample_adequate": false,
+      "sector_sample_penalty": 0.4,
+      "sample_adequacy_reason": "critical_sample_size_0_penalty_0.4",
+      "sector_score": 30.0,
+      "total_adjustment_factor": 0.32000000000000006
+    },
+    "raw_component_scores": {
+      "per": 20.0,
+      "pbr": 14.254482277565362,
+      "roe": 17.1073163170404,
+      "total": 51.36179859460576
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 10,
+    "criteria_met": [
+      "PER",
+      "PBR",
+      "ROE"
+    ],
+    "mos_score": 30,
+    "mos_points": 30,
+    "safety_margin": 225.71720510894062,
+    "intrinsic_value": 433529.6,
+    "confidence": "LOW",
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "score_percentage": 63.88936964657746,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 4.316103508658149,
+    "pbr": 0.8596414177947711,
+    "roe": 19.91707140642761,
+    "market_cap": 9423500000000.0,
+    "current_price": 133100.0
+  }
+}

@@ -1,0 +1,71 @@
+{
+  "symbol": "051600",
+  "name": "한전KPS",
+  "timestamp": "2025-10-12T18:13:48.886658",
+  "score": 33.57958335454963,
+  "score_percentage": 22.688907671992993,
+  "grade": "C (위험)",
+  "recommendation": "SELL",
+  "details": {
+    "per_score": 9.409359777313849,
+    "pbr_score": 7.189193766937669,
+    "roe_score": 12.981029810298105,
+    "relative_per": 15.534256974758009,
+    "relative_pbr": 49.975363389997526,
+    "sector_percentile": 74.88143631436316,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "051600",
+      "sector_name": "건설업",
+      "original_score": 29.579583354549627,
+      "adjusted_score": 9.465466673455882,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_penalty_40_below_adjusted_23.7",
+      "sector_sample_adequate": false,
+      "sector_sample_penalty": 0.4,
+      "sample_adequacy_reason": "critical_sample_size_0_penalty_0.4",
+      "sector_score": 30.0,
+      "total_adjustment_factor": 0.32000000000000006
+    },
+    "raw_component_scores": {
+      "per": 9.409359777313849,
+      "pbr": 7.189193766937669,
+      "roe": 12.981029810298105,
+      "total": 29.579583354549627
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 4,
+    "criteria_met": [
+      "ROE"
+    ],
+    "mos_score": 0,
+    "mos_points": 0,
+    "safety_margin": -6.651334702258721,
+    "intrinsic_value": 45460.8,
+    "confidence": "LOW",
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "score_percentage": 22.688907671992993,
+    "max_possible_score": 148
+  },
+  "raw_metrics": {
+    "per": 12.708768267223382,
+    "pbr": 1.649728997289973,
+    "roe": 12.981029810298104,
+    "market_cap": 2191500000000.0,
+    "current_price": 48700.0
+  }
+}

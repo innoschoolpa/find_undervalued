@@ -1,0 +1,71 @@
+{
+  "symbol": "069620",
+  "name": "대웅제약",
+  "timestamp": "2025-10-12T18:15:06.716674",
+  "score": 10.688422031411179,
+  "score_percentage": 7.221906777980526,
+  "grade": "C (위험)",
+  "recommendation": "SELL",
+  "details": {
+    "per_score": 0.1,
+    "pbr_score": 5.4865318397768394,
+    "roe_score": 2.10189019163434,
+    "relative_per": 37.704918032786885,
+    "relative_pbr": -70.428386067143,
+    "sector_percentile": 31.568406848857315,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "069620",
+      "sector_name": "바이오/제약",
+      "original_score": 7.688422031411179,
+      "adjusted_score": 2.4602950500515774,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_penalty_40_below_adjusted_6.2",
+      "sector_sample_adequate": false,
+      "sector_sample_penalty": 0.4,
+      "sample_adequacy_reason": "critical_sample_size_0_penalty_0.4",
+      "sector_score": 30.0,
+      "total_adjustment_factor": 0.32000000000000006
+    },
+    "raw_component_scores": {
+      "per": 0.1,
+      "pbr": 5.4865318397768394,
+      "roe": 2.10189019163434,
+      "total": 7.688422031411179
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 3,
+    "criteria_met": [
+      "PBR"
+    ],
+    "mos_score": 0,
+    "mos_points": 0,
+    "safety_margin": -21.962585034013603,
+    "intrinsic_value": 103243.5,
+    "confidence": "LOW",
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "score_percentage": 7.221906777980526,
+    "max_possible_score": 148
+  },
+  "raw_metrics": {
+    "per": 61.967213114754095,
+    "pbr": 1.922154905635706,
+    "roe": 3.10189019163434,
+    "market_cap": 1532900000000.0,
+    "current_price": 132300.0
+  }
+}

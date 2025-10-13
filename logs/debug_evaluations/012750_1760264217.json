@@ -1,0 +1,69 @@
+{
+  "symbol": "012750",
+  "name": "에스원",
+  "timestamp": "2025-10-12T19:16:57.735472",
+  "score": 22.647466232129055,
+  "score_percentage": 15.837388973516822,
+  "grade": "C (위험)",
+  "recommendation": "SELL",
+  "details": {
+    "per_score": 5.82742062638859,
+    "pbr_score": 7.157643145540888,
+    "roe_score": 9.662402460199576,
+    "relative_per": -14.964523758331548,
+    "relative_pbr": -17.261145164327107,
+    "sector_percentile": 38.64960984079831,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "012750",
+      "sector_name": "기타",
+      "original_score": 22.647466232129055,
+      "adjusted_score": 7.247189194281297,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_penalty_40_below_adjusted_18.1",
+      "sector_sample_adequate": false,
+      "sector_sample_penalty": 0.4,
+      "sample_adequacy_reason": "critical_sample_size_0_penalty_0.4",
+      "sector_score": 30.0,
+      "total_adjustment_factor": 0.32
+    },
+    "raw_component_scores": {
+      "per": 5.82742062638859,
+      "pbr": 7.157643145540888,
+      "roe": 9.662402460199576,
+      "total": 22.647466232129055
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 0,
+    "criteria_met": [],
+    "mos_score": 0,
+    "mos_points": 0,
+    "safety_margin": -2.001685630004208,
+    "intrinsic_value": 77516.66666666667,
+    "confidence": "LOW",
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "score_percentage": 15.837388973516822,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 17.00709524833369,
+    "pbr": 1.6547770967134579,
+    "roe": 9.729921968159662,
+    "market_cap": 3005700000000.0,
+    "current_price": 79100.0
+  }
+}

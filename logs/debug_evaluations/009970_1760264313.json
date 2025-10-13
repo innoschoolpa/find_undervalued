@@ -1,0 +1,73 @@
+{
+  "symbol": "009970",
+  "name": "영원무역홀딩스",
+  "timestamp": "2025-10-12T19:18:33.298311",
+  "score": 86.14405511192251,
+  "score_percentage": 60.24059798036539,
+  "grade": "B+ (양호)",
+  "recommendation": "STRONG_BUY",
+  "details": {
+    "per_score": 17.553323534215256,
+    "pbr_score": 16.31237811633655,
+    "roe_score": 12.278353461370713,
+    "relative_per": -69.8793166664004,
+    "relative_pbr": -62.94666456122524,
+    "sector_percentile": 54.34000165536701,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "009970",
+      "sector_name": "금융",
+      "original_score": 46.14405511192252,
+      "adjusted_score": 46.14405511192252,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_positive_no_adjustment",
+      "sector_sample_adequate": true,
+      "sector_sample_penalty": 1.0,
+      "sample_adequacy_reason": "sufficient_sample_size",
+      "sector_score": 60.0,
+      "total_adjustment_factor": 1.0
+    },
+    "raw_component_scores": {
+      "per": 17.553323534215256,
+      "pbr": 16.31237811633655,
+      "roe": 12.278353461370713,
+      "total": 46.14405511192252
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 10,
+    "criteria_met": [
+      "PER",
+      "PBR",
+      "ROE"
+    ],
+    "mos_score": 30,
+    "mos_points": 30,
+    "safety_margin": 186.70645567966233,
+    "intrinsic_value": 382466.41187666956,
+    "confidence": "HIGH",
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "score_percentage": 60.24059798036539,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 5.446676465784746,
+    "pbr": 0.6687621883663453,
+    "roe": 12.278353461370711,
+    "market_cap": 1800800000000.0,
+    "current_price": 133400.0
+  }
+}

@@ -256,6 +256,69 @@ class ScoreCalibrationMonitor:
             for alert in alerts:
                 logger.warning(f"  - {alert}")
     
+    def get_score_statistics(self, month: Optional[str] = None) -> Optional[Dict]:
+        """
+        ✅ v2.2.2: 점수 통계 조회 (UI 피드백용)
+        
+        Args:
+            month: 월 식별자 (기본값: 현재 월)
+        
+        Returns:
+            점수 통계 딕셔너리 (분포, 퍼센타일 등)
+        """
+        if month is None:
+            month = datetime.now().strftime('%Y-%m')
+        
+        # 캐시에서 조회
+        stats = self.monthly_stats.get(month)
+        
+        # 캐시에 없으면 파일에서 로드
+        if not stats:
+            log_file = os.path.join(self.log_dir, f'calibration_{month}.json')
+            if os.path.exists(log_file):
+                try:
+                    with open(log_file, 'r', encoding='utf-8') as f:
+                        stats = json.load(f)
+                        self.monthly_stats[month] = stats
+                except Exception as e:
+                    logger.debug(f"캘리브레이션 파일 로드 실패: {e}")
+                    return None
+            else:
+                return None
+        
+        # quantiles를 percentiles 형식으로 변환
+        # quantiles: 하위 x% 지점 (예: p75 = 하위 75% 지점)
+        # percentiles: 상위 x% 컷오프 (예: p80 = 상위 20% 컷오프, 즉 하위 80% 지점)
+        quantiles = stats.get('quantiles', {})
+        percentiles = {}
+        
+        if quantiles:
+            # 직접 매핑 (하위 x% = 상위 (100-x)% 컷오프)
+            percentiles['p10'] = quantiles.get('p90', 0)  # 상위 10% 컷오프 = 하위 90%
+            percentiles['p25'] = quantiles.get('p75', 0)  # 상위 25% 컷오프 = 하위 75%
+            percentiles['p50'] = quantiles.get('p50', 0)  # 상위 50% 컷오프 = 하위 50% (중앙값)
+            percentiles['p75'] = quantiles.get('p25', 0)  # 상위 75% 컷오프 = 하위 25%
+            percentiles['p90'] = quantiles.get('p10', 0)  # 상위 90% 컷오프 = 하위 10%
+            
+            # 상위 20% 컷오프 = 하위 80% 지점 (p75와 p90 사이 보간)
+            q75 = quantiles.get('p75', 0)
+            q90 = quantiles.get('p90', 0)
+            # p80 = p75 + (p90 - p75) * (80-75)/(90-75)
+            percentiles['p80'] = q75 + (q90 - q75) * (80 - 75) / (90 - 75)
+            
+            # 상위 80% 컷오프 = 하위 20% 지점 (p10과 p25 사이 보간)
+            q10 = quantiles.get('p10', 0)
+            q25 = quantiles.get('p25', 0)
+            percentiles['p20'] = q10 + (q25 - q10) * (20 - 10) / (25 - 10)
+        
+        return {
+            'distribution': stats.get('score_distribution', {}),
+            'percentiles': percentiles,
+            'quantiles': quantiles,
+            'sample_size': stats.get('sample_size', 0),
+            'month': month
+        }
+    
     def suggest_grade_cutoffs(self, scores: List[float], target_dist: Optional[Dict] = None) -> Dict:
         """
         목표 등급 분포에 맞는 점수 컷오프 제안

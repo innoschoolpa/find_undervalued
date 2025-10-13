@@ -1,0 +1,71 @@
+{
+  "symbol": "001440",
+  "name": "대한전선",
+  "timestamp": "2025-10-12T18:12:55.854603",
+  "score": 12.000832702498109,
+  "score_percentage": 8.108670744931153,
+  "grade": "C (위험)",
+  "recommendation": "SELL",
+  "details": {
+    "per_score": 0.1,
+    "pbr_score": 4.841534191269242,
+    "roe_score": 4.059298511228867,
+    "relative_per": 46.77591734948343,
+    "relative_pbr": -45.28334462196369,
+    "sector_percentile": 16.83205751039314,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "001440",
+      "sector_name": "기술업",
+      "original_score": 9.000832702498109,
+      "adjusted_score": 2.880266464799395,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_penalty_40_below_adjusted_7.2",
+      "sector_sample_adequate": false,
+      "sector_sample_penalty": 0.4,
+      "sample_adequacy_reason": "critical_sample_size_0_penalty_0.4",
+      "sector_score": 30.0,
+      "total_adjustment_factor": 0.32000000000000006
+    },
+    "raw_component_scores": {
+      "per": 0.1,
+      "pbr": 4.841534191269242,
+      "roe": 4.059298511228867,
+      "total": 9.000832702498109
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 3,
+    "criteria_met": [
+      "PBR"
+    ],
+    "mos_score": 0,
+    "mos_points": 0,
+    "safety_margin": 27.93179611650483,
+    "intrinsic_value": 21083.159999999996,
+    "confidence": "LOW",
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "score_percentage": 8.108670744931153,
+    "max_possible_score": 148
+  },
+  "raw_metrics": {
+    "per": 41.09725685785536,
+    "pbr": 2.0792329043653797,
+    "roe": 5.059298511228867,
+    "market_cap": 3072700000000.0,
+    "current_price": 16480.0
+  }
+}

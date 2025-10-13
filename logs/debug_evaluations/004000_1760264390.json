@@ -1,0 +1,71 @@
+{
+  "symbol": "004000",
+  "name": "롯데정밀화학",
+  "timestamp": "2025-10-12T19:19:50.816301",
+  "score": 21.09311078081434,
+  "score_percentage": 14.750427119450588,
+  "grade": "C (위험)",
+  "recommendation": "SELL",
+  "details": {
+    "per_score": 0.1,
+    "pbr_score": 17.993110780814337,
+    "roe_score": 0.0,
+    "relative_per": 82.35140084142051,
+    "relative_pbr": -69.2082743490236,
+    "sector_percentile": 0.0,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "004000",
+      "sector_name": "화학",
+      "original_score": 18.09311078081434,
+      "adjusted_score": 18.09311078081434,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_positive_no_adjustment",
+      "sector_sample_adequate": true,
+      "sector_sample_penalty": 1.0,
+      "sample_adequacy_reason": "sufficient_sample_size",
+      "sector_score": 60.0,
+      "total_adjustment_factor": 1.0
+    },
+    "raw_component_scores": {
+      "per": 0.1,
+      "pbr": 17.993110780814337,
+      "roe": 0.0,
+      "total": 18.09311078081434
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 3,
+    "criteria_met": [
+      "PBR"
+    ],
+    "mos_score": 0,
+    "mos_points": 0,
+    "safety_margin": 127.3337999742157,
+    "intrinsic_value": 104914.54868810055,
+    "confidence": "HIGH",
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "score_percentage": 14.750427119450588,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 32.730496453900706,
+    "pbr": 0.5006889219185662,
+    "roe": 1.5297321341390646,
+    "market_cap": 1190700000000.0,
+    "current_price": 46150.0
+  }
+}

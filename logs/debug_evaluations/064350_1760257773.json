@@ -1,0 +1,71 @@
+{
+  "symbol": "064350",
+  "name": "현대로템",
+  "timestamp": "2025-10-12T17:29:33.243459",
+  "score": 21.29848352000244,
+  "score_percentage": 14.39086724324489,
+  "grade": "C (위험)",
+  "recommendation": "SELL",
+  "details": {
+    "per_score": 0.1,
+    "pbr_score": 0.1,
+    "roe_score": 17.09848352000244,
+    "relative_per": 195.06437768240343,
+    "relative_pbr": 487.073704435075,
+    "sector_percentile": 84.65407665902079,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "064350",
+      "sector_name": "운송장비",
+      "original_score": 17.29848352000244,
+      "adjusted_score": 5.5355147264007805,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_penalty_40_below_adjusted_13.8",
+      "sector_sample_adequate": false,
+      "sector_sample_penalty": 0.4,
+      "sample_adequacy_reason": "critical_sample_size_0_penalty_0.4",
+      "sector_score": 30.0,
+      "total_adjustment_factor": 0.32000000000000006
+    },
+    "raw_component_scores": {
+      "per": 0.1,
+      "pbr": 0.1,
+      "roe": 17.09848352000244,
+      "total": 17.29848352000244
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 4,
+    "criteria_met": [
+      "ROE"
+    ],
+    "mos_score": 0,
+    "mos_points": 0,
+    "safety_margin": -76.15290909090909,
+    "intrinsic_value": 52463.6,
+    "confidence": "LOW",
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "score_percentage": 14.39086724324489,
+    "max_possible_score": 148
+  },
+  "raw_metrics": {
+    "per": 59.012875536480685,
+    "pbr": 11.7414740887015,
+    "roe": 19.89646154667236,
+    "market_cap": 24011300000000.0,
+    "current_price": 220000.0
+  }
+}

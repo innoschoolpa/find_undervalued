@@ -1,0 +1,69 @@
+{
+  "symbol": "035420",
+  "name": "NAVER",
+  "timestamp": "2025-10-12T19:13:07.494385",
+  "score": 17.78694471954294,
+  "score_percentage": 12.438422880799259,
+  "grade": "C (위험)",
+  "recommendation": "SELL",
+  "details": {
+    "per_score": 3.8863846218416853,
+    "pbr_score": 7.441854518983763,
+    "roe_score": 6.458705578717492,
+    "relative_per": 23.17226493623059,
+    "relative_pbr": -14.931380946082296,
+    "sector_percentile": 25.9094523871894,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "035420",
+      "sector_name": "IT",
+      "original_score": 17.78694471954294,
+      "adjusted_score": 17.78694471954294,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_positive_no_adjustment",
+      "sector_sample_adequate": true,
+      "sector_sample_penalty": 1.0,
+      "sample_adequacy_reason": "sufficient_sample_size",
+      "sector_score": 60.0,
+      "total_adjustment_factor": 1.0
+    },
+    "raw_component_scores": {
+      "per": 3.8863846218416853,
+      "pbr": 7.441854518983763,
+      "roe": 6.458705578717492,
+      "total": 17.78694471954294
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 0,
+    "criteria_met": [],
+    "mos_score": 0,
+    "mos_points": 0,
+    "safety_margin": -17.713487325293258,
+    "intrinsic_value": 220116.42140484054,
+    "confidence": "HIGH",
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "score_percentage": 12.438422880799259,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 22.45446151263326,
+    "pbr": 1.609303276962598,
+    "roe": 7.1669644629739935,
+    "market_cap": 41958100000000.0,
+    "current_price": 267500.0
+  }
+}

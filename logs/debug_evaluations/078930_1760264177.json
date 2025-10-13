@@ -1,0 +1,72 @@
+{
+  "symbol": "078930",
+  "name": "GS",
+  "timestamp": "2025-10-12T19:16:17.412450",
+  "score": 44.50476580231829,
+  "score_percentage": 31.122213847775026,
+  "grade": "C (위험)",
+  "recommendation": "SELL",
+  "details": {
+    "per_score": 15.476619906479625,
+    "pbr_score": 20.0,
+    "roe_score": 3.028145895838659,
+    "relative_per": -58.394931144017434,
+    "relative_pbr": -83.20910702683216,
+    "sector_percentile": 0.0,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "078930",
+      "sector_name": "금융",
+      "original_score": 38.50476580231829,
+      "adjusted_score": 38.50476580231829,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_positive_no_adjustment",
+      "sector_sample_adequate": true,
+      "sector_sample_penalty": 1.0,
+      "sample_adequacy_reason": "sufficient_sample_size",
+      "sector_score": 60.0,
+      "total_adjustment_factor": 1.0
+    },
+    "raw_component_scores": {
+      "per": 15.476619906479625,
+      "pbr": 20.0,
+      "roe": 3.028145895838659,
+      "total": 38.50476580231829
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 6,
+    "criteria_met": [
+      "PER",
+      "PBR"
+    ],
+    "mos_score": 0,
+    "mos_points": 0,
+    "safety_margin": 316.8926578941411,
+    "intrinsic_value": 187810.14238131058,
+    "confidence": "HIGH",
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "score_percentage": 31.122213847775026,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 7.523380093520374,
+    "pbr": 0.3030527264654836,
+    "roe": 4.02814589583866,
+    "market_cap": 4185800000000.0,
+    "current_price": 45050.0
+  }
+}

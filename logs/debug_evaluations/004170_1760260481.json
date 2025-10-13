@@ -1,0 +1,72 @@
+{
+  "symbol": "004170",
+  "name": "신세계",
+  "timestamp": "2025-10-12T18:14:41.998708",
+  "score": 32.489160881744,
+  "score_percentage": 21.952135730908108,
+  "grade": "C (위험)",
+  "recommendation": "SELL",
+  "details": {
+    "per_score": 6.489160881743999,
+    "pbr_score": 20.0,
+    "roe_score": 0.0,
+    "relative_per": -9.927739211626674,
+    "relative_pbr": -83.66568826439978,
+    "sector_percentile": 0.0,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "004170",
+      "sector_name": "소비재",
+      "original_score": 26.489160881744,
+      "adjusted_score": 8.47653148215808,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_penalty_40_below_adjusted_21.2",
+      "sector_sample_adequate": false,
+      "sector_sample_penalty": 0.4,
+      "sample_adequacy_reason": "critical_sample_size_0_penalty_0.4",
+      "sector_score": 30.0,
+      "total_adjustment_factor": 0.32000000000000006
+    },
+    "raw_component_scores": {
+      "per": 6.489160881743999,
+      "pbr": 20.0,
+      "roe": 0.0,
+      "total": 26.489160881744
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 6,
+    "criteria_met": [
+      "PER",
+      "PBR"
+    ],
+    "mos_score": 0,
+    "mos_points": 0,
+    "safety_margin": 282.63014084507046,
+    "intrinsic_value": 679168.5,
+    "confidence": "LOW",
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "score_percentage": 21.952135730908108,
+    "max_possible_score": 148
+  },
+  "raw_metrics": {
+    "per": 16.2130069419072,
+    "pbr": 0.39202348165440537,
+    "roe": 2.4179566631844676,
+    "market_cap": 1712000000000.0,
+    "current_price": 177500.0
+  }
+}

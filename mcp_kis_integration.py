@@ -340,6 +340,29 @@ class MCPKISIntegration:
         except Exception:
             return None
     
+    def _winsorize(self, value: Optional[float], lo: float, hi: float) -> Optional[float]:
+        """
+        ✅ v2.3: 윈저라이즈 (이상치 클램핑)
+        
+        과도한 이상치를 상한/하한으로 클램핑하여 하드 탈락 대신 소프트 감점
+        
+        Args:
+            value: 원본 값
+            lo: 하한
+            hi: 상한
+            
+        Returns:
+            클램핑된 값 (None이면 None 반환)
+            
+        Example:
+            _winsorize(500, 0, 100) → 100  # 500 → 100 클램핑
+            _winsorize(15, 0, 100) → 15    # 정상 범위
+            _winsorize(None, 0, 100) → None
+        """
+        if value is None:
+            return None
+        return max(lo, min(value, hi))
+    
     def _to_float(self, value: Any, default: float = 0.0, support_kor_units: bool = False) -> float:
         """
         안전한 float 변환 (콤마/공백/빈문자/단위 방어)
@@ -598,6 +621,33 @@ class MCPKISIntegration:
         
         # ✅ 인스턴스 필드 사용 (전역 오염 방지 + 단어 경계 매칭)
         return any(keyword in upper_name for keyword in self._etf_keywords)
+    
+    def _is_preferred_stock(self, symbol: str, name: str) -> bool:
+        """
+        ✅ v2.3: 우선주 여부 판단
+        
+        Args:
+            symbol: 종목코드 (6자리)
+            name: 종목명
+            
+        Returns:
+            우선주이면 True
+            
+        Note:
+            KOSPI 우선주 규칙: 종목코드 끝자리가 5, 7이거나 종목명에 '우' 포함
+        """
+        if not symbol or not name:
+            return False
+        
+        # 1. 종목코드 끝자리 체크 (5, 7 = 우선주)
+        if len(symbol) == 6 and symbol[-1] in ('5', '7'):
+            return True
+        
+        # 2. 종목명에 '우' 포함 (예: '삼성전자우', 'SK텔레콤우')
+        if '우' in name and not ('우리' in name or '우성' in name):
+            return True
+        
+        return False
     
     def _compute_per_pbr(self, price: float, eps: float, bps: float) -> Tuple[Optional[float], Optional[float]]:
         """
@@ -3669,7 +3719,8 @@ class MCPKISIntegration:
             value_stocks = []
             checked_count = 0
             
-            logger.info(f"2단계 시작: {len(candidates)}개 종목 재무 분석...")
+            logger.info(f"2단계 시작: {len(candidates)}개 종목 재무 분석... [✅ v2.3 소프트 필터 적용]")
+            logger.info(f"🔍 [DEBUG] 탈락 추적 활성화 - 모든 탈락 사유를 INFO 레벨로 출력합니다")
             
             # ✅ 중복 API 호출 방지: 전체 데이터가 이미 있는지 확인
             preloaded_count = sum(1 for c in candidates if c.get('_preloaded_data'))
@@ -3716,15 +3767,19 @@ class MCPKISIntegration:
                     if not symbol or len(symbol) != 6:
                         continue
                     
-                    # ✅ ETF/ETN/ETP 제외 (강화된 필터)
+                    # ✅ v2.3: ETF/ETN/ETP 및 우선주 제외 (강화된 필터)
                     name = stock.get('hts_kor_isnm') or ""
                     if self._is_etp(name):
+                        logger.debug(f"⏭️ {symbol} ETF/ETN 제외: {name}")
+                        continue
+                    if self._is_preferred_stock(symbol, name):
+                        logger.debug(f"⏭️ {symbol} 우선주 제외: {name}")
                         continue
                     
                     # ✅ 배치 조회한 시세 데이터 사용 (개별 호출 제거!)
                     current_price_data = price_map.get(symbol)
                     if not current_price_data:
-                        logger.debug(f"⏭️ {symbol} 시세 데이터 없음 (배치 조회 실패)")
+                        logger.info(f"⏭️ {symbol} {name} 시세 데이터 없음 (배치 조회 실패)")
                         continue
                     
                     # ✅ 재무비율 조회 (외부 데이터 재사용 우선!)
@@ -3774,12 +3829,16 @@ class MCPKISIntegration:
                     checked_count += 1
                     
                     if not financial:
-                        logger.warning(f"⚠️ {symbol} financial 데이터 없음")
+                        logger.info(f"⏭️ {symbol} {name} financial 데이터 없음")
                         continue
                     
-                    # ✅ 거래량 & 거래대금 확인 (유동성)
-                    volume = self._to_int(current_price_data.get('acml_vol'))
-                    if volume < criteria.get('min_volume', 0):
+                    # ✅ v2.3: 거래량 단위 변환 (KIS API는 천주 단위)
+                    volume_raw = self._to_int(current_price_data.get('acml_vol'))
+                    volume = volume_raw * 1000  # 천주 → 주 변환
+                    
+                    min_vol_threshold = criteria.get('min_volume', 0)
+                    if volume < min_vol_threshold:
+                        logger.info(f"⏭️ {symbol} {stock_name} 거래량 부족: {volume:,}주 ({volume_raw:,}천주) < {min_vol_threshold:,}주")
                         continue
                     
                     # ✅ NEW: 거래대금 확인 (환경변수 지원 단위 변환)
@@ -3840,28 +3899,29 @@ class MCPKISIntegration:
                     
                     # ✅ PER, PBR 우선순위: 외부 데이터 → 계산 (safe_positive 사용)
                     # (0 또는 음수는 자동으로 None 처리)
-                    per = self._safe_positive(financial.get('per'))
-                    pbr = self._safe_positive(financial.get('pbr'))
+                    per_raw = self._safe_positive(financial.get('per'))
+                    pbr_raw = self._safe_positive(financial.get('pbr'))
                     
                     # ✅ PER/PBR이 없으면 EPS/BPS로 계산 시도
-                    if per is None or pbr is None:
+                    if per_raw is None or pbr_raw is None:
                         eps = self._safe_positive(financial.get('eps'))
                         bps = self._safe_positive(financial.get('bps'))
                         
                         if eps and bps and price > 0:
                             per_calc, pbr_calc = self._compute_per_pbr(price, eps, bps)
-                            if per is None and per_calc:
-                                per = per_calc
-                            if pbr is None and pbr_calc:
-                                pbr = pbr_calc
+                            if per_raw is None and per_calc:
+                                per_raw = per_calc
+                            if pbr_raw is None and pbr_calc:
+                                pbr_raw = pbr_calc
                     
-                    # ✅ 결측 또는 이상치면 제외 (가치주 부적격)
-                    if per is None:
-                        logger.debug(f"⏭️ {symbol} PER 결측/이상치 제외")
+                    # ✅ v2.3: 윈저라이즈 (이상치 클램핑) - 하드 탈락 대신 소프트 감점
+                    # 결측은 제외하되, 이상치는 클램핑하여 후보 유지
+                    if per_raw is None or pbr_raw is None:
+                        logger.info(f"⏭️ {symbol} {name} PER/PBR 결측으로 제외 (PER={per_raw}, PBR={pbr_raw})")
                         continue
-                    if pbr is None:
-                        logger.debug(f"⏭️ {symbol} PBR 결측/이상치 제외")
-                        continue
+                    
+                    per = self._winsorize(per_raw, 0.01, 100.0)  # PER 100 초과 → 100
+                    pbr = self._winsorize(pbr_raw, 0.01, 8.0)    # PBR 8 초과 → 8
                     
                     # ✅ ROE 필드명 양쪽 지원 (음수 허용 - 정책에 따라)
                     roe = self._to_float(financial.get('roe') or financial.get('roe_val'), 0.0)
@@ -3896,24 +3956,38 @@ class MCPKISIntegration:
                             )
                             continue
                     
-                    # ✅ 업종별 가치주 기준 충족 확인 (ChatGPT 권장)
-                    is_value_stock = (
+                    # ✅ v2.3: 하드 필터 → 소프트 점수 변경
+                    # 기준 미달이어도 후보 유지, 점수만 감점
+                    sector_fit_score = 0
+                    
+                    # 업종별 기준 충족도를 점수로 변환 (0~30점)
+                    per_fit = min(1.0, sector_criteria['per_max'] / max(per, 0.1))  # 낮을수록 좋음
+                    pbr_fit = min(1.0, sector_criteria['pbr_max'] / max(pbr, 0.1))
+                    roe_fit = min(1.0, roe / max(sector_criteria['roe_min'], 0.1)) if roe > 0 else 0
+                    
+                    # 3개 기준 평균 (0~1) → 0~30점
+                    sector_fit_score = (per_fit + pbr_fit + roe_fit) / 3.0 * 30
+                    
+                    # ✅ 3개 기준 모두 충족하면 보너스 +10점
+                    meets_all_criteria = (
                         per > 0 and per <= sector_criteria['per_max'] and
                         pbr > 0 and pbr <= sector_criteria['pbr_max'] and
                         roe >= sector_criteria['roe_min']
                     )
+                    if meets_all_criteria:
+                        sector_fit_score += 10
                     
-                    # ✅ 디버깅: 첫 5개 종목의 가치주 판별 결과 (업종별 기준 표시)
-                    if checked_count <= 5:
-                        logger.info(
-                            f"🔍 [DEBUG] {symbol} {stock_name} [{sector}]: "
-                            f"PER={per:.2f}(기준≤{sector_criteria['per_max']}), "
-                            f"PBR={pbr:.2f}(기준≤{sector_criteria['pbr_max']}), "
-                            f"ROE={roe:.2f}(기준≥{sector_criteria['roe_min']}) "
-                            f"→ {'✅가치주' if is_value_stock else '❌제외'}"
-                        )
+                    # ✅ v2.3: 모든 종목의 평가 결과를 INFO로 출력 (탈락 추적)
+                    logger.info(
+                        f"🔍 [{checked_count:3d}] {symbol} {stock_name[:15]:15s} [{sector:10s}]: "
+                        f"PER={per:5.1f}(≤{sector_criteria['per_max']:4.1f}), "
+                        f"PBR={pbr:4.2f}(≤{sector_criteria['pbr_max']:4.2f}), "
+                        f"ROE={roe:5.1f}%(≥{sector_criteria['roe_min']:4.1f}) "
+                        f"→ 적합도={sector_fit_score:4.1f}점 {'✅완전충족' if meets_all_criteria else ''}"
+                    )
                     
-                    if is_value_stock:
+                    # ✅ v2.3: 모든 종목을 후보로 유지 (점수로만 차별화)
+                    if True:  # 항상 True - 하드 필터 제거
                         # ✅ NEW: 모멘텀 필터 (극단 하락 제외)
                         if momentum_filter:
                             # 52주 최고가 대비 현재가 위치 (하락폭 체크)
@@ -3949,18 +4023,16 @@ class MCPKISIntegration:
                         # 6. 안정성 점수 (10%) - 신용잔고/변동성
                         stability_score = self._calculate_stability_score(symbol, financial)
                         
-                        # 7. 섹터 보너스 (5%)
-                        sector_bonus = self._get_sector_bonus(sector, per, pbr)
-                        
-                        # ✅ 종합 점수 계산 (파라미터화된 가중치)
+                        # ✅ v2.3: 종합 점수 계산 (업종 적합도 반영)
+                        # sector_fit_score는 이미 0~40점 범위 (기본 30 + 보너스 10)
                         final_score = (
-                            value_score * score_weights.get('value', 0.50) +
+                            value_score * score_weights.get('value', 0.40) +        # 50% → 40%
+                            sector_fit_score * 0.20 +                                # ✅ NEW: 20% (업종 적합도)
                             investor_score * score_weights.get('investor', 0.10) +
                             trading_score * score_weights.get('trading', 0.10) +
                             technical_score * score_weights.get('technical', 0.10) +
                             dividend_score * score_weights.get('dividend', 0.05) +
-                            stability_score * score_weights.get('stability', 0.10) +
-                            sector_bonus * score_weights.get('sector', 0.05)
+                            stability_score * score_weights.get('stability', 0.05)   # 10% → 5%
                         )
                         final_score = min(100, final_score)
                         
@@ -3981,12 +4053,13 @@ class MCPKISIntegration:
                             # ✅ 세부 점수 저장 (분석용)
                             'score_breakdown': {
                                 'value': round(value_score, 1),
+                                'sector_fit': round(sector_fit_score, 1),  # ✅ v2.3: 업종 적합도
                                 'investor': round(investor_score, 1),
                                 'trading': round(trading_score, 1),
                                 'technical': round(technical_score, 1),
                                 'dividend': round(dividend_score, 1),
                                 'stability': round(stability_score, 1),
-                                'sector_bonus': round(sector_bonus, 1)
+                                'meets_all_criteria': meets_all_criteria  # ✅ v2.3: 완전충족 플래그
                             }
                         })
                         

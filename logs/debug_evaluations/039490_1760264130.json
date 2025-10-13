@@ -1,0 +1,73 @@
+{
+  "symbol": "039490",
+  "name": "키움증권",
+  "timestamp": "2025-10-12T19:15:30.975604",
+  "score": 54.526749932166155,
+  "score_percentage": 38.13059435815815,
+  "grade": "C+ (주의)",
+  "recommendation": "SELL",
+  "details": {
+    "per_score": 14.31459868959869,
+    "pbr_score": 9.800040820542076,
+    "roe_score": 14.412110422025386,
+    "relative_per": -57.25839475839476,
+    "relative_pbr": -38.400326564336616,
+    "sector_percentile": 62.060552110126935,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "039490",
+      "sector_name": "증권",
+      "original_score": 38.526749932166155,
+      "adjusted_score": 12.328559978293171,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_penalty_40_below_adjusted_30.8",
+      "sector_sample_adequate": false,
+      "sector_sample_penalty": 0.4,
+      "sample_adequacy_reason": "critical_sample_size_0_penalty_0.4",
+      "sector_score": 30.0,
+      "total_adjustment_factor": 0.32000000000000006
+    },
+    "raw_component_scores": {
+      "per": 14.31459868959869,
+      "pbr": 9.800040820542076,
+      "roe": 14.412110422025386,
+      "total": 38.526749932166155
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 10,
+    "criteria_met": [
+      "PER",
+      "PBR",
+      "ROE"
+    ],
+    "mos_score": 6,
+    "mos_points": 6,
+    "safety_margin": 94.97005988023952,
+    "intrinsic_value": 488400.0,
+    "confidence": "LOW",
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "score_percentage": 38.13059435815815,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 8.548321048321048,
+    "pbr": 1.2319934687132676,
+    "roe": 14.412110422025387,
+    "market_cap": 6604300000000.0,
+    "current_price": 250500.0
+  }
+}

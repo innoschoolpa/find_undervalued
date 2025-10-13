@@ -1,0 +1,72 @@
+{
+  "symbol": "071050",
+  "name": "한국금융지주",
+  "timestamp": "2025-10-12T18:11:20.071310",
+  "score": 52.399190974331525,
+  "score_percentage": 35.40485876644021,
+  "grade": "C+ (주의)",
+  "recommendation": "SELL",
+  "details": {
+    "per_score": 14.227329266125688,
+    "pbr_score": 13.453993727860233,
+    "roe_score": 10.717867980345602,
+    "relative_per": -9.282772767374215,
+    "relative_pbr": 8.66829432602132,
+    "sector_percentile": 48.23667487716001,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "071050",
+      "sector_name": "금융업",
+      "original_score": 38.399190974331525,
+      "adjusted_score": 12.28774111178609,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_penalty_40_below_adjusted_30.7",
+      "sector_sample_adequate": false,
+      "sector_sample_penalty": 0.4,
+      "sample_adequacy_reason": "critical_sample_size_0_penalty_0.4",
+      "sector_score": 30.0,
+      "total_adjustment_factor": 0.32000000000000006
+    },
+    "raw_component_scores": {
+      "per": 14.227329266125688,
+      "pbr": 13.453993727860233,
+      "roe": 10.717867980345602,
+      "total": 38.399190974331525
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 6,
+    "criteria_met": [
+      "PER",
+      "PBR"
+    ],
+    "mos_score": 8,
+    "mos_points": 8,
+    "safety_margin": -10.337082161824439,
+    "intrinsic_value": 130459.54545454544,
+    "confidence": "LOW",
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "score_percentage": 35.40485876644021,
+    "max_possible_score": 148
+  },
+  "raw_metrics": {
+    "per": 8.61813658709945,
+    "pbr": 0.9236805017711812,
+    "roe": 10.717867980345602,
+    "market_cap": 8108100000000.0,
+    "current_price": 145500.0
+  }
+}

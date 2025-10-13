@@ -1,0 +1,72 @@
+{
+  "symbol": "180640",
+  "name": "한진칼",
+  "timestamp": "2025-10-12T19:15:35.659437",
+  "score": 43.133114447630255,
+  "score_percentage": 30.163017096244932,
+  "grade": "C (위험)",
+  "recommendation": "SELL",
+  "details": {
+    "per_score": 9.009252990295645,
+    "pbr_score": 4.9144295302013425,
+    "roe_score": 15.20943192713327,
+    "relative_per": -27.064040827404323,
+    "relative_pbr": 13.182246028295674,
+    "sector_percentile": 73.6763731120197,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "180640",
+      "sector_name": "금융",
+      "original_score": 29.133114447630255,
+      "adjusted_score": 29.133114447630255,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_positive_no_adjustment",
+      "sector_sample_adequate": true,
+      "sector_sample_penalty": 1.0,
+      "sample_adequacy_reason": "sufficient_sample_size",
+      "sector_score": 60.0,
+      "total_adjustment_factor": 1.0
+    },
+    "raw_component_scores": {
+      "per": 9.009252990295645,
+      "pbr": 4.9144295302013425,
+      "roe": 15.20943192713327,
+      "total": 29.133114447630255
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 7,
+    "criteria_met": [
+      "PER",
+      "ROE"
+    ],
+    "mos_score": 7,
+    "mos_points": 7,
+    "safety_margin": 18.402423978411935,
+    "intrinsic_value": 115323.96095497323,
+    "confidence": "HIGH",
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "score_percentage": 30.163017096244932,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 13.188896411645226,
+    "pbr": 2.0427852348993287,
+    "roe": 15.488674496644295,
+    "market_cap": 6502600000000.0,
+    "current_price": 97400.0
+  }
+}

@@ -1,0 +1,69 @@
+{
+  "symbol": "489790",
+  "name": "한화비전",
+  "timestamp": "2025-10-13T09:45:31.130671",
+  "score": 2.801547026656519,
+  "score_percentage": 1.9591237948646985,
+  "grade": "C (위험)",
+  "recommendation": "SELL",
+  "details": {
+    "per_score": 0.1,
+    "pbr_score": 2.701547026656519,
+    "roe_score": 0.0,
+    "relative_per": 1406.6534697019686,
+    "relative_pbr": 167.7088422081094,
+    "sector_percentile": 0.0,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "489790",
+      "sector_name": "전기전자",
+      "original_score": 2.801547026656519,
+      "adjusted_score": 2.241237621325215,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_positive_no_adjustment",
+      "sector_sample_adequate": false,
+      "sector_sample_penalty": 0.8,
+      "sample_adequacy_reason": "insufficient_sample_size_17_penalty_0.8",
+      "sector_score": 60.0,
+      "total_adjustment_factor": 0.8
+    },
+    "raw_component_scores": {
+      "per": 0.1,
+      "pbr": 2.701547026656519,
+      "roe": 0.0,
+      "total": 2.801547026656519
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 0,
+    "criteria_met": [],
+    "mos_score": 0,
+    "mos_points": 0,
+    "safety_margin": -73.85218978102189,
+    "intrinsic_value": 14329.0,
+    "confidence": "MEDIUM",
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "score_percentage": 1.9591237948646985,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 260.95238095238096,
+    "pbr": 3.3463605276013677,
+    "roe": 1.2823644357596482,
+    "market_cap": 2771800000000.0,
+    "current_price": 54800.0
+  }
+}

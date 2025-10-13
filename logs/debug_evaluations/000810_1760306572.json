@@ -1,0 +1,73 @@
+{
+  "symbol": "000810",
+  "name": "삼성화재",
+  "timestamp": "2025-10-13T07:02:52.035068",
+  "score": 47.54441556977064,
+  "score_percentage": 33.24784305578367,
+  "grade": "C (위험)",
+  "recommendation": "SELL",
+  "details": {
+    "per_score": 13.42995961376822,
+    "pbr_score": 9.794211937673742,
+    "roe_score": 13.32024401832868,
+    "relative_per": -53.71983845507289,
+    "relative_pbr": -38.353695501389936,
+    "sector_percentile": 56.601220091643405,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "000810",
+      "sector_name": "보험",
+      "original_score": 36.54441556977064,
+      "adjusted_score": 11.694212982326606,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_penalty_40_below_adjusted_29.2",
+      "sector_sample_adequate": false,
+      "sector_sample_penalty": 0.4,
+      "sample_adequacy_reason": "critical_sample_size_0_penalty_0.4",
+      "sector_score": 30.0,
+      "total_adjustment_factor": 0.32000000000000006
+    },
+    "raw_component_scores": {
+      "per": 13.42995961376822,
+      "pbr": 9.794211937673742,
+      "roe": 13.32024401832868,
+      "total": 36.54441556977064
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 10,
+    "criteria_met": [
+      "PER",
+      "PBR",
+      "ROE"
+    ],
+    "mos_score": 1,
+    "mos_points": 1,
+    "safety_margin": 80.062753783684,
+    "intrinsic_value": 812983.3333333333,
+    "confidence": "LOW",
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "score_percentage": 33.24784305578367,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 9.256032308985423,
+    "pbr": 1.2329260899722012,
+    "roe": 13.320244018328681,
+    "market_cap": 20774000000000.0,
+    "current_price": 451500.0
+  }
+}

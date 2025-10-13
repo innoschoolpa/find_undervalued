@@ -1,0 +1,71 @@
+{
+  "symbol": "267270",
+  "name": "HD현대건설기계",
+  "timestamp": "2025-10-12T18:14:46.635686",
+  "score": 24.59605210669664,
+  "score_percentage": 16.618954126146377,
+  "grade": "C (위험)",
+  "recommendation": "SELL",
+  "details": {
+    "per_score": 4.92353610005685,
+    "pbr_score": 11.984499967663353,
+    "roe_score": 4.688016038976437,
+    "relative_per": 22.039037331817333,
+    "relative_pbr": -42.153333189614905,
+    "sector_percentile": 20.62708030780567,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "267270",
+      "sector_name": "제조업",
+      "original_score": 21.59605210669664,
+      "adjusted_score": 6.910736674142925,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_penalty_40_below_adjusted_17.3",
+      "sector_sample_adequate": false,
+      "sector_sample_penalty": 0.4,
+      "sample_adequacy_reason": "critical_sample_size_0_penalty_0.4",
+      "sector_score": 30.0,
+      "total_adjustment_factor": 0.32000000000000006
+    },
+    "raw_component_scores": {
+      "per": 4.92353610005685,
+      "pbr": 11.984499967663353,
+      "roe": 4.688016038976437,
+      "total": 21.59605210669664
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 3,
+    "criteria_met": [
+      "PBR"
+    ],
+    "mos_score": 0,
+    "mos_points": 0,
+    "safety_margin": 21.00956521739131,
+    "intrinsic_value": 116895.24,
+    "confidence": "LOW",
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "score_percentage": 16.618954126146377,
+    "max_possible_score": 148
+  },
+  "raw_metrics": {
+    "per": 18.3058555997726,
+    "pbr": 1.0412400025869317,
+    "roe": 5.688016038976437,
+    "market_cap": 1676700000000.0,
+    "current_price": 96600.0
+  }
+}

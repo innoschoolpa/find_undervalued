@@ -1,0 +1,69 @@
+{
+  "symbol": "008930",
+  "name": "한미사이언스",
+  "timestamp": "2025-10-12T18:13:27.820896",
+  "score": 9.263360793409582,
+  "score_percentage": 6.259027563114583,
+  "grade": "C (위험)",
+  "recommendation": "SELL",
+  "details": {
+    "per_score": 0.1,
+    "pbr_score": 3.0254338958649925,
+    "roe_score": 6.13792689754459,
+    "relative_per": 355.0438596491228,
+    "relative_pbr": 251.4450649491181,
+    "sector_percentile": 24.62645375915249,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "008930",
+      "sector_name": "금융업",
+      "original_score": 9.263360793409582,
+      "adjusted_score": 2.9642754538910667,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_penalty_40_below_adjusted_7.4",
+      "sector_sample_adequate": false,
+      "sector_sample_penalty": 0.4,
+      "sample_adequacy_reason": "critical_sample_size_0_penalty_0.4",
+      "sector_score": 30.0,
+      "total_adjustment_factor": 0.32000000000000006
+    },
+    "raw_component_scores": {
+      "per": 0.1,
+      "pbr": 3.0254338958649925,
+      "roe": 6.13792689754459,
+      "total": 9.263360793409582
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 0,
+    "criteria_met": [],
+    "mos_score": 0,
+    "mos_points": 0,
+    "safety_margin": -80.08223560910308,
+    "intrinsic_value": 7439.285,
+    "confidence": "LOW",
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "score_percentage": 6.259027563114583,
+    "max_possible_score": 148
+  },
+  "raw_metrics": {
+    "per": 43.229166666666664,
+    "pbr": 2.9872830520675038,
+    "roe": 6.910341518035672,
+    "market_cap": 2554400000000.0,
+    "current_price": 37350.0
+  }
+}

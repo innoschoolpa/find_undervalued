@@ -1,0 +1,69 @@
+{
+  "symbol": "035420",
+  "name": "NAVER",
+  "timestamp": "2025-10-13T09:09:40.812832",
+  "score": 25.468529335075424,
+  "score_percentage": 17.81016037417862,
+  "grade": "C (위험)",
+  "recommendation": "SELL",
+  "details": {
+    "per_score": 7.1754399516663,
+    "pbr_score": 8.522687843552653,
+    "roe_score": 9.770401539856469,
+    "relative_per": 43.98694679864019,
+    "relative_pbr": 22.428541234435983,
+    "sector_percentile": 50.691838788804006,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "035420",
+      "sector_name": "IT",
+      "original_score": 25.468529335075424,
+      "adjusted_score": 20.37482346806034,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_positive_no_adjustment",
+      "sector_sample_adequate": false,
+      "sector_sample_penalty": 0.8,
+      "sample_adequacy_reason": "insufficient_sample_size_28_penalty_0.8",
+      "sector_score": 60.0,
+      "total_adjustment_factor": 0.8
+    },
+    "raw_component_scores": {
+      "per": 7.1754399516663,
+      "pbr": 8.522687843552653,
+      "roe": 9.770401539856469,
+      "total": 25.468529335075424
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 0,
+    "criteria_met": [],
+    "mos_score": 0,
+    "mos_points": 0,
+    "safety_margin": -16.450383095024243,
+    "intrinsic_value": 218482.2482065116,
+    "confidence": "MEDIUM",
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "score_percentage": 17.81016037417862,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 21.950810039452698,
+    "pbr": 1.5732067548625024,
+    "roe": 7.1669644629739935,
+    "market_cap": 41017000000000.0,
+    "current_price": 261500.0
+  }
+}

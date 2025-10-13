@@ -1,0 +1,69 @@
+{
+  "symbol": "010620",
+  "name": "HD현대미포",
+  "timestamp": "2025-10-12T18:11:20.571822",
+  "score": 4.336180718909776,
+  "score_percentage": 2.9298518371011997,
+  "grade": "C (위험)",
+  "recommendation": "SELL",
+  "details": {
+    "per_score": 0.1,
+    "pbr_score": 0.1,
+    "roe_score": 4.136180718909776,
+    "relative_per": 281.33989401968205,
+    "relative_pbr": 95.86306110149887,
+    "sector_percentile": 18.78778073581607,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "010620",
+      "sector_name": "운송장비",
+      "original_score": 4.336180718909776,
+      "adjusted_score": 1.3875778300511286,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_penalty_40_below_adjusted_3.5",
+      "sector_sample_adequate": false,
+      "sector_sample_penalty": 0.4,
+      "sample_adequacy_reason": "critical_sample_size_0_penalty_0.4",
+      "sector_score": 30.0,
+      "total_adjustment_factor": 0.32000000000000006
+    },
+    "raw_component_scores": {
+      "per": 0.1,
+      "pbr": 0.1,
+      "roe": 4.136180718909776,
+      "total": 4.336180718909776
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 0,
+    "criteria_met": [],
+    "mos_score": 0,
+    "mos_points": 0,
+    "safety_margin": -64.26074441687345,
+    "intrinsic_value": 72014.59999999999,
+    "confidence": "LOW",
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "score_percentage": 2.9298518371011997,
+    "max_possible_score": 148
+  },
+  "raw_metrics": {
+    "per": 76.26797880393642,
+    "pbr": 3.9172612220299774,
+    "roe": 5.136180718909777,
+    "market_cap": 8048300000000.0,
+    "current_price": 201500.0
+  }
+}

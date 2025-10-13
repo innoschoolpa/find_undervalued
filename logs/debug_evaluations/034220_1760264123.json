@@ -1,0 +1,73 @@
+{
+  "symbol": "034220",
+  "name": "LG디스플레이",
+  "timestamp": "2025-10-12T19:15:23.745242",
+  "score": 13.07833397019488,
+  "score_percentage": 9.14568809104537,
+  "grade": "C (위험)",
+  "recommendation": "SELL",
+  "details": {
+    "per_score": 0,
+    "pbr_score": 10.07833397019488,
+    "roe_score": 0.0,
+    "relative_per": null,
+    "relative_pbr": -35.257909591992856,
+    "sector_percentile": 0.0,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "034220",
+      "sector_name": "전기전자",
+      "original_score": 10.07833397019488,
+      "adjusted_score": 10.07833397019488,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_positive_no_adjustment",
+      "sector_sample_adequate": true,
+      "sector_sample_penalty": 1.0,
+      "sample_adequacy_reason": "sufficient_sample_size",
+      "sector_score": 60.0,
+      "total_adjustment_factor": 1.0
+    },
+    "raw_component_scores": {
+      "per": 0.0,
+      "pbr": 10.07833397019488,
+      "roe": 0.0,
+      "total": 10.07833397019488
+    },
+    "alternative_valuation_used": true,
+    "alternative_reason": "negative_per",
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 3,
+    "criteria_met": [
+      "PBR"
+    ],
+    "mos_score": 0,
+    "mos_points": 0,
+    "safety_margin": 8.121315760515749,
+    "intrinsic_value": 16888.54952179256,
+    "confidence": "HIGH",
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "score_percentage": 9.14568809104537,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 0,
+    "pbr": 1.1937332823844096,
+    "roe": -41.1539931218953,
+    "market_cap": 7810000000000.0,
+    "current_price": 15620.0
+  }
+}

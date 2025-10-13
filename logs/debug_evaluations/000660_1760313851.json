@@ -1,0 +1,72 @@
+{
+  "symbol": "000660",
+  "name": "SK하이닉스",
+  "timestamp": "2025-10-13T09:04:11.314181",
+  "score": 54.92319665973014,
+  "score_percentage": 38.407829831979114,
+  "grade": "C+ (주의)",
+  "recommendation": "SELL",
+  "details": {
+    "per_score": 9.00164991932565,
+    "pbr_score": 1.0215467404044887,
+    "roe_score": 19.9,
+    "relative_per": -13.868588828057149,
+    "relative_pbr": 210.23171746344448,
+    "sector_percentile": 99.5,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "000660",
+      "sector_name": "전기전자",
+      "original_score": 29.923196659730138,
+      "adjusted_score": 23.93855732778411,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_positive_no_adjustment",
+      "sector_sample_adequate": false,
+      "sector_sample_penalty": 0.8,
+      "sample_adequacy_reason": "insufficient_sample_size_17_penalty_0.8",
+      "sector_score": 60.0,
+      "total_adjustment_factor": 0.8
+    },
+    "raw_component_scores": {
+      "per": 9.00164991932565,
+      "pbr": 1.0215467404044887,
+      "roe": 19.9,
+      "total": 29.923196659730138
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 7,
+    "criteria_met": [
+      "PER",
+      "ROE"
+    ],
+    "mos_score": 18,
+    "mos_points": 18,
+    "safety_margin": -54.87244143033292,
+    "intrinsic_value": 182992.25,
+    "confidence": "MEDIUM",
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "score_percentage": 38.407829831979114,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 14.917960414980502,
+    "pbr": 3.877896468293056,
+    "roe": 25.994816720380236,
+    "market_cap": 295933000000000.0,
+    "current_price": 405500.0
+  }
+}

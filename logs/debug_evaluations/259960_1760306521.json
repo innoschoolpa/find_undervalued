@@ -1,0 +1,72 @@
+{
+  "symbol": "259960",
+  "name": "크래프톤",
+  "timestamp": "2025-10-13T07:02:01.753569",
+  "score": 40.50650017531423,
+  "score_percentage": 28.32622389882114,
+  "grade": "C (위험)",
+  "recommendation": "SELL",
+  "details": {
+    "per_score": 11.797467911726647,
+    "pbr_score": 4.978346994080712,
+    "roe_score": 16.73068526950687,
+    "relative_per": -47.18987164690659,
+    "relative_pbr": 0.5413251479821746,
+    "sector_percentile": 81.79365919943453,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "259960",
+      "sector_name": "IT",
+      "original_score": 33.50650017531423,
+      "adjusted_score": 10.722080056100555,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_penalty_40_below_adjusted_26.8",
+      "sector_sample_adequate": false,
+      "sector_sample_penalty": 0.4,
+      "sample_adequacy_reason": "critical_sample_size_0_penalty_0.4",
+      "sector_score": 30.0,
+      "total_adjustment_factor": 0.32000000000000006
+    },
+    "raw_component_scores": {
+      "per": 11.797467911726647,
+      "pbr": 4.978346994080712,
+      "roe": 16.73068526950687,
+      "total": 33.50650017531423
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 7,
+    "criteria_met": [
+      "PER",
+      "ROE"
+    ],
+    "mos_score": 0,
+    "mos_points": 0,
+    "safety_margin": 39.246225165562905,
+    "intrinsic_value": 420523.6,
+    "confidence": "LOW",
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "score_percentage": 28.32622389882114,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 10.562025670618683,
+    "pbr": 2.0108265029596435,
+    "roe": 19.03826562884937,
+    "market_cap": 14312800000000.0,
+    "current_price": 302000.0
+  }
+}

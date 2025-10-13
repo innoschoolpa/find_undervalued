@@ -1,0 +1,73 @@
+{
+  "symbol": "028050",
+  "name": "삼성E&A",
+  "timestamp": "2025-10-13T07:04:36.338298",
+  "score": 66.94591748662178,
+  "score_percentage": 46.81532691372153,
+  "grade": "B (보통)",
+  "recommendation": "HOLD",
+  "details": {
+    "per_score": 10.945917486621786,
+    "pbr_score": 0.1,
+    "roe_score": 19.9,
+    "relative_per": -7.33269369474252,
+    "relative_pbr": 212.91267477076605,
+    "sector_percentile": 99.5,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "028050",
+      "sector_name": "기타",
+      "original_score": 30.945917486621784,
+      "adjusted_score": 30.945917486621784,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_positive_no_adjustment",
+      "sector_sample_adequate": true,
+      "sector_sample_penalty": 1.0,
+      "sample_adequacy_reason": "sufficient_sample_size",
+      "sector_score": 60.0,
+      "total_adjustment_factor": 1.0
+    },
+    "raw_component_scores": {
+      "per": 10.945917486621786,
+      "pbr": 0.1,
+      "roe": 19.9,
+      "total": 30.945917486621784
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 10,
+    "criteria_met": [
+      "PER",
+      "PBR",
+      "ROE"
+    ],
+    "mos_score": 26,
+    "mos_points": 26,
+    "safety_margin": -55.259083032490985,
+    "intrinsic_value": 12393.233999999999,
+    "confidence": "HIGH",
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "score_percentage": 46.81532691372153,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 7.172449508026929,
+    "pbr": 1.2829419665601407,
+    "roe": 17.887082580704924,
+    "market_cap": 5429200000000.0,
+    "current_price": 27700.0
+  }
+}

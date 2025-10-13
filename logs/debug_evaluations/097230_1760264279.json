@@ -1,0 +1,69 @@
+{
+  "symbol": "097230",
+  "name": "HJ중공업",
+  "timestamp": "2025-10-12T19:17:59.372752",
+  "score": 0.2,
+  "score_percentage": 0.13986013986013987,
+  "grade": "C (위험)",
+  "recommendation": "SELL",
+  "details": {
+    "per_score": 0.1,
+    "pbr_score": 0.1,
+    "roe_score": 0.0,
+    "relative_per": 1868.75,
+    "relative_pbr": 204.2743298720116,
+    "sector_percentile": 0.0,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "097230",
+      "sector_name": "건설",
+      "original_score": 0.2,
+      "adjusted_score": 0.06400000000000002,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_penalty_40_below_adjusted_0.2",
+      "sector_sample_adequate": false,
+      "sector_sample_penalty": 0.4,
+      "sample_adequacy_reason": "critical_sample_size_0_penalty_0.4",
+      "sector_score": 30.0,
+      "total_adjustment_factor": 0.32000000000000006
+    },
+    "raw_component_scores": {
+      "per": 0.1,
+      "pbr": 0.1,
+      "roe": 0.0,
+      "total": 0.2
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 0,
+    "criteria_met": [],
+    "mos_score": 0,
+    "mos_points": 0,
+    "safety_margin": -76.99444444444444,
+    "intrinsic_value": 5797.4,
+    "confidence": "LOW",
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "score_percentage": 0.13986013986013987,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 393.75,
+    "pbr": 6.085486597440232,
+    "roe": 1.5455204056991065,
+    "market_cap": 2098500000000.0,
+    "current_price": 25200.0
+  }
+}

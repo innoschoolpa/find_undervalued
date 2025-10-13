@@ -1,0 +1,72 @@
+{
+  "symbol": "138040",
+  "name": "메리츠금융지주",
+  "timestamp": "2025-10-12T18:26:13.799779",
+  "score": 78.0946439989739,
+  "score_percentage": 52.76665135065804,
+  "grade": "B (보통)",
+  "recommendation": "BUY",
+  "details": {
+    "per_score": 13.295368580314362,
+    "pbr_score": 5.2762952299022094,
+    "roe_score": 17.522980188757323,
+    "relative_per": -1.4346827815946428,
+    "relative_pbr": 130.09326626066428,
+    "sector_percentile": 99.5,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "138040",
+      "sector_name": "금융업",
+      "original_score": 36.09464399897389,
+      "adjusted_score": 11.550286079671647,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_penalty_40_below_adjusted_28.9",
+      "sector_sample_adequate": false,
+      "sector_sample_penalty": 0.4,
+      "sample_adequacy_reason": "critical_sample_size_0_penalty_0.4",
+      "sector_score": 30.0,
+      "total_adjustment_factor": 0.32000000000000006
+    },
+    "raw_component_scores": {
+      "per": 13.295368580314362,
+      "pbr": 5.2762952299022094,
+      "roe": 17.522980188757323,
+      "total": 36.09464399897389
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 7,
+    "criteria_met": [
+      "PER",
+      "ROE"
+    ],
+    "mos_score": 35,
+    "mos_points": 35,
+    "safety_margin": -39.155107719928196,
+    "intrinsic_value": 67781.20999999999,
+    "confidence": "LOW",
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "score_percentage": 52.76665135065804,
+    "max_possible_score": 148
+  },
+  "raw_metrics": {
+    "per": 9.363705135748509,
+    "pbr": 1.9557927632156464,
+    "roe": 20.886953773767093,
+    "market_cap": 19519700000000.0,
+    "current_price": 111400.0
+  }
+}

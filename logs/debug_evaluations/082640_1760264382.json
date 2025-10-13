@@ -1,0 +1,73 @@
+{
+  "symbol": "082640",
+  "name": "동양생명",
+  "timestamp": "2025-10-12T19:19:42.493807",
+  "score": 91.85693810926712,
+  "score_percentage": 64.23562105543155,
+  "grade": "B+ (양호)",
+  "recommendation": "STRONG_BUY",
+  "details": {
+    "per_score": 20.0,
+    "pbr_score": 16.63802850545426,
+    "roe_score": 15.218909603812861,
+    "relative_per": -79.4917864476386,
+    "relative_pbr": -68.19014252727128,
+    "sector_percentile": 67.5539453778167,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "082640",
+      "sector_name": "보험",
+      "original_score": 51.85693810926712,
+      "adjusted_score": 16.59422019496548,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_penalty_40_below_adjusted_41.5",
+      "sector_sample_adequate": false,
+      "sector_sample_penalty": 0.4,
+      "sample_adequacy_reason": "critical_sample_size_0_penalty_0.4",
+      "sector_score": 30.0,
+      "total_adjustment_factor": 0.32000000000000006
+    },
+    "raw_component_scores": {
+      "per": 20.0,
+      "pbr": 16.63802850545426,
+      "roe": 15.218909603812861,
+      "total": 51.85693810926712
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 10,
+    "criteria_met": [
+      "PER",
+      "PBR",
+      "ROE"
+    ],
+    "mos_score": 30,
+    "mos_points": 30,
+    "safety_margin": 306.34125990821855,
+    "intrinsic_value": 32466.666666666664,
+    "confidence": "LOW",
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "score_percentage": 64.23562105543155,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 4.101642710472279,
+    "pbr": 0.6361971494545744,
+    "roe": 15.510789075563341,
+    "market_cap": 1289300000000.0,
+    "current_price": 7990.0
+  }
+}

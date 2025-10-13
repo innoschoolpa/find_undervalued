@@ -1,0 +1,73 @@
+{
+  "symbol": "017670",
+  "name": "SK텔레콤",
+  "timestamp": "2025-10-12T20:42:57.106883",
+  "score": 47.404128664462945,
+  "score_percentage": 33.14974032479927,
+  "grade": "C (위험)",
+  "recommendation": "SELL",
+  "details": {
+    "per_score": 13.253012048192772,
+    "pbr_score": 12.567853109402893,
+    "roe_score": 10.583263506867283,
+    "relative_per": -53.01204819277109,
+    "relative_pbr": -50.27141243761157,
+    "sector_percentile": 42.91631753433641,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "017670",
+      "sector_name": "통신",
+      "original_score": 36.404128664462945,
+      "adjusted_score": 11.649321172628143,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_penalty_40_below_adjusted_29.1",
+      "sector_sample_adequate": false,
+      "sector_sample_penalty": 0.4,
+      "sample_adequacy_reason": "critical_sample_size_0_penalty_0.4",
+      "sector_score": 30.0,
+      "total_adjustment_factor": 0.32000000000000006
+    },
+    "raw_component_scores": {
+      "per": 13.253012048192772,
+      "pbr": 12.567853109402893,
+      "roe": 10.583263506867283,
+      "total": 36.404128664462945
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 10,
+    "criteria_met": [
+      "PER",
+      "PBR",
+      "ROE"
+    ],
+    "mos_score": 1,
+    "mos_points": 1,
+    "safety_margin": 77.35042735042734,
+    "intrinsic_value": 96833.33333333333,
+    "confidence": "LOW",
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "score_percentage": 33.14974032479927,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 9.397590361445783,
+    "pbr": 0.9945717512477686,
+    "roe": 10.583263506867281,
+    "market_cap": 11727500000000.0,
+    "current_price": 54600.0
+  }
+}

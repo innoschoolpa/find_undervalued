@@ -1,0 +1,73 @@
+{
+  "symbol": "086280",
+  "name": "현대글로비스",
+  "timestamp": "2025-10-12T18:10:43.342481",
+  "score": 42.17821050048712,
+  "score_percentage": 28.498790878707513,
+  "grade": "C (위험)",
+  "recommendation": "SELL",
+  "details": {
+    "per_score": 10.961604388069935,
+    "pbr_score": 8.748129942295362,
+    "roe_score": 12.468476170121821,
+    "relative_per": -43.84641755227974,
+    "relative_pbr": -29.9850395383629,
+    "sector_percentile": 52.3423808506091,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "086280",
+      "sector_name": "운송",
+      "original_score": 32.17821050048712,
+      "adjusted_score": 10.29702736015588,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_penalty_40_below_adjusted_25.7",
+      "sector_sample_adequate": false,
+      "sector_sample_penalty": 0.4,
+      "sample_adequacy_reason": "critical_sample_size_0_penalty_0.4",
+      "sector_score": 30.0,
+      "total_adjustment_factor": 0.32000000000000006
+    },
+    "raw_component_scores": {
+      "per": 10.961604388069935,
+      "pbr": 8.748129942295362,
+      "roe": 12.468476170121821,
+      "total": 32.17821050048712
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 10,
+    "criteria_met": [
+      "PER",
+      "PBR",
+      "ROE"
+    ],
+    "mos_score": 0,
+    "mos_points": 0,
+    "safety_margin": 48.40252340252343,
+    "intrinsic_value": 243083.33333333337,
+    "confidence": "LOW",
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "score_percentage": 28.498790878707513,
+    "max_possible_score": 148
+  },
+  "raw_metrics": {
+    "per": 11.230716489544053,
+    "pbr": 1.400299209232742,
+    "roe": 12.468476170121821,
+    "market_cap": 12285000000000.0,
+    "current_price": 163800.0
+  }
+}

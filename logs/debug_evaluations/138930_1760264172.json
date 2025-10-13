@@ -1,0 +1,72 @@
+{
+  "symbol": "138930",
+  "name": "BNK금융지주",
+  "timestamp": "2025-10-12T19:16:12.245418",
+  "score": 59.74960404335801,
+  "score_percentage": 41.78293989046015,
+  "grade": "C+ (주의)",
+  "recommendation": "SELL",
+  "details": {
+    "per_score": 16.781994704324802,
+    "pbr_score": 20.0,
+    "roe_score": 5.967609339033212,
+    "relative_per": -65.6137885820443,
+    "relative_pbr": -76.66233047763431,
+    "sector_percentile": 23.5040333468228,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "138930",
+      "sector_name": "금융",
+      "original_score": 42.74960404335801,
+      "adjusted_score": 42.74960404335801,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_positive_no_adjustment",
+      "sector_sample_adequate": true,
+      "sector_sample_penalty": 1.0,
+      "sample_adequacy_reason": "sufficient_sample_size",
+      "sector_score": 60.0,
+      "total_adjustment_factor": 1.0
+    },
+    "raw_component_scores": {
+      "per": 16.781994704324802,
+      "pbr": 20.0,
+      "roe": 5.967609339033212,
+      "total": 42.74960404335801
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 6,
+    "criteria_met": [
+      "PER",
+      "PBR"
+    ],
+    "mos_score": 11,
+    "mos_points": 11,
+    "safety_margin": 199.94425935681107,
+    "intrinsic_value": 42262.14614337468,
+    "confidence": "HIGH",
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "score_percentage": 41.78293989046015,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 6.218005295675199,
+    "pbr": 0.4212131176945383,
+    "roe": 6.7740874712265695,
+    "market_cap": 4430300000000.0,
+    "current_price": 14090.0
+  }
+}

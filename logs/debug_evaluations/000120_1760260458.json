@@ -1,0 +1,72 @@
+{
+  "symbol": "000120",
+  "name": "CJ대한통운",
+  "timestamp": "2025-10-12T18:14:18.258921",
+  "score": 46.27343227163509,
+  "score_percentage": 31.265832615969654,
+  "grade": "C (위험)",
+  "recommendation": "SELL",
+  "details": {
+    "per_score": 15.398788212613603,
+    "pbr_score": 20.0,
+    "roe_score": 4.874644059021486,
+    "relative_per": -61.99394106306803,
+    "relative_pbr": -77.6727931659332,
+    "sector_percentile": 21.24912247311807,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "000120",
+      "sector_name": "운송",
+      "original_score": 40.27343227163509,
+      "adjusted_score": 12.887498326923229,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_penalty_40_below_adjusted_32.2",
+      "sector_sample_adequate": false,
+      "sector_sample_penalty": 0.4,
+      "sample_adequacy_reason": "critical_sample_size_0_penalty_0.4",
+      "sector_score": 30.0,
+      "total_adjustment_factor": 0.32
+    },
+    "raw_component_scores": {
+      "per": 15.398788212613603,
+      "pbr": 20.0,
+      "roe": 4.874644059021486,
+      "total": 40.27343227163509
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 6,
+    "criteria_met": [
+      "PER",
+      "PBR"
+    ],
+    "mos_score": 0,
+    "mos_points": 0,
+    "safety_margin": 213.51884057971012,
+    "intrinsic_value": 259593.59999999998,
+    "confidence": "LOW",
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "score_percentage": 31.265832615969654,
+    "max_possible_score": 148
+  },
+  "raw_metrics": {
+    "per": 7.601211787386395,
+    "pbr": 0.44654413668133575,
+    "roe": 5.874644059021486,
+    "market_cap": 1888900000000.0,
+    "current_price": 82800.0
+  }
+}

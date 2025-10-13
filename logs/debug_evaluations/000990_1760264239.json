@@ -1,0 +1,73 @@
+{
+  "symbol": "000990",
+  "name": "DB하이텍",
+  "timestamp": "2025-10-12T19:17:19.318468",
+  "score": 41.318035702348496,
+  "score_percentage": 28.893731260383564,
+  "grade": "C (위험)",
+  "recommendation": "SELL",
+  "details": {
+    "per_score": 10.693501454898158,
+    "pbr_score": 9.648742734260225,
+    "roe_score": 10.975791513190112,
+    "relative_per": -31.985423024499127,
+    "relative_pbr": -31.869965900625886,
+    "sector_percentile": 48.1211447044488,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "000990",
+      "sector_name": "전기전자",
+      "original_score": 31.318035702348496,
+      "adjusted_score": 31.318035702348496,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_positive_no_adjustment",
+      "sector_sample_adequate": true,
+      "sector_sample_penalty": 1.0,
+      "sample_adequacy_reason": "sufficient_sample_size",
+      "sector_score": 60.0,
+      "total_adjustment_factor": 1.0
+    },
+    "raw_component_scores": {
+      "per": 10.693501454898158,
+      "pbr": 9.648742734260225,
+      "roe": 10.975791513190112,
+      "total": 31.318035702348496
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 10,
+    "criteria_met": [
+      "PER",
+      "PBR",
+      "ROE"
+    ],
+    "mos_score": 0,
+    "mos_points": 0,
+    "safety_margin": 42.27666352779895,
+    "intrinsic_value": 83943.23148140138,
+    "confidence": "HIGH",
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "score_percentage": 28.893731260383564,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 11.445198836081474,
+    "pbr": 1.256201162518364,
+    "roe": 10.975791513190112,
+    "market_cap": 2619500000000.0,
+    "current_price": 59000.0
+  }
+}

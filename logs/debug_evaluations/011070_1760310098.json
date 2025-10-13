@@ -1,0 +1,72 @@
+{
+  "symbol": "011070",
+  "name": "LG이노텍",
+  "timestamp": "2025-10-13T08:01:38.809612",
+  "score": 42.171832091802486,
+  "score_percentage": 29.49079167258915,
+  "grade": "C (위험)",
+  "recommendation": "SELL",
+  "details": {
+    "per_score": 13.28976564247673,
+    "pbr_score": 14.189489619676571,
+    "roe_score": 8.692576829649184,
+    "relative_per": -41.66410471311453,
+    "relative_pbr": -32.1749201030814,
+    "sector_percentile": 49.99777965782491,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "011070",
+      "sector_name": "전기전자",
+      "original_score": 36.171832091802486,
+      "adjusted_score": 28.93746567344199,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_positive_no_adjustment",
+      "sector_sample_adequate": false,
+      "sector_sample_penalty": 0.8,
+      "sample_adequacy_reason": "insufficient_sample_size_17_penalty_0.8",
+      "sector_score": 60.0,
+      "total_adjustment_factor": 0.8
+    },
+    "raw_component_scores": {
+      "per": 13.28976564247673,
+      "pbr": 14.189489619676571,
+      "roe": 8.692576829649184,
+      "total": 36.171832091802486
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 6,
+    "criteria_met": [
+      "PER",
+      "PBR"
+    ],
+    "mos_score": 0,
+    "mos_points": 0,
+    "safety_margin": 47.429722658495294,
+    "intrinsic_value": 282770.208058994,
+    "confidence": "MEDIUM",
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "score_percentage": 29.49079167258915,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 10.103777063688563,
+    "pbr": 0.8478134987114826,
+    "roe": 8.391055081355619,
+    "market_cap": 4539400000000.0,
+    "current_price": 191800.0
+  }
+}

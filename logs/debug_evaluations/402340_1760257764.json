@@ -1,0 +1,72 @@
+{
+  "symbol": "402340",
+  "name": "SK스퀘어",
+  "timestamp": "2025-10-12T17:29:24.981118",
+  "score": 79.16488871730621,
+  "score_percentage": 53.48978967385555,
+  "grade": "B (보통)",
+  "recommendation": "BUY",
+  "details": {
+    "per_score": 13.709500475389454,
+    "pbr_score": 6.637318368926575,
+    "roe_score": 16.818069872990186,
+    "relative_per": -4.922109266437502,
+    "relative_pbr": 104.47400717314683,
+    "sector_percentile": 99.5,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "402340",
+      "sector_name": "금융업",
+      "original_score": 37.16488871730621,
+      "adjusted_score": 11.892764389537989,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_penalty_40_below_adjusted_29.7",
+      "sector_sample_adequate": false,
+      "sector_sample_penalty": 0.4,
+      "sample_adequacy_reason": "critical_sample_size_0_penalty_0.4",
+      "sector_score": 30.0,
+      "total_adjustment_factor": 0.32000000000000006
+    },
+    "raw_component_scores": {
+      "per": 13.709500475389454,
+      "pbr": 6.637318368926575,
+      "roe": 16.818069872990186,
+      "total": 37.16488871730621
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 7,
+    "criteria_met": [
+      "PER",
+      "ROE"
+    ],
+    "mos_score": 35,
+    "mos_points": 35,
+    "safety_margin": -31.53163967611336,
+    "intrinsic_value": 169116.85,
+    "confidence": "LOW",
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "score_percentage": 53.48978967385555,
+    "max_possible_score": 148
+  },
+  "raw_metrics": {
+    "per": 9.032399619688437,
+    "pbr": 1.7380290609717481,
+    "roe": 19.242163036977097,
+    "market_cap": 32737600000000.0,
+    "current_price": 247000.0
+  }
+}

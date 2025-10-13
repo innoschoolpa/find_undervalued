@@ -1,0 +1,73 @@
+{
+  "symbol": "036460",
+  "name": "한국가스공사",
+  "timestamp": "2025-10-13T09:44:51.345357",
+  "score": 91.2946386482136,
+  "score_percentage": 63.84240464910042,
+  "grade": "B+ (양호)",
+  "recommendation": "STRONG_BUY",
+  "details": {
+    "per_score": 20.0,
+    "pbr_score": 20.0,
+    "roe_score": 11.294638648213606,
+    "relative_per": -82.05894853167833,
+    "relative_pbr": -73.96092452209695,
+    "sector_percentile": 64.08731232679662,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "036460",
+      "sector_name": "전기전자",
+      "original_score": 51.294638648213606,
+      "adjusted_score": 41.035710918570885,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_positive_no_adjustment",
+      "sector_sample_adequate": false,
+      "sector_sample_penalty": 0.8,
+      "sample_adequacy_reason": "insufficient_sample_size_17_penalty_0.8",
+      "sector_score": 60.0,
+      "total_adjustment_factor": 0.8
+    },
+    "raw_component_scores": {
+      "per": 20.0,
+      "pbr": 20.0,
+      "roe": 11.294638648213606,
+      "total": 51.294638648213606
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 10,
+    "criteria_met": [
+      "PER",
+      "PBR",
+      "ROE"
+    ],
+    "mos_score": 30,
+    "mos_points": 30,
+    "safety_margin": 379.37239789798605,
+    "intrinsic_value": 185037.7455886226,
+    "confidence": "MEDIUM",
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "score_percentage": 63.84240464910042,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 3.107390114313315,
+    "pbr": 0.3254884434737881,
+    "roe": 10.474656592827449,
+    "market_cap": 3563300000000.0,
+    "current_price": 38600.0
+  }
+}

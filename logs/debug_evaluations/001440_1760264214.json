@@ -1,0 +1,69 @@
+{
+  "symbol": "001440",
+  "name": "대한전선",
+  "timestamp": "2025-10-12T19:16:54.609910",
+  "score": 9.000832702498109,
+  "score_percentage": 6.29428860314553,
+  "grade": "C (위험)",
+  "recommendation": "SELL",
+  "details": {
+    "per_score": 0.1,
+    "pbr_score": 4.841534191269242,
+    "roe_score": 4.059298511228867,
+    "relative_per": 144.22577362557553,
+    "relative_pbr": 12.767137065026501,
+    "sector_percentile": 13.6967342701487,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "001440",
+      "sector_name": "전기전자",
+      "original_score": 9.000832702498109,
+      "adjusted_score": 9.000832702498109,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_positive_no_adjustment",
+      "sector_sample_adequate": true,
+      "sector_sample_penalty": 1.0,
+      "sample_adequacy_reason": "sufficient_sample_size",
+      "sector_score": 60.0,
+      "total_adjustment_factor": 1.0
+    },
+    "raw_component_scores": {
+      "per": 0.1,
+      "pbr": 4.841534191269242,
+      "roe": 4.059298511228867,
+      "total": 9.000832702498109
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 0,
+    "criteria_met": [],
+    "mos_score": 0,
+    "mos_points": 0,
+    "safety_margin": -37.92517765203624,
+    "intrinsic_value": 10229.930722944428,
+    "confidence": "HIGH",
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "score_percentage": 6.29428860314553,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 41.09725685785536,
+    "pbr": 2.0792329043653797,
+    "roe": 5.059298511228867,
+    "market_cap": 3072700000000.0,
+    "current_price": 16480.0
+  }
+}

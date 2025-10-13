@@ -1,0 +1,73 @@
+{
+  "symbol": "161390",
+  "name": "한국타이어앤테크놀로지",
+  "timestamp": "2025-10-13T07:04:44.090739",
+  "score": 90.04121105555251,
+  "score_percentage": 62.96588185702973,
+  "grade": "B+ (양호)",
+  "recommendation": "STRONG_BUY",
+  "details": {
+    "per_score": 20.0,
+    "pbr_score": 20.0,
+    "roe_score": 10.041211055552504,
+    "relative_per": -78.74028674619679,
+    "relative_pbr": -78.6526732238035,
+    "sector_percentile": 40.206055277762516,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "161390",
+      "sector_name": "화학",
+      "original_score": 50.0412110555525,
+      "adjusted_score": 16.0131875377768,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_penalty_40_below_adjusted_40.0",
+      "sector_sample_adequate": false,
+      "sector_sample_penalty": 0.4,
+      "sample_adequacy_reason": "critical_sample_size_0_penalty_0.4",
+      "sector_score": 30.0,
+      "total_adjustment_factor": 0.32000000000000006
+    },
+    "raw_component_scores": {
+      "per": 20.0,
+      "pbr": 20.0,
+      "roe": 10.041211055552504,
+      "total": 50.0412110555525
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 10,
+    "criteria_met": [
+      "PER",
+      "PBR",
+      "ROE"
+    ],
+    "mos_score": 30,
+    "mos_points": 30,
+    "safety_margin": 291.977691977692,
+    "intrinsic_value": 152283.33333333334,
+    "confidence": "LOW",
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "score_percentage": 62.96588185702973,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 4.251942650760643,
+    "pbr": 0.42694653552392986,
+    "roe": 10.041211055552504,
+    "market_cap": 4812500000000.0,
+    "current_price": 38850.0
+  }
+}

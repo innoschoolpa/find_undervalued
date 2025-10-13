@@ -1,0 +1,73 @@
+{
+  "symbol": "271560",
+  "name": "오리온",
+  "timestamp": "2025-10-12T18:12:21.936135",
+  "score": 61.187746511179114,
+  "score_percentage": 41.34307196701291,
+  "grade": "C+ (주의)",
+  "recommendation": "SELL",
+  "details": {
+    "per_score": 15.086818901198281,
+    "pbr_score": 10.053636094472406,
+    "roe_score": 15.047291515508427,
+    "relative_per": -60.43409450599141,
+    "relative_pbr": -40.214544377889624,
+    "sector_percentile": 65.55173434759834,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "271560",
+      "sector_name": "기타",
+      "original_score": 40.187746511179114,
+      "adjusted_score": 12.860078883577316,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_penalty_40_below_adjusted_32.2",
+      "sector_sample_adequate": false,
+      "sector_sample_penalty": 0.4,
+      "sample_adequacy_reason": "critical_sample_size_0_penalty_0.4",
+      "sector_score": 30.0,
+      "total_adjustment_factor": 0.32
+    },
+    "raw_component_scores": {
+      "per": 15.086818901198281,
+      "pbr": 10.053636094472406,
+      "roe": 15.047291515508427,
+      "total": 40.187746511179114
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 10,
+    "criteria_met": [
+      "PER",
+      "PBR",
+      "ROE"
+    ],
+    "mos_score": 11,
+    "mos_points": 11,
+    "safety_margin": 110.61904761904762,
+    "intrinsic_value": 221150.0,
+    "confidence": "LOW",
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "score_percentage": 41.34307196701291,
+    "max_possible_score": 148
+  },
+  "raw_metrics": {
+    "per": 7.913181098801719,
+    "pbr": 1.1957091124422075,
+    "roe": 15.110346869519667,
+    "market_cap": 4151300000000.0,
+    "current_price": 105000.0
+  }
+}

@@ -1,0 +1,72 @@
+{
+  "symbol": "015760",
+  "name": "한국전력",
+  "timestamp": "2025-10-13T09:21:31.287874",
+  "score": 54.15535110025203,
+  "score_percentage": 37.87087489528113,
+  "grade": "C+ (주의)",
+  "recommendation": "SELL",
+  "details": {
+    "per_score": 17.701516822945393,
+    "pbr_score": 17.302843241239145,
+    "roe_score": 9.15099103606749,
+    "relative_per": -62.262540619518525,
+    "relative_pbr": -54.25961368351642,
+    "sector_percentile": 52.40799759432595,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "015760",
+      "sector_name": "전기전자",
+      "original_score": 44.15535110025203,
+      "adjusted_score": 35.32428088020162,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_positive_no_adjustment",
+      "sector_sample_adequate": false,
+      "sector_sample_penalty": 0.8,
+      "sample_adequacy_reason": "insufficient_sample_size_17_penalty_0.8",
+      "sector_score": 60.0,
+      "total_adjustment_factor": 0.8
+    },
+    "raw_component_scores": {
+      "per": 17.701516822945393,
+      "pbr": 17.302843241239145,
+      "roe": 9.15099103606749,
+      "total": 44.15535110025203
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 6,
+    "criteria_met": [
+      "PER",
+      "PBR"
+    ],
+    "mos_score": 4,
+    "mos_points": 4,
+    "safety_margin": 127.90206347671776,
+    "intrinsic_value": 81019.18356597316,
+    "confidence": "MEDIUM",
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "score_percentage": 37.87087489528113,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 6.536127964699393,
+    "pbr": 0.5717548289560448,
+    "roe": 8.747607636264213,
+    "market_cap": 22789700000000.0,
+    "current_price": 35550.0
+  }
+}

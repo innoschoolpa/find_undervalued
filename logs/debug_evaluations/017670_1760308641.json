@@ -1,0 +1,73 @@
+{
+  "symbol": "017670",
+  "name": "SK텔레콤",
+  "timestamp": "2025-10-13T07:37:21.423014",
+  "score": 47.404128664462945,
+  "score_percentage": 33.14974032479927,
+  "grade": "C (위험)",
+  "recommendation": "SELL",
+  "details": {
+    "per_score": 13.253012048192772,
+    "pbr_score": 12.567853109402893,
+    "roe_score": 10.583263506867283,
+    "relative_per": -10.669293142150348,
+    "relative_pbr": 102.97382678525891,
+    "sector_percentile": 99.5,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "017670",
+      "sector_name": "통신",
+      "original_score": 36.404128664462945,
+      "adjusted_score": 21.842477198677766,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_positive_no_adjustment",
+      "sector_sample_adequate": false,
+      "sector_sample_penalty": 0.6,
+      "sample_adequacy_reason": "very_insufficient_sample_size_7_penalty_0.6",
+      "sector_score": 60.0,
+      "total_adjustment_factor": 0.6
+    },
+    "raw_component_scores": {
+      "per": 13.253012048192772,
+      "pbr": 12.567853109402893,
+      "roe": 10.583263506867283,
+      "total": 36.404128664462945
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 10,
+    "criteria_met": [
+      "PER",
+      "PBR",
+      "ROE"
+    ],
+    "mos_score": 1,
+    "mos_points": 1,
+    "safety_margin": -31.025589743589748,
+    "intrinsic_value": 37660.028,
+    "confidence": "LOW",
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "score_percentage": 33.14974032479927,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 9.397590361445783,
+    "pbr": 0.9945717512477686,
+    "roe": 10.583263506867281,
+    "market_cap": 11727500000000.0,
+    "current_price": 54600.0
+  }
+}

@@ -1,0 +1,71 @@
+{
+  "symbol": "003550",
+  "name": "LG",
+  "timestamp": "2025-10-13T07:03:30.793344",
+  "score": 25.064548809248,
+  "score_percentage": 17.527656509963634,
+  "grade": "C (위험)",
+  "recommendation": "SELL",
+  "details": {
+    "per_score": 2.8052898078000084,
+    "pbr_score": 17.19311838166957,
+    "roe_score": 2.06614061977842,
+    "relative_per": 122.83032642611414,
+    "relative_pbr": -37.54494705335658,
+    "sector_percentile": 10.3307030988921,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "003550",
+      "sector_name": "금융",
+      "original_score": 22.064548809248,
+      "adjusted_score": 22.064548809248,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_positive_no_adjustment",
+      "sector_sample_adequate": true,
+      "sector_sample_penalty": 1.0,
+      "sample_adequacy_reason": "sufficient_sample_size",
+      "sector_score": 60.0,
+      "total_adjustment_factor": 1.0
+    },
+    "raw_component_scores": {
+      "per": 2.8052898078000084,
+      "pbr": 17.19311838166957,
+      "roe": 2.06614061977842,
+      "total": 22.064548809248
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 3,
+    "criteria_met": [
+      "PBR"
+    ],
+    "mos_score": 0,
+    "mos_points": 0,
+    "safety_margin": 23.165497896213182,
+    "intrinsic_value": 87817.0,
+    "confidence": "HIGH",
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "score_percentage": 17.527656509963634,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 19.207974137931036,
+    "pbr": 0.4059578441531822,
+    "roe": 2.1134859992939865,
+    "market_cap": 10996000000000.0,
+    "current_price": 71300.0
+  }
+}

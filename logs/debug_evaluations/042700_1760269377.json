@@ -1,0 +1,71 @@
+{
+  "symbol": "042700",
+  "name": "한미반도체",
+  "timestamp": "2025-10-12T20:42:57.598274",
+  "score": 24.099999999999998,
+  "score_percentage": 16.853146853146853,
+  "grade": "C (위험)",
+  "recommendation": "SELL",
+  "details": {
+    "per_score": 0.1,
+    "pbr_score": 0.1,
+    "roe_score": 19.9,
+    "relative_per": null,
+    "relative_pbr": null,
+    "sector_percentile": 50.0,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "042700",
+      "sector_name": "기타",
+      "original_score": 20.099999999999998,
+      "adjusted_score": 20.099999999999998,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_positive_no_adjustment",
+      "sector_sample_adequate": true,
+      "sector_sample_penalty": 1.0,
+      "sample_adequacy_reason": "sufficient_sample_size",
+      "sector_score": 60.0,
+      "total_adjustment_factor": 1.0
+    },
+    "raw_component_scores": {
+      "per": 0.1,
+      "pbr": 0.1,
+      "roe": 19.9,
+      "total": 20.099999999999998
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 4,
+    "criteria_met": [
+      "ROE"
+    ],
+    "mos_score": 0,
+    "mos_points": 0,
+    "safety_margin": -91.60352644836273,
+    "intrinsic_value": 10000.199999999999,
+    "confidence": "HIGH",
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "score_percentage": 16.853146853146853,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 75.71519389701209,
+    "pbr": 16.673666526669468,
+    "roe": 22.021559568808623,
+    "market_cap": 11351700000000.0,
+    "current_price": 119100.0
+  }
+}

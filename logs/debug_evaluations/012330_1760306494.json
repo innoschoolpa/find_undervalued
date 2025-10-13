@@ -1,0 +1,72 @@
+{
+  "symbol": "012330",
+  "name": "현대모비스",
+  "timestamp": "2025-10-13T07:01:34.318690",
+  "score": 52.048114898606244,
+  "score_percentage": 36.39728314587849,
+  "grade": "C+ (주의)",
+  "recommendation": "SELL",
+  "details": {
+    "per_score": 16.368788802599077,
+    "pbr_score": 17.147820554111057,
+    "roe_score": 8.531505541896106,
+    "relative_per": -66.8439440129954,
+    "relative_pbr": -70.73910277055529,
+    "sector_percentile": 34.12602216758443,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "012330",
+      "sector_name": "운송장비",
+      "original_score": 42.048114898606244,
+      "adjusted_score": 13.455396767554,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_penalty_40_below_adjusted_33.6",
+      "sector_sample_adequate": false,
+      "sector_sample_penalty": 0.4,
+      "sample_adequacy_reason": "critical_sample_size_0_penalty_0.4",
+      "sector_score": 30.0,
+      "total_adjustment_factor": 0.32000000000000006
+    },
+    "raw_component_scores": {
+      "per": 16.368788802599077,
+      "pbr": 17.147820554111057,
+      "roe": 8.531505541896106,
+      "total": 42.048114898606244
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 6,
+    "criteria_met": [
+      "PER",
+      "PBR"
+    ],
+    "mos_score": 4,
+    "mos_points": 4,
+    "safety_margin": 151.33668903803138,
+    "intrinsic_value": 748983.3333333335,
+    "confidence": "LOW",
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "score_percentage": 36.39728314587849,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 6.631211197400921,
+    "pbr": 0.5852179445888942,
+    "roe": 8.825204433516886,
+    "market_cap": 27354900000000.0,
+    "current_price": 298000.0
+  }
+}

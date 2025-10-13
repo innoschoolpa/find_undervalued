@@ -1,0 +1,72 @@
+{
+  "symbol": "047040",
+  "name": "대우건설",
+  "timestamp": "2025-10-12T18:15:07.770560",
+  "score": 46.754963366002016,
+  "score_percentage": 31.59119146351488,
+  "grade": "C (위험)",
+  "recommendation": "SELL",
+  "details": {
+    "per_score": 16.428063943161636,
+    "pbr_score": 20.0,
+    "roe_score": 4.326899422840383,
+    "relative_per": -40.25512675601486,
+    "relative_pbr": -68.17450691989437,
+    "sector_percentile": 27.04312139275239,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "047040",
+      "sector_name": "건설업",
+      "original_score": 40.754963366002016,
+      "adjusted_score": 13.041588277120647,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_penalty_40_below_adjusted_32.6",
+      "sector_sample_adequate": false,
+      "sector_sample_penalty": 0.4,
+      "sample_adequacy_reason": "critical_sample_size_0_penalty_0.4",
+      "sector_score": 30.0,
+      "total_adjustment_factor": 0.32000000000000006
+    },
+    "raw_component_scores": {
+      "per": 16.428063943161636,
+      "pbr": 20.0,
+      "roe": 4.326899422840383,
+      "total": 40.754963366002016
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 6,
+    "criteria_met": [
+      "PER",
+      "PBR"
+    ],
+    "mos_score": 0,
+    "mos_points": 0,
+    "safety_margin": 119.94945945945948,
+    "intrinsic_value": 8138.13,
+    "confidence": "LOW",
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "score_percentage": 31.59119146351488,
+    "max_possible_score": 148
+  },
+  "raw_metrics": {
+    "per": 6.571936056838366,
+    "pbr": 0.3500804238811619,
+    "roe": 5.326899422840382,
+    "market_cap": 1537800000000.0,
+    "current_price": 3700.0
+  }
+}

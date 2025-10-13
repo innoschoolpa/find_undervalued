@@ -1,0 +1,69 @@
+{
+  "symbol": "077970",
+  "name": "STX엔진",
+  "timestamp": "2025-10-12T19:19:01.198872",
+  "score": 9.993853073463267,
+  "score_percentage": 6.988708442981306,
+  "grade": "C (위험)",
+  "recommendation": "SELL",
+  "details": {
+    "per_score": 0.1,
+    "pbr_score": 0.1,
+    "roe_score": 9.793853073463268,
+    "relative_per": 95.37601626016261,
+    "relative_pbr": 92.15392303848076,
+    "sector_percentile": 39.17541229385307,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "077970",
+      "sector_name": "기타",
+      "original_score": 9.993853073463267,
+      "adjusted_score": 3.198032983508246,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_penalty_40_below_adjusted_8.0",
+      "sector_sample_adequate": false,
+      "sector_sample_penalty": 0.4,
+      "sample_adequacy_reason": "critical_sample_size_0_penalty_0.4",
+      "sector_score": 30.0,
+      "total_adjustment_factor": 0.32000000000000006
+    },
+    "raw_component_scores": {
+      "per": 0.1,
+      "pbr": 0.1,
+      "roe": 9.793853073463268,
+      "total": 9.993853073463267
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 0,
+    "criteria_met": [],
+    "mos_score": 0,
+    "mos_points": 0,
+    "safety_margin": -57.34720416124838,
+    "intrinsic_value": 16400.0,
+    "confidence": "LOW",
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "score_percentage": 6.988708442981306,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 39.07520325203252,
+    "pbr": 3.843078460769615,
+    "roe": 9.835082458770614,
+    "market_cap": 1543700000000.0,
+    "current_price": 38450.0
+  }
+}

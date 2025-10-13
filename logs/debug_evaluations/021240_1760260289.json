@@ -1,0 +1,72 @@
+{
+  "symbol": "021240",
+  "name": "코웨이",
+  "timestamp": "2025-10-12T18:11:29.814944",
+  "score": 37.61210584511768,
+  "score_percentage": 25.41358503048492,
+  "grade": "C (위험)",
+  "recommendation": "SELL",
+  "details": {
+    "per_score": 9.85516701461378,
+    "pbr_score": 4.809754783077338,
+    "roe_score": 15.947184047426568,
+    "relative_per": -39.131002087682674,
+    "relative_pbr": 4.756130423066551,
+    "sector_percentile": 75.70026269135982,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "021240",
+      "sector_name": "서비스업",
+      "original_score": 30.612105845117686,
+      "adjusted_score": 9.79587387043766,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_penalty_40_below_adjusted_24.5",
+      "sector_sample_adequate": false,
+      "sector_sample_penalty": 0.4,
+      "sample_adequacy_reason": "critical_sample_size_0_penalty_0.4",
+      "sector_score": 30.0,
+      "total_adjustment_factor": 0.32000000000000006
+    },
+    "raw_component_scores": {
+      "per": 9.85516701461378,
+      "pbr": 4.809754783077338,
+      "roe": 15.947184047426568,
+      "total": 30.612105845117686
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 7,
+    "criteria_met": [
+      "PER",
+      "ROE"
+    ],
+    "mos_score": 0,
+    "mos_points": 0,
+    "safety_margin": 33.643729903536965,
+    "intrinsic_value": 124689.59999999999,
+    "confidence": "LOW",
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "score_percentage": 25.41358503048492,
+    "max_possible_score": 148
+  },
+  "raw_metrics": {
+    "per": 12.173799582463465,
+    "pbr": 2.095122608461331,
+    "roe": 17.210096110661997,
+    "market_cap": 6709100000000.0,
+    "current_price": 93300.0
+  }
+}

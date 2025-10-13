@@ -1,0 +1,71 @@
+{
+  "symbol": "251270",
+  "name": "넷마블",
+  "timestamp": "2025-10-13T09:44:21.007009",
+  "score": 24.214582834048286,
+  "score_percentage": 16.933274709124678,
+  "grade": "C (위험)",
+  "recommendation": "SELL",
+  "details": {
+    "per_score": 2.488119246979204,
+    "pbr_score": 14.33709896697011,
+    "roe_score": 4.3893646200989735,
+    "relative_per": 1152.4735802914806,
+    "relative_pbr": -34.62060648177512,
+    "sector_percentile": 24.38535900054985,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "251270",
+      "sector_name": "IT",
+      "original_score": 21.214582834048286,
+      "adjusted_score": 16.97166626723863,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_positive_no_adjustment",
+      "sector_sample_adequate": false,
+      "sector_sample_penalty": 0.8,
+      "sample_adequacy_reason": "insufficient_sample_size_28_penalty_0.8",
+      "sector_score": 60.0,
+      "total_adjustment_factor": 0.8
+    },
+    "raw_component_scores": {
+      "per": 2.488119246979204,
+      "pbr": 14.33709896697011,
+      "roe": 4.3893646200989735,
+      "total": 21.214582834048286
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 3,
+    "criteria_met": [
+      "PBR"
+    ],
+    "mos_score": 0,
+    "mos_points": 0,
+    "safety_margin": 7.067374340949013,
+    "intrinsic_value": 60921.33599999999,
+    "confidence": "MEDIUM",
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "score_percentage": 16.933274709124678,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 190.93959731543623,
+    "pbr": 0.8401252067091897,
+    "roe": 0.4399952752185211,
+    "market_cap": 4890800000000.0,
+    "current_price": 56900.0
+  }
+}

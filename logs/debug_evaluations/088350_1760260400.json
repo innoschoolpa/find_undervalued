@@ -1,0 +1,72 @@
+{
+  "symbol": "088350",
+  "name": "한화생명",
+  "timestamp": "2025-10-12T18:13:20.117894",
+  "score": 85.79759628516798,
+  "score_percentage": 57.971348841329714,
+  "grade": "B+ (양호)",
+  "recommendation": "BUY",
+  "details": {
+    "per_score": 20.0,
+    "pbr_score": 20.0,
+    "roe_score": 4.797596285167987,
+    "relative_per": -61.56468910792883,
+    "relative_pbr": -75.09520060414224,
+    "sector_percentile": 19.990397140169293,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "088350",
+      "sector_name": "금융업",
+      "original_score": 44.797596285167984,
+      "adjusted_score": 14.335230811253755,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_penalty_40_below_adjusted_35.8",
+      "sector_sample_adequate": false,
+      "sector_sample_penalty": 0.4,
+      "sample_adequacy_reason": "critical_sample_size_0_penalty_0.4",
+      "sector_score": 30.0,
+      "total_adjustment_factor": 0.32
+    },
+    "raw_component_scores": {
+      "per": 20.0,
+      "pbr": 20.0,
+      "roe": 4.797596285167987,
+      "total": 44.797596285167984
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 6,
+    "criteria_met": [
+      "PER",
+      "PBR"
+    ],
+    "mos_score": 35,
+    "mos_points": 35,
+    "safety_margin": 181.07032258064518,
+    "intrinsic_value": 8713.18,
+    "confidence": "LOW",
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "score_percentage": 57.971348841329714,
+    "max_possible_score": 148
+  },
+  "raw_metrics": {
+    "per": 3.651354534746761,
+    "pbr": 0.21169079486479103,
+    "roe": 5.797596285167987,
+    "market_cap": 2692400000000.0,
+    "current_price": 3100.0
+  }
+}

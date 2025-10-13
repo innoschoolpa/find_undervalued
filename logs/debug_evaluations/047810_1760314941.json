@@ -1,0 +1,71 @@
+{
+  "symbol": "047810",
+  "name": "한국항공우주",
+  "timestamp": "2025-10-13T09:22:21.269812",
+  "score": 17.032608344252903,
+  "score_percentage": 11.910914926050982,
+  "grade": "C (위험)",
+  "recommendation": "SELL",
+  "details": {
+    "per_score": 0.1,
+    "pbr_score": 2.8613790406673645,
+    "roe_score": 10.07122930358554,
+    "relative_per": 799.850024995834,
+    "relative_pbr": 724.26614481409,
+    "sector_percentile": 50.33200488104645,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "047810",
+      "sector_name": "운송장비",
+      "original_score": 13.032608344252903,
+      "adjusted_score": 10.426086675402324,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_positive_no_adjustment",
+      "sector_sample_adequate": false,
+      "sector_sample_penalty": 0.8,
+      "sample_adequacy_reason": "insufficient_sample_size_25_penalty_0.8",
+      "sector_score": 60.0,
+      "total_adjustment_factor": 0.8
+    },
+    "raw_component_scores": {
+      "per": 0.1,
+      "pbr": 2.8613790406673645,
+      "roe": 10.07122930358554,
+      "total": 13.032608344252903
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 4,
+    "criteria_met": [
+      "ROE"
+    ],
+    "mos_score": 0,
+    "mos_points": 0,
+    "safety_margin": -87.81422645638655,
+    "intrinsic_value": 12831.619541424974,
+    "confidence": "MEDIUM",
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "score_percentage": 11.910914926050982,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 59.6600566572238,
+    "pbr": 6.017142857142857,
+    "roe": 10.085714285714285,
+    "market_cap": 10264100000000.0,
+    "current_price": 105300.0
+  }
+}

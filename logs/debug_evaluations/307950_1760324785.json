@@ -1,0 +1,71 @@
+{
+  "symbol": "307950",
+  "name": "현대오토에버",
+  "timestamp": "2025-10-13T12:06:25.304438",
+  "score": 27.452892530650075,
+  "score_percentage": 19.197826944510542,
+  "grade": "C (위험)",
+  "recommendation": "SELL",
+  "details": {
+    "per_score": 6.4882863297468365,
+    "pbr_score": 4.6273626871337745,
+    "roe_score": 12.337243513769465,
+    "relative_per": 56.615570178625994,
+    "relative_pbr": 86.07168940518189,
+    "sector_percentile": 62.97673576963055,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "307950",
+      "sector_name": "IT",
+      "original_score": 23.452892530650075,
+      "adjusted_score": 18.762314024520062,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_positive_no_adjustment",
+      "sector_sample_adequate": false,
+      "sector_sample_penalty": 0.8,
+      "sample_adequacy_reason": "insufficient_sample_size_28_penalty_0.8",
+      "sector_score": 60.0,
+      "total_adjustment_factor": 0.8
+    },
+    "raw_component_scores": {
+      "per": 6.4882863297468365,
+      "pbr": 4.6273626871337745,
+      "roe": 12.337243513769465,
+      "total": 23.452892530650075
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 4,
+    "criteria_met": [
+      "ROE"
+    ],
+    "mos_score": 0,
+    "mos_points": 0,
+    "safety_margin": -24.760182246133166,
+    "intrinsic_value": 111881.60899999998,
+    "confidence": "MEDIUM",
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "score_percentage": 19.197826944510542,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 23.876043673731534,
+    "pbr": 2.391021208856587,
+    "roe": 10.014310752359666,
+    "market_cap": 4077900000000.0,
+    "current_price": 148700.0
+  }
+}

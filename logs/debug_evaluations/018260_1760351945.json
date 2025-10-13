@@ -1,0 +1,72 @@
+{
+  "symbol": "018260",
+  "name": "삼성에스디에스",
+  "timestamp": "2025-10-13T19:39:05.914381",
+  "score": 35.064495153445584,
+  "score_percentage": 24.520625981430477,
+  "grade": "C (위험)",
+  "recommendation": "HOLD",
+  "details": {
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "per_score": 8.980058152561517,
+    "pbr_score": 9.464338312337247,
+    "roe_score": 10.620098688546818,
+    "relative_per": 11.839846948376342,
+    "relative_pbr": 7.599137478089091,
+    "sector_percentile": 54.75791972627526,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "018260",
+      "sector_name": "IT",
+      "original_score": 29.064495153445584,
+      "adjusted_score": 23.251596122756467,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_positive_no_adjustment",
+      "sector_sample_adequate": false,
+      "sector_sample_penalty": 0.8,
+      "sample_adequacy_reason": "insufficient_sample_size_28_penalty_0.8",
+      "sector_score": 60.0,
+      "total_adjustment_factor": 0.8
+    },
+    "raw_component_scores": {
+      "per": 8.980058152561517,
+      "pbr": 9.464338312337247,
+      "roe": 10.620098688546818,
+      "total": 29.064495153445584
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 6,
+    "criteria_met": [
+      "PER",
+      "PBR"
+    ],
+    "mos_score": 0,
+    "mos_points": 0,
+    "safety_margin": 7.565009901134889,
+    "intrinsic_value": 179418.436515093,
+    "confidence": "MEDIUM",
+    "score_percentage": 24.520625981430477,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 17.049984667279976,
+    "pbr": 1.3826489165934448,
+    "roe": 8.109385102538171,
+    "market_cap": 12906600000000.0,
+    "current_price": 166800.0
+  }
+}

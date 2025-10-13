@@ -1,0 +1,72 @@
+{
+  "symbol": "029780",
+  "name": "삼성카드",
+  "timestamp": "2025-10-13T18:04:12.830502",
+  "score": 35.38172940484412,
+  "score_percentage": 24.74246811527561,
+  "grade": "C (위험)",
+  "recommendation": "HOLD",
+  "details": {
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "per_score": 9.210226140665473,
+    "pbr_score": 9.913654608957744,
+    "roe_score": 10.257848655220904,
+    "relative_per": 5.41338263436153,
+    "relative_pbr": 0.593624563415518,
+    "sector_percentile": 51.28924327610452,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "029780",
+      "sector_name": "금융",
+      "original_score": 29.381729404844123,
+      "adjusted_score": 29.381729404844123,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_positive_no_adjustment",
+      "sector_sample_adequate": true,
+      "sector_sample_penalty": 1.0,
+      "sample_adequacy_reason": "sufficient_sample_size",
+      "sector_score": 60.0,
+      "total_adjustment_factor": 1.0
+    },
+    "raw_component_scores": {
+      "per": 9.210226140665473,
+      "pbr": 9.913654608957744,
+      "roe": 10.257848655220904,
+      "total": 29.381729404844123
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 6,
+    "criteria_met": [
+      "PER",
+      "PBR"
+    ],
+    "mos_score": 0,
+    "mos_points": 0,
+    "safety_margin": 1.8507816919583617,
+    "intrinsic_value": 50314.28615582743,
+    "confidence": "HIGH",
+    "score_percentage": 24.74246811527561,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 8.612273361227336,
+    "pbr": 0.6437991972058593,
+    "roe": 7.47536881613929,
+    "market_cap": 5723400000000.0,
+    "current_price": 49400.0
+  }
+}

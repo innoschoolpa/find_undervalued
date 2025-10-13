@@ -1,0 +1,72 @@
+{
+  "symbol": "000660",
+  "name": "SK하이닉스",
+  "timestamp": "2025-10-13T13:09:40.204168",
+  "score": 53.82693336191288,
+  "score_percentage": 37.64121214119782,
+  "grade": "C+ (주의)",
+  "recommendation": "SELL",
+  "details": {
+    "per_score": 8.91511666885091,
+    "pbr_score": 1.0118166930619679,
+    "roe_score": 19.9,
+    "relative_per": -13.231365070928113,
+    "relative_pbr": 212.5268966308682,
+    "sector_percentile": 99.5,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "000660",
+      "sector_name": "전기전자",
+      "original_score": 29.82693336191288,
+      "adjusted_score": 23.861546689530304,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_positive_no_adjustment",
+      "sector_sample_adequate": false,
+      "sector_sample_penalty": 0.8,
+      "sample_adequacy_reason": "insufficient_sample_size_17_penalty_0.8",
+      "sector_score": 60.0,
+      "total_adjustment_factor": 0.8
+    },
+    "raw_component_scores": {
+      "per": 8.91511666885091,
+      "pbr": 1.0118166930619679,
+      "roe": 19.9,
+      "total": 29.82693336191288
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 7,
+    "criteria_met": [
+      "PER",
+      "ROE"
+    ],
+    "mos_score": 17,
+    "mos_points": 17,
+    "safety_margin": -55.203855569155444,
+    "intrinsic_value": 182992.25,
+    "confidence": "MEDIUM",
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "score_percentage": 37.64121214119782,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 15.028327569715252,
+    "pbr": 3.906586207885853,
+    "roe": 25.994816720380236,
+    "market_cap": 297389000000000.0,
+    "current_price": 408500.0
+  }
+}

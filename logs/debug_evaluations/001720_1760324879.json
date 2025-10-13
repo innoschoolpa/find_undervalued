@@ -1,0 +1,71 @@
+{
+  "symbol": "001720",
+  "name": "신영증권",
+  "timestamp": "2025-10-13T12:07:59.623942",
+  "score": 15.077546079911563,
+  "score_percentage": 10.543738517420675,
+  "grade": "C (위험)",
+  "recommendation": "SELL",
+  "details": {
+    "per_score": 2.078878671290366,
+    "pbr_score": 2.8463471569859338,
+    "roe_score": 7.152320251635262,
+    "relative_per": 142.13034689849923,
+    "relative_pbr": 73.18561894181599,
+    "sector_percentile": 35.76160125817631,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "001720",
+      "sector_name": "금융",
+      "original_score": 12.077546079911563,
+      "adjusted_score": 12.077546079911563,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_positive_no_adjustment",
+      "sector_sample_adequate": true,
+      "sector_sample_penalty": 1.0,
+      "sample_adequacy_reason": "sufficient_sample_size",
+      "sector_score": 60.0,
+      "total_adjustment_factor": 1.0
+    },
+    "raw_component_scores": {
+      "per": 2.078878671290366,
+      "pbr": 2.8463471569859338,
+      "roe": 7.152320251635262,
+      "total": 12.077546079911563
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 3,
+    "criteria_met": [
+      "PBR"
+    ],
+    "mos_score": 0,
+    "mos_points": 0,
+    "safety_margin": -54.889441469013015,
+    "intrinsic_value": 58959.5,
+    "confidence": "HIGH",
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "score_percentage": 10.543738517420675,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 19.782049341607387,
+    "pbr": 1.1083879612276224,
+    "roe": 5.602998668577583,
+    "market_cap": 2148700000000.0,
+    "current_price": 130700.0
+  }
+}

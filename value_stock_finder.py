@@ -1,19 +1,28 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-저평가 가치주 발굴 시스템 v2.2.2 (Enterprise-Ready)
+저평가 가치주 발굴 시스템 v2.3 (Enterprise-Ready + Soft Filters)
 
-개선 사항:
-- ✅ 동적 r, b 레짐 모델 (금리 레짐 대응)
-- ✅ 데이터 품질 가드 (신선도/정합성/상식 체크)
+v2.3 신규 개선:
+- ✅ 소프트 필터 (하드 탈락 → 점수 감점)
+- ✅ 2/3 규칙 (3개 모두 → 2개 충족)
+- ✅ 섹터 키 매핑 통일 (금융/IT/제조업 등)
+- ✅ g≥r 클램핑 (차단 → r-2% 제한)
+- ✅ 이상치 클립 완화 (PER 200, PBR 15)
+- ✅ 동적 점수 컷 (고정 60 → p50*0.9)
+- ✅ 섹터 통계 확대 (6→12개 섹터)
+- ✅ 거래량 단위 변환 (MCP)
+
+v2.2 기존 기능:
+- ✅ 동적 r, b 레짐 모델
+- ✅ 데이터 품질 가드
 - ✅ 점수 캘리브레이션 & 드리프트 모니터링
-- ✅ MoS 입력 검증 (g >= r 방지)
-- ✅ 리스크 플래그 강화 (회계/이벤트/유동성 리스크)
-- ✅ 퍼센타일 글로벌 대체 (통계적 안정성)
-- ✅ 캘리브레이션 UI 피드백 루프
-- ✅ 설명 가능성 (XAI)
-- ✅ 데이터 품질 UI 연동
+- ✅ 리스크 플래그 강화
+- ✅ 퍼센타일 글로벌 대체
 """
+
+# ✅ v2.3: 버전 관리 통일
+APP_VERSION = "v2.3.6"  # ✅ 정합성 강화 (MoS 30점 통일, DUMMY_SENTINEL 전역화, 문구 일원화)
 
 import streamlit as st
 import pandas as pd
@@ -31,6 +40,8 @@ import statistics
 from collections import Counter
 import textwrap  # ✅ 에러 메시지 길이 제한용
 import json  # ✅ 로깅/디버깅용
+import re  # ✅ 정규식 (ETF 필터, 이름 클린용)
+import unicodedata  # ✅ 이름 정규화용
 
 # ✅ 로깅 설정 (임포트 전에 먼저 설정 - NameError 방지)
 LOG_LEVEL = os.environ.get('LOG_LEVEL', 'INFO').upper()
@@ -41,6 +52,39 @@ if not _logger.handlers:  # 핸들러 중복 추가 방지
         format='%(levelname)s:%(name)s:%(message)s'
     )
 logger = _logger
+
+# ✅ PATCH 1: 유니버스 수집 중복 방지 - 전역 캐시 & 인플라이트 락
+_universe_cache = None
+_universe_ts = 0.0
+_universe_lock = threading.Lock()
+_INFLIGHT = False
+
+# ✅ PATCH 2: ETF/우선주/리츠 1차 필터링 상수
+ETF_PREFIX = {"TIGER", "KODEX", "KBSTAR", "ARIRANG", "HANARO", "KOSEF"}
+# ✅ FIX: 한글 안전 정규식 (\b는 한글 경계 인식 불가)
+EXCLUDE_REGEX = (
+    r"(ETF|ETN|REIT)"
+    r"|리츠"
+    r"|(?:우선주|우B)(?:\s|$|[\)\]])"
+    r"|(?:\s|^|\()[A-Za-z]{2,}\s*ETF(?:\s|$|[\)\]])"
+)
+EXCLUDE_RE = re.compile(EXCLUDE_REGEX, re.IGNORECASE)
+
+# ✅ PATCH 3: 섹터 정규화 매핑 (가스/유틸리티 통합)
+SECTOR_NORMALIZE = {
+    "가스": "유틸리티",
+    "유틸리티": "유틸리티",
+    "에너지": "유틸리티",
+    "전력": "유틸리티",
+    "전기전자": "전기전자",
+    "철강/화학": "소재",
+    "소재": "소재",
+    "유통": "소매/유통",
+    "소매": "소매/유통",
+}
+
+# ✅ FIX: 더미 데이터 상수화 (mcp_kis_integration.py와 동기화)
+DUMMY_SENTINEL = 150.0  # 결측값 채움 더미 (debt_ratio, current_ratio 등)
 
 # ✅ Streamlit ScriptRunContext 경고 숨기기
 logging.getLogger("streamlit.runtime.scriptrunner_utils.script_run_context").setLevel(logging.ERROR)
@@ -57,7 +101,8 @@ try:
     HAS_IMPROVEMENTS = True
 except ImportError:
     HAS_IMPROVEMENTS = False
-    print("⚠️ value_finder_improvements 모듈을 찾을 수 없습니다. 기본 평가 방식을 사용합니다.")
+    # ✅ FIX: print → logger (Streamlit 렌더 순서 보호)
+    logger.warning("⚠️ value_finder_improvements 모듈을 찾을 수 없습니다. 기본 평가 방식을 사용합니다.")
 
 # ✅ v2.1 Quick Patches 임포트
 try:
@@ -68,14 +113,29 @@ except ImportError:
     # Fallback: 인라인 구현
     class QuickPatches:
         @staticmethod
-        def clean_name(s): return ''.join(ch for ch in (s or '').strip() if ch.isprintable())
+        def clean_name(s):
+            """✅ FIX: 이름 클린 고도화 (연속 공백 정리 + 유니코드 정규화)"""
+            s = ''.join(ch for ch in (s or '') if ch.isprintable())
+            s = unicodedata.normalize("NFC", s)
+            return re.sub(r"\s+", " ", s).strip()
+        
         @staticmethod
         def short_text(s, width=120): return s if len(s or '') <= width else s[:width-3]+'...'
+        
         @staticmethod
         def merge_options(opts):
-            defaults = {'per_max': 15.0, 'pbr_max': 1.5, 'roe_min': 10.0, 'score_min': 60.0, 
-                       'percentile_cap': 99.5, 'api_strategy': "안전 모드 (배치 처리)", 
-                       'fast_mode': False, 'fast_latency': 0.7}
+            # ✅ FIX: 퍼센트 기반 점수 기본값 추가
+            defaults = {
+                'per_max': 15.0, 
+                'pbr_max': 1.5, 
+                'roe_min': 10.0, 
+                'score_min': 71.5,  # 하위 호환 (143 * 0.5)
+                'score_min_pct': 50.0,  # ✅ NEW: 퍼센트 기본값
+                'percentile_cap': 99.5, 
+                'api_strategy': "안전 모드 (배치 처리)", 
+                'fast_mode': False, 
+                'fast_latency': 0.7
+            }
             out = defaults.copy()
             if opts: out.update({k: v for k, v in opts.items() if v is not None})
             return out
@@ -110,21 +170,21 @@ try:
     HAS_FINANCIAL_PROVIDER = True
 except ImportError:
     HAS_FINANCIAL_PROVIDER = False
-    print("⚠️ financial_data_provider 모듈을 찾을 수 없습니다. 기본 데이터 제공자를 사용합니다.")
+    logger.warning("⚠️ financial_data_provider 모듈을 찾을 수 없습니다. 기본 데이터 제공자를 사용합니다.")
 
 try:
     from sector_contextualizer import SectorCycleContextualizer
     HAS_SECTOR_CONTEXTUALIZER = True
 except ImportError:
     HAS_SECTOR_CONTEXTUALIZER = False
-    print("⚠️ sector_contextualizer 모듈을 찾을 수 없습니다. 섹터 컨텍스트 기능이 제한됩니다.")
+    logger.warning("⚠️ sector_contextualizer 모듈을 찾을 수 없습니다. 섹터 컨텍스트 기능이 제한됩니다.")
 
 try:
     from sector_utils import get_sector_benchmarks
     HAS_SECTOR_UTILS = True
 except ImportError:
     HAS_SECTOR_UTILS = False
-    print("⚠️ sector_utils 모듈을 찾을 수 없습니다. 기본 섹터 벤치마크를 사용합니다.")
+    logger.warning("⚠️ sector_utils 모듈을 찾을 수 없습니다. 기본 섹터 벤치마크를 사용합니다.")
     # ✅ 폴백 함수 제공 (시그니처 호환)
     def get_sector_benchmarks(sector: str = '기타', *_args, **_kwargs):
         """기본 섹터 벤치마크 (폴백) — 호출 시그니처 호환"""
@@ -341,8 +401,76 @@ class TokenBucket:
                 return False
             time.sleep(sleep_time)
 
+# ✅ PATCH 2: ETF/우선주 필터링 헬퍼 (컴파일된 정규식 사용)
+def _is_excludable(row):
+    """ETF/우선주/리츠 제외 판정"""
+    # ✅ FIX: EXCLUDE_RE가 이미 IGNORECASE이므로 upper() 불필요
+    name = str(row.get("name",""))
+    name_upper = name.upper()
+    # ETF 프리픽스는 대문자로 체크
+    if any(name_upper.startswith(p) for p in ETF_PREFIX): 
+        return True
+    # KRX 섹터 코드로도 추가 배제
+    if row.get("asset_type") in {"ETF","ETN","REIT"}: 
+        return True
+    # 정규식은 원본 이름에 적용 (IGNORECASE 플래그 사용)
+    return EXCLUDE_RE.search(name) is not None
+
+# ✅ DEPRECATED: 간소화된 섹터 정규화 (사용 안 함)
+# ⚠️ 실제로는 ValueStockFinder._normalize_sector_name() 메서드를 사용
+# 여기는 하위 호환성 유지를 위해만 남김
+def normalize_sector(raw):
+    """[DEPRECATED] 섹터 정규화 (가스→유틸리티, 전기전자 고정 등)
+    
+    ⚠️ 이 함수는 더 이상 사용되지 않습니다.
+    대신 ValueStockFinder._normalize_sector_name()을 사용하세요.
+    """
+    r = str(raw or "").replace("/", "").replace(" ", "")
+    for k in ("가스","유틸리티","에너지","전력"):
+        if k in r: return "유틸리티"
+    if "전기전자" in r: return "전기전자"
+    if "철강" in r or "화학" in r: return "소재"
+    if "유통" in r or "소매" in r: return "소매/유통"
+    return raw or "기타"
+
+def _to_major_sector(sec):
+    """마이크로 섹터 → 메이저 섹터 매핑"""
+    major_map = {
+        "유틸리티": "유틸리티",
+        "전기전자": "전기전자",
+        "소재": "제조업",
+        "소매/유통": "유통",
+        "금융": "금융",
+        "IT": "IT",
+    }
+    return major_map.get(sec, "기타")
+
+# ✅ PATCH 6: 캘리브레이션 커트라인 자동 로드
+def load_cutoffs(path_pattern="logs/calibration/calibration_*.json"):
+    """최신 캘리브레이션 파일에서 컷오프 로드"""
+    import glob
+    files = sorted(glob.glob(path_pattern))
+    if not files: 
+        return {'BUY':40,'HOLD':22,'SELL':0,'STRONG_BUY':67}
+    try:
+        with open(files[-1],'r',encoding='utf-8') as f:
+            js = json.load(f)
+        cutoffs = js.get("suggested_cutoffs", {'BUY':40,'HOLD':22,'SELL':0,'STRONG_BUY':67})
+        logger.info(f"✅ 캘리브레이션 커트라인 로드: {cutoffs} (from {os.path.basename(files[-1])})")
+        return cutoffs
+    except Exception as e:
+        logger.warning(f"캘리브레이션 로드 실패: {e}")
+        return {'BUY':40,'HOLD':22,'SELL':0,'STRONG_BUY':67}
+
+# 전역 커트라인 (앱 시작 시 로드)
+CALIBRATION_CUTOFFS = load_cutoffs()
+
 class ValueStockFinder:
     """저평가 가치주 발굴 시스템"""
+    
+    # ✅ v2.3.1: 세션 캐시 (중복 수집 방지)
+    _session_universe = None
+    _session_universe_size = 0
     
     # UI 업데이트 상수 (동적 디바운스)
     def _safe_progress(self, progress_bar, progress, text):
@@ -408,22 +536,42 @@ class ValueStockFinder:
     
     @staticmethod
     def _resolve_token_cache_path() -> str:
-        """✅ PATCH v2.2: 토큰 캐시 경로 결정 (환경변수 우선, 다중 사용자 안전)"""
+        """✅ FIX: 토큰 캐시 경로 결정 (Streamlit Cloud/컨테이너 대응 강화)"""
+        # 1순위: 환경변수 (명시적 지정)
         env_path = os.environ.get("KIS_TOKEN_CACHE_PATH")
         if env_path:
-            # 환경변수 지정 시 디렉터리 자동 생성
             try:
-                os.makedirs(os.path.dirname(env_path), exist_ok=True)
+                dir_path = os.path.dirname(env_path)
+                if dir_path:  # 빈 문자열 방지
+                    os.makedirs(dir_path, exist_ok=True)
                 return env_path
             except Exception as e:
-                logger.warning(f"환경변수 경로 생성 실패: {e}, 기본 경로 사용")
+                logger.debug(f"환경변수 경로 생성 실패: {e}, 기본 경로 사용")
         
-        # 기본 경로: 홈 디렉터리
-        home = os.path.join(os.path.expanduser("~"), '.kis_token_cache.json')
-        if os.path.isdir(os.path.dirname(home)):
+        # 2순위: ~/.cache/kis/ (XDG 표준 + 컨테이너 안전)
+        try:
+            cache_dir = os.path.join(os.path.expanduser("~"), '.cache', 'kis')
+            os.makedirs(cache_dir, exist_ok=True)
+            cache_path = os.path.join(cache_dir, 'token.json')
+            # 쓰기 권한 테스트
+            with open(cache_path, 'a'):
+                pass
+            return cache_path
+        except Exception as e:
+            logger.debug(f"XDG 캐시 경로 생성 실패: {e}")
+        
+        # 3순위: 홈 디렉터리 루트
+        try:
+            home = os.path.join(os.path.expanduser("~"), '.kis_token_cache.json')
+            # 쓰기 권한 테스트
+            with open(home, 'a'):
+                pass
             return home
+        except Exception as e:
+            logger.debug(f"홈 디렉터리 경로 생성 실패: {e}")
         
-        # 폴백: 현재 디렉터리
+        # 4순위 (최종 폴백): 현재 디렉터리
+        logger.warning("⚠️ 토큰 캐시를 현재 디렉터리에 저장합니다 (권한 이슈)")
         return os.path.abspath('.kis_token_cache.json')
     
     def __init__(self):
@@ -591,7 +739,7 @@ class ValueStockFinder:
         )
         
         # MCP KIS 통합 초기화 (캐싱으로 중복 방지)
-        self.mcp_integration = self._get_mcp_integration()
+        self.mcp_integration = self._get_mcp_singleton()
         
         # 가치주 평가 기준 (업종별 동적 기준으로 대체)
         self.default_value_criteria = {
@@ -721,8 +869,9 @@ class ValueStockFinder:
                     self._failed_codes_ttl.pop(code, None)
                     self._failed_codes.discard(code)
 
-    def _get_mcp_integration(self):
-        """MCP 통합 초기화 (중복 방지, ChatGPT 권장 - 전역 캐시 사용)"""
+    def _get_mcp_singleton(self):
+        """✅ FIX: 네이밍 충돌 해소 (전역 함수와 구분)
+        MCP 통합 초기화 (중복 방지, ChatGPT 권장 - 전역 캐시 사용)"""
         # ✅ 전역 싱글톤 사용 (중복 초기화 완전 제거)
         return _get_mcp_integration()
     
@@ -735,7 +884,28 @@ class ValueStockFinder:
         return self._analyzer
     
     def get_sector_specific_criteria(self, sector: str) -> Dict[str, float]:
-        """업종별 가치주 평가 기준 반환"""
+        """
+        ✅ v2.3: 업종별 가치주 평가 기준 반환 (섹터 키 매핑 추가)
+        
+        정규화된 섹터명을 기준 딕셔너리 키로 매핑
+        """
+        # ✅ v2.3: 정규화된 섹터명 → 기준 딕셔너리 키 매핑
+        sector_key_mapping = {
+            '금융': '금융업',
+            'IT': '기술업',
+            '제조업': '제조업',
+            '제약': '바이오/제약',
+            '철강/화학': '에너지/화학',
+            '석유': '에너지/화학',
+            '통신': '통신업',
+            '건설': '건설업',
+            '운송': '운송/물류',     # 물류 자체 기준
+            '운송장비': '운송장비',  # 자동차 자체 기준
+            '전기전자': '전기전자',  # ✅ v2.3.1: 자체 기준으로 변경
+            '유통': '소비재',
+            '기타': None  # 기본값 사용
+        }
+        
         # sector_utils.py의 벤치마크를 기반으로 한 업종별 기준
         sector_criteria = {
             '금융업': {
@@ -801,27 +971,73 @@ class ValueStockFinder:
                 'dividend_min': 2.5,
                 'debt_ratio_max': 55.0,
                 'current_ratio_min': 110.0
+            },
+            # ✅ v2.3.1: 전기전자/운송 자체 기준 추가
+            '전기전자': {
+                'per_max': 20.0,    # 반도체 사이클 고려
+                'pbr_max': 2.5,     # 기술 프리미엄
+                'roe_min': 8.0,     # 사이클 특성
+                'dividend_min': 1.5,
+                'debt_ratio_max': 45.0,
+                'current_ratio_min': 110.0
+            },
+            '운송장비': {
+                'per_max': 15.0,    # 자동차 산업
+                'pbr_max': 1.5,     # 제조업 특성
+                'roe_min': 10.0,
+                'dividend_min': 2.0,
+                'debt_ratio_max': 50.0,
+                'current_ratio_min': 100.0
+            },
+            '운송/물류': {
+                'per_max': 15.0,    # 물류/해운
+                'pbr_max': 1.8,     # 사이클 특성
+                'roe_min': 8.0,     # 변동성 고려
+                'dividend_min': 2.5,
+                'debt_ratio_max': 60.0,
+                'current_ratio_min': 100.0
             }
         }
         
-        # 정규화된 섹터명 사용
+        # ✅ v2.3: 정규화 → 매핑 → 기준 조회
         normalized_sector = self._normalize_sector_name(sector)
-        return sector_criteria.get(normalized_sector, self.default_value_criteria)
+        mapped_key = sector_key_mapping.get(normalized_sector, normalized_sector)
+        
+        if mapped_key is None:
+            return self.default_value_criteria
+        
+        criteria = sector_criteria.get(mapped_key, self.default_value_criteria)
+        
+        # ✅ DEBUG: 첫 실행 시 매핑 확인
+        if not hasattr(self, '_sector_mapping_logged'):
+            logger.info(f"✅ 섹터 기준 매핑: '{normalized_sector}' → '{mapped_key}' (PER≤{criteria['per_max']}, PBR≤{criteria['pbr_max']}, ROE≥{criteria['roe_min']})")
+            self._sector_mapping_logged = True
+        
+        return criteria
     
     def _normalize_sector_name(self, sector: str) -> str:
         """
-        ✅ v2.2.3: 섹터명 정규화 (보수화 + 우선순위)
+        ✅ PATCH 3: 섹터명 정규화 (가스→유틸리티 통합, 전기전자 고정)
         
         개선사항:
+        - 가스/유틸리티/에너지/전력 → 유틸리티 통합
+        - 전기전자 우선 매핑
         - 긴 키워드 우선 매칭 (타이어, 지주회사, 보험 세분화)
         - 충돌 키워드(금융) 후순위
-        - 자동차 관련 → 운송장비 통합
         """
         if not sector or not isinstance(sector, str):
             return '기타'
         
         s = sector.strip()
         s_lower = s.lower()
+        
+        # ✅ PATCH 3: 가스/유틸리티/전력 → 유틸리티 통합 (최우선)
+        # ✅ FIX: 석유/정유는 제외하고 에너지만 유틸리티로
+        if any(kw in s_lower for kw in ['가스', '유틸리티', 'utility', '전력', 'power', 'electric power']):
+            return '유틸리티'
+        # 에너지는 석유/정유 제외하고만 유틸리티로
+        if '에너지' in s_lower and not any(kw in s_lower for kw in ['석유', '정유', 'oil']):
+            return '유틸리티'
         
         # ✅ 우선순위 1: 정확한 긴 키워드 (타이어, 지주, 보험 등)
         
@@ -842,20 +1058,17 @@ class ValueStockFinder:
         if any(kw in s_lower for kw in ['소프트웨어', '인터넷', '게임', '플랫폼', 'software', 'internet', 'game']):
             return 'IT'
         
-        # 반도체
+        # ✅ PATCH 3: 전기전자 우선 매핑 (반도체, 2차전지, 전자, 전기)
+        if '전기전자' in s_lower:
+            return '전기전자'
         if '반도체' in s_lower or 'semiconductor' in s_lower:
             return '전기전자'
-        
-        # 2차전지/배터리
         if any(kw in s_lower for kw in ['2차전지', '배터리', '전지', 'battery']):
-            return '전기전자'
-        
-        # 전자/전기
-        if '전기전자' in s_lower:
             return '전기전자'
         if '전자' in s_lower or 'electronics' in s_lower:
             return '전기전자'
-        if '전기' in s_lower or 'electric' in s_lower:
+        # 전기 단독은 유틸리티와 구분 (전기기기 등)
+        if '전기' in s_lower and '전력' not in s_lower:
             return '전기전자'
         
         # IT (포괄)
@@ -868,8 +1081,8 @@ class ValueStockFinder:
             return '철강/화학'
         if '화학' in s_lower or 'chemical' in s_lower:
             return '철강/화학'
-        # ✅ v2.3: DB에 '석유'로 저장됨
-        if '에너지' in s_lower or 'energy' in s_lower or '석유' in s_lower or '정유' in s_lower:
+        # ✅ FIX: 석유/정유는 별도 섹터 (위에서 에너지 처리 완료)
+        if '석유' in s_lower or '정유' in s_lower or 'oil' in s_lower:
             return '석유'
         # ✅ v2.3: 제약/바이오 통합
         if '제약' in s_lower or 'pharma' in s_lower or '바이오' in s_lower or 'bio' in s_lower:
@@ -930,7 +1143,14 @@ class ValueStockFinder:
         return f"PER≤{per:.1f}, PBR≤{pbr:.1f}, ROE≥{roe:.1f}%"
     
     def is_value_stock_unified(self, stock_data: Dict[str, Any], options: Dict[str, Any]) -> bool:
-        """✅ 가치주 판단 로직 통일 (업종별 기준 + 사용자 슬라이더 결합)"""
+        """
+        ✅ FIX: 가치주 판단 로직 (퍼센트 기반 점수 컷으로 통일)
+        
+        변경사항:
+        - 3개 모두 충족 → 최소 2개 충족 (2/3 규칙)
+        - 이상치 클립 완화 (PER 150, PBR 15)
+        - ✅ NEW: raw 점수 → 퍼센트 변환 (UI와 일관성)
+        """
         # 업종별 가치주 기준 체크
         sector_name = stock_data.get('sector_name', stock_data.get('sector', ''))
         policy = self.get_sector_specific_criteria(sector_name)
@@ -944,18 +1164,33 @@ class ValueStockFinder:
         pbr = stock_data.get('pbr', 0) or 0
         roe = stock_data.get('roe', 0) or 0
         
-        # 이상치 하드 클립 (분포/퍼센타일 안정화) - 보수적 상한으로 노이즈 감소
-        per = per if 0 < per < 120 else 0
-        pbr = pbr if 0 < pbr < 10 else 0
+        # ✅ v2.3.1: 이상치 클립
+        per = per if 0 < per < 150 else 0
+        pbr = pbr if 0 < pbr < 15 else 0
+        
         value_score = stock_data.get('value_score', 0)
-        score_min = options.get('score_min', 60.0)
+        
+        # ✅ FIX: raw 점수 → 퍼센트 변환 (최대 143점 기준)
+        MAX_SCORE = 143.0
+        score_pct = (value_score / MAX_SCORE) * 100.0
+        
+        # ✅ FIX: 퍼센트 기반 컷오프 (UI와 일관성)
+        # score_min_pct: 기본 50% (UI 슬라이더 기본값 60과 대응)
+        score_min_pct = options.get('score_min_pct', 50.0)
+        
+        # 하위 호환: score_min (raw)이 있으면 변환
+        if 'score_min' in options and 'score_min_pct' not in options:
+            score_min_pct = (options['score_min'] / MAX_SCORE) * 100.0
         
         per_ok = per > 0 and per <= per_max
         pbr_ok = pbr > 0 and pbr <= pbr_max
         roe_ok = roe > 0 and roe >= roe_min
         
-        # 3가지 기준 모두 충족 AND 사용자 설정 최소 점수 통과
-        return (per_ok and pbr_ok and roe_ok) and (value_score >= score_min)
+        # ✅ v2.3: 3개 모두 충족 → 2/3 규칙 (완화)
+        criteria_passed = sum([per_ok, pbr_ok, roe_ok])
+        
+        # 최소 2개 기준 충족 AND 퍼센트 점수 통과
+        return (criteria_passed >= 2) and (score_pct >= score_min_pct)
         
     def format_pct_or_na(self, value: Optional[float], precision: int = 1) -> str:
         """퍼센트 값 포맷팅 (None/NaN일 경우 N/A)"""
@@ -985,7 +1220,7 @@ class ValueStockFinder:
         # 메타데이터 생성
         metadata_lines = [
             "# 저평가 가치주 발굴 시스템 - 스크리닝 결과",
-            f"# 버전: v2.2.2",
+            f"# 버전: {APP_VERSION}",
             f"# 생성일시: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
             f"# ",
             f"# [스크리닝 파라미터]",
@@ -1242,8 +1477,10 @@ class ValueStockFinder:
         t = 1.0 - max(0.0, min(1.0, t)) if not higher_is_better else max(0.0, min(1.0, t))
         return cap * t
     
+    @lru_cache(maxsize=64)
     def _cached_sector_data(self, sector_name: str):
         """
+        ✅ FIX: lru_cache 추가 (cache_clear() 지원 + 중복 조회 방지)
         ✅ v2.3: 섹터 데이터와 벤치마크를 캐시하여 API 부담 감소
         
         우선순위 (다층 캐시):
@@ -1291,6 +1528,8 @@ class ValueStockFinder:
             else:
                 logger.debug(f"⚠️ 섹터 표본 부족: {normalized} (data_provider)")
         
+        # ✅ FIX: 안전 폴백 (stats가 None일 때 빈 dict 보장)
+        stats = stats or {}
         bench = get_sector_benchmarks(normalized, None, stats)
         return stats, bench
 
@@ -1376,23 +1615,28 @@ class ValueStockFinder:
         pbr_val = stock_data.get('pbr') or 0.0
         roe_val = stock_data.get('roe') or 0.0
 
-        # ✅ v2.2.2: 글로벌 대체를 사용하여 퍼센타일 계산
+        # ✅ FIX: 가드 통일 (PER/PBR/ROE 일관성)
         per_pct = None
         pbr_pct = None
         roe_pct = None
         
+        # PER: 양수만 계산
         if per_val > 0:
             per_pct = self._percentile_from_breakpoints_v2(
                 per_val, per_percentiles, 'per', use_global=True
             )
         
-        pbr_pct = self._percentile_from_breakpoints_v2(
-            pbr_val, pbr_percentiles, 'pbr', use_global=True
-        )
+        # PBR: 양수만 계산
+        if pbr_val > 0:
+            pbr_pct = self._percentile_from_breakpoints_v2(
+                pbr_val, pbr_percentiles, 'pbr', use_global=True
+            )
         
-        roe_pct = self._percentile_from_breakpoints_v2(
-            roe_val, roe_percentiles, 'roe', use_global=True
-        )
+        # ROE: 0이 아닌 값만 계산
+        if roe_val != 0:
+            roe_pct = self._percentile_from_breakpoints_v2(
+                roe_val, roe_percentiles, 'roe', use_global=True
+            )
         
         # 퍼센타일 → 점수 변환 (각 20점 캡)
         cap = 20.0
@@ -1727,13 +1971,25 @@ class ValueStockFinder:
         
         # 2) 지속성장률 g = ROE × b
         roe_decimal = roe / 100.0 if roe > 0 else 0.0
-        g = max(0.0, roe_decimal * b)
+        g_raw = max(0.0, roe_decimal * b)
         
-        # ✅ PATCH v2.2: g >= r 안전장치 강화 + 사용자 메시지 명시
-        if g >= r or roe_decimal <= 0:
-            if g >= r:
-                logger.info(f"⚠️ MoS 계산 불가(레짐 상 성장률≥요구수익률): {sector} g={g:.2%} >= r={r:.2%}, ROE={roe:.1f}%")
-                # ✅ 사용자에게 표시할 메시지 (stock_data에 플래그 저장 가능)
+        # ✅ v2.3.1: g >= r 완화 클램프 (차단 → 클램핑) + b 재조정
+        # g가 r에 닿으면 b를 조정하여 g를 r-3% 이하로 끌어내림
+        margin = 0.03  # 0.02 → 0.03 (더 넉넉한 마진)
+        if g_raw >= r - margin:
+            # b를 줄여서 g를 안전하게 끌어내림
+            if roe_decimal > 1e-6:
+                b_adjusted = min(b, (r - margin) / roe_decimal)
+                g = max(0.0, roe_decimal * b_adjusted)
+                if g_raw >= r:
+                    logger.debug(f"✅ g 클램핑: {sector} g={g_raw:.2%} → {g:.2%} (r={r:.2%}, b={b:.2f}→{b_adjusted:.2f})")
+            else:
+                g = max(0.0, r - margin)
+        else:
+            g = g_raw
+        
+        # ROE ≤ 0이면 여전히 None (의미 없음)
+        if roe_decimal <= 0:
             return None, None
         
         # 3) 정당 멀티플 계산
@@ -1775,15 +2031,35 @@ class ValueStockFinder:
         return sector_b.get(sector, 0.35)
     
     def compute_mos_score(self, per, pbr, roe, sector):
-        """✅ 안전마진(MoS) 점수 계산 (0~100점) - v2.2 동적 r, b 적용"""
+        """✅ PATCH 4: 안전마진(MoS) 점수 계산 (이상치 하드캡 + DEBUG 로깅)"""
         # ✅ 섹터 정규화 추가 (정확도 향상)
         sector = self._normalize_sector_name(sector or '')
         
-        # ✅ PATCH v2.2.1: MoS 입력 검증 (로그 레벨 INFO로 상향)
+        # ✅ PATCH 4: 이상치 하드캡 (입력 검증 강화)
+        per_orig, pbr_orig, roe_orig = per, pbr, roe
+        
+        # ✅ FIX: PER/PBR 상한 통일 (is_value_stock_unified와 일치)
+        # PER: 0~150 범위만 신뢰
+        if per is None or per <= 0 or per > 150:
+            per = None
+        # ✅ FIX: PBR 상한 통일 (8 → 15)
+        # PBR: 0~15 범위만 신뢰
+        if pbr is None or pbr <= 0 or pbr > 15:
+            pbr = None
+        # ROE: -5%~60% 범위만 신뢰
+        if roe is None or roe < -5 or roe > 60:
+            roe = None
+        
+        # 이상치 드롭 시 DEBUG 로그 (스팸 방지)
+        if per is None or pbr is None or roe is None:
+            logger.debug(f"MoS 이상치 제외: PER={per_orig} PBR={pbr_orig} ROE={roe_orig} sector={sector}")
+            return 0
+        
+        # ✅ PATCH v2.2.1: MoS 입력 검증 (로그 레벨 DEBUG로 하향)
         if self.regime_calc and HAS_V22_IMPROVEMENTS:
             is_valid, msg = self.regime_calc.validate_mos_inputs(per, pbr, roe, sector)
             if not is_valid:
-                logger.info(f"⚠️ MoS 계산 제한: {msg} (sector={sector}, PER={per:.1f}, ROE={roe:.1f}%)")
+                logger.debug(f"MoS 계산 제한: {msg} (sector={sector}, PER={per:.1f}, ROE={roe:.1f}%)")
                 return 0
         
         pb_star, pe_star = self._justified_multiples(per, pbr, roe, sector)
@@ -1846,9 +2122,7 @@ class ValueStockFinder:
             debt_ratio_raw = stock_data.get('debt_ratio')
             current_ratio_raw = stock_data.get('current_ratio')
             
-            # 더미값 150.0 또는 None 제거
-            # ✅ v2.1.2: 더미값 상수화 (매직넘버 제거)
-            DUMMY_SENTINEL = 150.0  # mcp_kis_integration.py의 결측 채움값
+            # ✅ FIX: 전역 DUMMY_SENTINEL 사용 (중복 제거)
             debt_ratio = float(debt_ratio_raw) if debt_ratio_raw and debt_ratio_raw != DUMMY_SENTINEL else 0
             current_ratio = float(current_ratio_raw) if current_ratio_raw and current_ratio_raw != DUMMY_SENTINEL else 0
             
@@ -1881,15 +2155,38 @@ class ValueStockFinder:
             return None
     
     def evaluate_value_stock(self, stock_data, percentile_cap: float = 99.5):
-        """가치주 평가 (개선 버전)"""
+        """✅ PATCH 5: 가치주 평가 (리스크 선적용)"""
         try:
             score = 0
             details = {}
             
             # ✅ 1. 데이터 품질 가드 (우선 체크)
             if self.data_guard and self.data_guard.is_dummy_data(stock_data):
-                logger.warning(f"더미 데이터 감지 - 평가 제외: {stock_data.get('symbol', 'UNKNOWN')}")
+                logger.debug(f"더미 데이터 감지 - 평가 제외: {stock_data.get('symbol', 'UNKNOWN')}")
                 return None
+            
+            # ✅ PATCH 5: 리스크 평가 최우선 (HIGH 리스크면 즉시 SELL)
+            if self.risk_evaluator:
+                risk_penalty, risk_warnings = self.risk_evaluator.evaluate_all_risks(stock_data)
+                details['risk_penalty'] = risk_penalty
+                details['risk_warnings'] = risk_warnings
+                details['risk_count'] = len(risk_warnings)
+                
+                # HIGH 리스크 종목은 즉시 SELL 등급 (평가 생략)
+                if risk_penalty <= -30:  # 심각한 리스크
+                    logger.debug(f"HIGH 리스크 감지 ({risk_penalty}점) → SELL: {stock_data.get('symbol')}")
+                    return {
+                        'score': 0,
+                        'grade': 'SELL',
+                        'recommendation': 'SELL',
+                        'details': details,
+                        'risk_penalty': risk_penalty,
+                        'risk_warnings': risk_warnings
+                    }
+            else:
+                details['risk_penalty'] = 0
+                details['risk_warnings'] = []
+                details['risk_count'] = 0
             
             # 회계 이상 징후 체크
             if self.data_guard:
@@ -1899,7 +2196,7 @@ class ValueStockFinder:
                     # 심각한 이상 징후 시 경고
                     high_severity = [k for k, v in anomalies.items() if v.get('severity') == 'HIGH']
                     if high_severity:
-                        logger.warning(f"⚠️ {stock_data.get('symbol')}: 회계 이상 징후 감지 - {high_severity}")
+                        logger.debug(f"회계 이상 징후 감지: {stock_data.get('symbol')} - {high_severity}")
             
             dao = self._evaluate_sector_adjusted_metrics(stock_data, percentile_cap)
 
@@ -2013,13 +2310,13 @@ class ValueStockFinder:
             details['sector_bonus'] = sector_bonus
             details['criteria_met'] = criteria_met
             
-            # 4. ✅ 안전마진(MoS) 평가 (35점) - Justified Multiple 방식
+            # 4. ✅ 안전마진(MoS) 평가 (30점) - Justified Multiple 방식
             sector_name = stock_data.get('sector_name', stock_data.get('sector', ''))
             per = stock_data.get('per', 0)
             pbr = stock_data.get('pbr', 0)
             roe = stock_data.get('roe', 0)
             
-            # ✅ v2.1.3: Justified Multiple 기반 MoS 점수 (이미 35점 만점)
+            # ✅ v2.2.3: Justified Multiple 기반 MoS 점수 (30점 만점, 변별력 복원)
             # ⚠️ 중요: mos_score는 이미 0~30 점수로 스케일된 값입니다. 추가 스케일 금지!
             # compute_mos_score() 내부에서 cap_mos_score()가 *0.30 적용하여 0-30점 반환 (✅ v2.2.3 변별력 복원)
             mos_score = self.compute_mos_score(per, pbr, roe, sector_name)
@@ -2039,24 +2336,11 @@ class ValueStockFinder:
                 details['intrinsic_value'] = 0
                 details['confidence'] = 'UNKNOWN'
             
-            # ✅ v2.2.2: 리스크 플래그 감점 적용
-            if self.risk_evaluator:
-                risk_penalty, risk_warnings = self.risk_evaluator.evaluate_all_risks(stock_data)
-                
-                if risk_penalty < 0:
-                    logger.info(f"⚠️ {stock_data.get('symbol', 'N/A')}: 리스크 감점 {risk_penalty}점")
-                    score += risk_penalty  # 감점 적용
-                    details['risk_penalty'] = risk_penalty
-                    details['risk_warnings'] = risk_warnings
-                    details['risk_count'] = len(risk_warnings)
-                else:
-                    details['risk_penalty'] = 0
-                    details['risk_warnings'] = []
-                    details['risk_count'] = 0
-            else:
-                details['risk_penalty'] = 0
-                details['risk_warnings'] = []
-                details['risk_count'] = 0
+            # ✅ PATCH 5: 리스크 평가는 이미 맨 앞에서 완료 (중복 제거)
+            # 리스크 감점을 점수에 반영
+            if details.get('risk_penalty', 0) < 0:
+                score += details['risk_penalty']
+                logger.debug(f"리스크 감점 적용: {stock_data.get('symbol', 'N/A')} {details['risk_penalty']}점")
             
             # ✅ 5. 등급 결정 (개선된 점수 체계)
             # 총점 구성: PER/PBR/ROE(~60점) + 품질(43점) + 섹터보너스(10점) + MoS(30점) = 최대 143점 (✅ v2.2.3)
@@ -2093,25 +2377,26 @@ class ValueStockFinder:
             pbr_pass = pbr <= criteria['pbr_max'] if pbr > 0 else False
             roe_pass = roe >= criteria['roe_min'] if roe > 0 else False
             
-            # ✅ 추천 결정 로직 (백분율 기준으로 조정)
+            # ✅ PATCH 6: 캘리브레이션 커트오프 기반 추천 결정
             criteria_met_list = details['criteria_met']
             
-            # ✅ STEP 1: 기본 추천 산출 (점수 기반)
-            # 우수 가치주
-            if len(criteria_met_list) == 3 and score_pct >= 60:
+            # 캘리브레이션 커트오프 사용 (백분율 기준)
+            cut = CALIBRATION_CUTOFFS
+            
+            # ✅ STEP 1: 기본 추천 산출 (캘리브레이션 점수 기반)
+            if score_pct >= cut.get('STRONG_BUY', 67):
                 recommendation = "STRONG_BUY"
-            elif score_pct >= 65:
-                recommendation = "STRONG_BUY"
-            # 양호 가치주
-            elif len(criteria_met_list) >= 2 and score_pct >= 50:
+            elif score_pct >= cut.get('BUY', 40):
                 recommendation = "BUY"
-            elif score_pct >= 55:
-                recommendation = "BUY"
-            # 보류
-            elif score_pct >= 45:
+            elif score_pct >= cut.get('HOLD', 22):
                 recommendation = "HOLD"
             else:
                 recommendation = "SELL"
+            
+            # 추가 보너스: 3개 기준 완벽 충족 시 한 단계 상향
+            if len(criteria_met_list) == 3 and recommendation == "BUY":
+                recommendation = "STRONG_BUY"
+                logger.debug(f"업종 3개 기준 완벽 충족 → STRONG_BUY 상향")
             
             # ✅ STEP 2: 다운그레이드 함수 정의
             def downgrade(r):
@@ -2192,11 +2477,11 @@ class ValueStockFinder:
     
     def render_header(self):
         """헤더 렌더링"""
-        st.title("💎 저평가 가치주 발굴 시스템 v2.2.0")
+        st.title(f"💎 저평가 가치주 발굴 시스템 {APP_VERSION}")
         
-        # ✅ v2.2 개선 사항 배지
+        # ✅ v2.3 개선 사항 배지
         if HAS_V22_IMPROVEMENTS:
-            st.success("🚀 **v2.2.0 (Evidence-Based)** - 동적 r/b · 데이터 가드 · 캘리브레이션 적용 중")
+            st.success(f"🚀 **{APP_VERSION} (Soft Filters)** - 소프트 필터 · 섹터 매핑 · 2/3 규칙 · 동적 평가 적용 중")
         
         st.markdown("**목적**: 업종별 특성을 반영한 저평가 가치주 발굴")
         st.markdown("**기준**: 각 업종별 PER, PBR, ROE 기준에 따른 상대적 저평가 종목 선별")
@@ -2290,7 +2575,15 @@ class ValueStockFinder:
         per_max = st.sidebar.slider("PER 최대값", 5.0, 50.0, per_default, 0.5, key="per_max_slider")
         pbr_max = st.sidebar.slider("PBR 최대값", 0.5, 5.0, pbr_default, 0.1, key="pbr_max_slider")
         roe_min = st.sidebar.slider("ROE 최소값", 0.0, 30.0, roe_default, 0.5, key="roe_min_slider")
-        score_min = st.sidebar.slider("최소 점수", 30.0, 100.0, 60.0, 5.0, key="score_min_slider")
+        # ✅ FIX: 퍼센트 기반 점수 슬라이더 (raw 점수와 명확히 구분)
+        score_min_pct = st.sidebar.slider(
+            "최소 점수 (퍼센트)", 
+            20.0, 90.0, 50.0, 5.0, 
+            key="score_min_pct_slider",
+            help="가치주 판정 기준 점수 (백분율). 기본 50% = 143점 만점 중 71.5점"
+        )
+        # 하위 호환: score_min (raw) 병행 제공
+        score_min = (score_min_pct / 100.0) * 143.0
         
         # 빠른 모드 튜닝 파라미터
         st.sidebar.subheader("⚙️ 성능 튜닝")
@@ -2415,7 +2708,8 @@ class ValueStockFinder:
             'per_max': per_max,
             'pbr_max': pbr_max,
             'roe_min': roe_min,
-            'score_min': score_min,
+            'score_min': score_min,  # 하위 호환 (raw 점수)
+            'score_min_pct': score_min_pct,  # ✅ FIX: 퍼센트 기반 점수
             'fast_latency': fast_latency,
             'percentile_cap': percentile_cap,
             # ✅ 빠른 모드 플래그 (토큰버킷 타임아웃 계산에 사용)
@@ -2426,34 +2720,63 @@ class ValueStockFinder:
         }
     
     def get_stock_universe_from_api(self, max_count: int = 250):
-        """KIS API로 시가총액순 종목 리스트 가져오기 (캐시 적용)"""
+        """✅ PATCH 1: KIS API로 시가총액순 종목 리스트 가져오기 (중복 수집 방지 + 락)"""
+        global _universe_cache, _universe_ts, _INFLIGHT
+        
+        now = time.time()
+        ttl = 900  # 15분 캐시
+        
+        # 디바운스: 이미 수집 중이면 기존 캐시 반환
+        with _universe_lock:
+            if _INFLIGHT and _universe_cache is not None:
+                logger.info(f"UNIVERSE: 수집 중... 기존 캐시 반환 ({len(_universe_cache)}개)")
+                return dict(list(_universe_cache.items())[:max_count]), True
+            
+            # TTL 내 캐시 사용
+            if _universe_cache and (now - _universe_ts) < ttl and len(_universe_cache) >= max_count:
+                logger.info(f"UNIVERSE: 캐시 히트 ({len(_universe_cache)}개, ttl={int(ttl-(now-_universe_ts))}s)")
+                return dict(list(_universe_cache.items())[:max_count]), True
+            
+            _INFLIGHT = True
+        
         try:
             # ✅ 토큰 가드: None이면 즉시 폴백 전환
             token = self.oauth_manager.get_valid_token()
             if token is None:
                 logger.warning("KIS 토큰 없음 → API 경로 skip, 폴백 전환")
                 fallback = self._get_fallback_stock_list()
+                with _universe_lock:
+                    _universe_cache = fallback
+                    _universe_ts = time.time()
                 return dict(list(fallback.items())[:max_count]), False
             
             # 캐시된 API 호출
             stock_universe, api_success = _cached_universe_from_api(max_count)
             
             if stock_universe and api_success:
-                # 섹터 정보가 없으므로 여기서는 통계 갱신 생략
-                # 실제 섹터는 analyze_single_stock_parallel에서 확보됨
-                logger.info(f"캐시된 API에서 {len(stock_universe)}개 종목을 가져왔습니다 (섹터는 분석 단계에서 자동 보강).")
+                with _universe_lock:
+                    _universe_cache = stock_universe
+                    _universe_ts = time.time()
+                logger.info(f"UNIVERSE: API 성공 ({len(stock_universe)}개 수집)")
                 return stock_universe, True
             else:
                 logger.warning("캐시된 API에서 종목 리스트를 가져오지 못했습니다. 기본 종목을 사용합니다.")
                 fallback = self._get_fallback_stock_list()
-                # 요청된 개수만큼만 반환
+                with _universe_lock:
+                    _universe_cache = fallback
+                    _universe_ts = time.time()
                 return dict(list(fallback.items())[:max_count]), False
                 
         except Exception as e:
             logger.error(f"캐시된 API 종목 리스트 조회 실패: {e}")
             fallback = self._get_fallback_stock_list()
-            # 요청된 개수만큼만 반환
+            with _universe_lock:
+                _universe_cache = fallback
+                _universe_ts = time.time()
             return dict(list(fallback.items())[:max_count]), False
+        finally:
+            with _universe_lock:
+                _INFLIGHT = False
     
     def _get_fallback_stock_list(self):
         """API 실패 시 사용할 기본 종목 리스트 (정제된 200개)"""
@@ -2639,6 +2962,19 @@ class ValueStockFinder:
             logger.info(f"BAD_CODES 필터 적용 후: {len(stock_universe)}개 종목")
         except Exception:
             pass
+        
+        # ✅ PATCH 2: ETF/우선주/리츠 필터링
+        try:
+            pre_filter_count = len(stock_universe)
+            stock_universe = {
+                c: n for c, n in stock_universe.items()
+                if not _is_excludable({'code': c, 'name': n})
+            }
+            filtered_count = pre_filter_count - len(stock_universe)
+            if filtered_count > 0:
+                logger.info(f"ETF/우선주/리츠 필터 적용: {filtered_count}개 제외, {len(stock_universe)}개 남음")
+        except Exception as e:
+            logger.warning(f"ETF 필터 적용 실패: {e}")
         
         return stock_universe
     
@@ -3731,10 +4067,10 @@ class ValueStockFinder:
                             mos_detail = ""
                         
                         st.info(f"""
-                        **안전마진(MoS) 분석** (35점 만점)
+                        **안전마진(MoS) 분석** (30점 만점)
                         - 내재가치: {value_analysis['details']['intrinsic_value']:,.0f}원
                         - 안전마진(참고): {value_analysis['details']['safety_margin']:+.1f}%
-                        - MoS 점수(0~35): {mos_score:.1f}점
+                        - MoS 점수(0~30): {mos_score:.1f}점
                         - MoS 원점수(0~100): {mos_raw:.1f}%
                         - 평가: {'매우 안전' if mos_raw >= 30 else '안전' if mos_raw >= 20 else '보통' if mos_raw >= 10 else '주의'}
                         
@@ -4066,7 +4402,7 @@ class ValueStockFinder:
                             roe = stock.get('roe', 0)
                             sector = stock.get('sector', '')
                             
-                            # MoS 점수 계산 (0-35점)
+                            # MoS 점수 계산 (0-30점)
                             mos_score = self.compute_mos_score(per, pbr, roe, sector)
                             stock['mos_score'] = mos_score
                             stock['mos_points'] = mos_score
@@ -4149,7 +4485,7 @@ class ValueStockFinder:
                             with col1:
                                 debt_ratio = stock_detail.get('debt_ratio', 0)
                                 # ✅ v2.1.2: 더미값 상수화 (매직넘버 제거)
-                                DUMMY_SENTINEL = 150.0  # mcp_kis_integration.py의 결측 채움값
+                                # ✅ FIX: 전역 DUMMY_SENTINEL 사용
                                 if debt_ratio == DUMMY_SENTINEL or debt_ratio == 0 or debt_ratio is None:
                                     st.metric("부채비율", "N/A", help="데이터 없음")
                                 else:
@@ -4225,7 +4561,7 @@ class ValueStockFinder:
                                 {'항목': 'PBR 점수', '점수': f"{score_details.get('pbr_score', 0):.1f}", '가중치': '20점', '상태': '✅' if score_details.get('pbr_score', 0) > 15 else '⚠️'},
                                 {'항목': 'ROE 점수', '점수': f"{score_details.get('roe_score', 0):.1f}", '가중치': '20점', '상태': '✅' if score_details.get('roe_score', 0) > 15 else '⚠️'},
                                 {'항목': '품질 점수', '점수': f"{score_details.get('quality_score', 0):.1f}", '가중치': '43점', '상태': '✅' if score_details.get('quality_score', 0) > 25 else '⚠️'},
-                                {'항목': 'MoS 점수', '점수': f"{score_details.get('mos_score', 0):.1f}", '가중치': '35점', '상태': '✅' if score_details.get('mos_score', 0) > 20 else '⚠️'},
+                                {'항목': 'MoS 점수', '점수': f"{score_details.get('mos_score', 0):.1f}", '가중치': '30점', '상태': '✅' if score_details.get('mos_score', 0) > 15 else '⚠️'},
                                 {'항목': '섹터 보너스', '점수': f"{score_details.get('sector_bonus', 0):.1f}", '가중치': '10점', '상태': '✅' if score_details.get('sector_bonus', 0) > 5 else '📊'},
                             ])
                             
@@ -4315,7 +4651,7 @@ class ValueStockFinder:
                                 st.metric(
                                     "종합 점수", 
                                     f"{score:.1f}/148", 
-                                    help="PER(20) + PBR(20) + ROE(20) + 품질(43) + MoS(35) + 섹터(10)"
+                                    help="PER(20) + PBR(20) + ROE(20) + 품질(43) + MoS(30) + 섹터(10)"
                                 )
                             
                             with col2:

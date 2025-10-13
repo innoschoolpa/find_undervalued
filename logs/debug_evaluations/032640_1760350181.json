@@ -1,0 +1,71 @@
+{
+  "symbol": "032640",
+  "name": "LG유플러스",
+  "timestamp": "2025-10-13T19:09:41.049198",
+  "score": 27.296196517507994,
+  "score_percentage": 19.088249312942654,
+  "grade": "C (위험)",
+  "recommendation": "SELL",
+  "details": {
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "per_score": 5.499222999222999,
+    "pbr_score": 15.469104665825979,
+    "roe_score": 3.3278688524590168,
+    "relative_per": 65.4081026704601,
+    "relative_pbr": 53.691741513755574,
+    "sector_percentile": 76.4554929496919,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "032640",
+      "sector_name": "통신",
+      "original_score": 24.296196517507994,
+      "adjusted_score": 14.577717910504795,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_positive_no_adjustment",
+      "sector_sample_adequate": false,
+      "sector_sample_penalty": 0.6,
+      "sample_adequacy_reason": "very_insufficient_sample_size_7_penalty_0.6",
+      "sector_score": 60.0,
+      "total_adjustment_factor": 0.6
+    },
+    "raw_component_scores": {
+      "per": 5.499222999222999,
+      "pbr": 15.469104665825979,
+      "roe": 3.3278688524590168,
+      "total": 24.296196517507994
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 3,
+    "criteria_met": [
+      "PBR"
+    ],
+    "mos_score": 0,
+    "mos_points": 0,
+    "safety_margin": -8.908573342263905,
+    "intrinsic_value": 13599.949999999999,
+    "confidence": "LOW",
+    "score_percentage": 19.088249312942654,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 17.4009324009324,
+    "pbr": 0.7530895334174023,
+    "roe": 4.327868852459017,
+    "market_cap": 6417300000000.0,
+    "current_price": 14930.0
+  }
+}

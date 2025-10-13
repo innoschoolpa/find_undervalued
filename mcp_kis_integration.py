@@ -864,7 +864,7 @@ class MCPKISIntegration:
     }
     
     def _get_sector_specific_criteria(self, sector: str) -> Dict[str, float]:
-        """✅ 업종별 가치주 평가 기준 반환 (ChatGPT 권장)"""
+        """✅ v2.3: 업종별 가치주 평가 기준 반환 (섹터 키 매핑 완전 지원)"""
         sector_criteria = {
             '금융': {'per_max': 12.0, 'pbr_max': 1.2, 'roe_min': 12.0},
             '금융업': {'per_max': 12.0, 'pbr_max': 1.2, 'roe_min': 12.0},
@@ -872,6 +872,7 @@ class MCPKISIntegration:
             'IT': {'per_max': 25.0, 'pbr_max': 3.0, 'roe_min': 15.0},
             '제조업': {'per_max': 18.0, 'pbr_max': 2.0, 'roe_min': 10.0},
             '바이오/제약': {'per_max': 50.0, 'pbr_max': 5.0, 'roe_min': 8.0},
+            '제약': {'per_max': 50.0, 'pbr_max': 5.0, 'roe_min': 8.0},  # ✅ v2.3
             '통신': {'per_max': 15.0, 'pbr_max': 2.0, 'roe_min': 8.0},
             '통신업': {'per_max': 15.0, 'pbr_max': 2.0, 'roe_min': 8.0},
             '건설': {'per_max': 12.0, 'pbr_max': 1.5, 'roe_min': 8.0},
@@ -879,6 +880,9 @@ class MCPKISIntegration:
             '운송': {'per_max': 15.0, 'pbr_max': 1.5, 'roe_min': 10.0},
             '운송장비': {'per_max': 15.0, 'pbr_max': 1.5, 'roe_min': 10.0},
             '전기전자': {'per_max': 15.0, 'pbr_max': 1.5, 'roe_min': 10.0},
+            '철강/화학': {'per_max': 15.0, 'pbr_max': 1.8, 'roe_min': 8.0},  # ✅ v2.3
+            '석유': {'per_max': 15.0, 'pbr_max': 1.8, 'roe_min': 8.0},      # ✅ v2.3
+            '유통': {'per_max': 20.0, 'pbr_max': 2.5, 'roe_min': 12.0},     # ✅ v2.3
         }
         # 정규화된 섹터명으로 매칭 시도
         normalized = sector.strip().replace(' ', '').lower() if sector else ''

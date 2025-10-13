@@ -1,0 +1,71 @@
+{
+  "symbol": "000660",
+  "name": "SK하이닉스",
+  "timestamp": "2025-10-13T11:53:38.949210",
+  "score": 50.75473588854993,
+  "score_percentage": 35.492822299685265,
+  "grade": "C+ (주의)",
+  "recommendation": "SELL",
+  "details": {
+    "per_score": 8.850216730994854,
+    "pbr_score": 1.0045191575550803,
+    "roe_score": 19.9,
+    "relative_per": -12.753447253081319,
+    "relative_pbr": 214.24828100643606,
+    "sector_percentile": 99.5,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "000660",
+      "sector_name": "전기전자",
+      "original_score": 29.75473588854993,
+      "adjusted_score": 23.803788710839946,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_positive_no_adjustment",
+      "sector_sample_adequate": false,
+      "sector_sample_penalty": 0.8,
+      "sample_adequacy_reason": "insufficient_sample_size_17_penalty_0.8",
+      "sector_score": 60.0,
+      "total_adjustment_factor": 0.8
+    },
+    "raw_component_scores": {
+      "per": 8.850216730994854,
+      "pbr": 1.0045191575550803,
+      "roe": 19.9,
+      "total": 29.75473588854993
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 4,
+    "criteria_met": [
+      "ROE"
+    ],
+    "mos_score": 17,
+    "mos_points": 17,
+    "safety_margin": -55.449239196591606,
+    "intrinsic_value": 182992.25,
+    "confidence": "MEDIUM",
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "score_percentage": 35.492822299685265,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 15.111102935766317,
+    "pbr": 3.9281035125804507,
+    "roe": 25.994816720380236,
+    "market_cap": 299027000000000.0,
+    "current_price": 410750.0
+  }
+}

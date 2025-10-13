@@ -1,0 +1,71 @@
+{
+  "symbol": "161890",
+  "name": "한국콜마",
+  "timestamp": "2025-10-13T19:12:42.498505",
+  "score": 24.41846405308801,
+  "score_percentage": 17.075848988173433,
+  "grade": "C (위험)",
+  "recommendation": "SELL",
+  "details": {
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "per_score": 4.5391644908616176,
+    "pbr_score": 4.473361327019864,
+    "roe_score": 11.405938235206527,
+    "relative_per": -0.7832898172323688,
+    "relative_pbr": 13.165966824503418,
+    "sector_percentile": 47.02969117603264,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "161890",
+      "sector_name": "철강/화학",
+      "original_score": 20.41846405308801,
+      "adjusted_score": 6.533908496988163,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_penalty_40_below_adjusted_16.3",
+      "sector_sample_adequate": false,
+      "sector_sample_penalty": 0.4,
+      "sample_adequacy_reason": "critical_sample_size_0_penalty_0.4",
+      "sector_score": 30.0,
+      "total_adjustment_factor": 0.32
+    },
+    "raw_component_scores": {
+      "per": 4.5391644908616176,
+      "pbr": 4.473361327019864,
+      "roe": 11.405938235206527,
+      "total": 20.41846405308801
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 4,
+    "criteria_met": [
+      "ROE"
+    ],
+    "mos_score": 0,
+    "mos_points": 0,
+    "safety_margin": -16.008771929824558,
+    "intrinsic_value": 63833.333333333336,
+    "confidence": "LOW",
+    "score_percentage": 17.075848988173433,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 19.843342036553526,
+    "pbr": 2.2633193364900683,
+    "roe": 11.405938235206529,
+    "market_cap": 1794000000000.0,
+    "current_price": 76000.0
+  }
+}

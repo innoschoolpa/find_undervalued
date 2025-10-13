@@ -1,0 +1,71 @@
+{
+  "symbol": "066570",
+  "name": "LG전자",
+  "timestamp": "2025-10-13T18:16:55.694715",
+  "score": 19.621784632134215,
+  "score_percentage": 13.721527714779173,
+  "grade": "C (위험)",
+  "recommendation": "SELL",
+  "details": {
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "per_score": 0.1,
+    "pbr_score": 15.806379047974048,
+    "roe_score": 0.7154055841601692,
+    "relative_per": 130.15129748504305,
+    "relative_pbr": -44.30501598652319,
+    "sector_percentile": 10.220079773716703,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "066570",
+      "sector_name": "전기전자",
+      "original_score": 16.621784632134215,
+      "adjusted_score": 13.297427705707372,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_positive_no_adjustment",
+      "sector_sample_adequate": false,
+      "sector_sample_penalty": 0.8,
+      "sample_adequacy_reason": "insufficient_sample_size_17_penalty_0.8",
+      "sector_score": 60.0,
+      "total_adjustment_factor": 0.8
+    },
+    "raw_component_scores": {
+      "per": 0.1,
+      "pbr": 15.806379047974048,
+      "roe": 0.7154055841601692,
+      "total": 16.621784632134215
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 3,
+    "criteria_met": [
+      "PBR"
+    ],
+    "mos_score": 0,
+    "mos_points": 0,
+    "safety_margin": 25.684567901234583,
+    "intrinsic_value": 101804.50000000001,
+    "confidence": "MEDIUM",
+    "score_percentage": 13.721527714779173,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 39.86220472440945,
+    "pbr": 0.6961873001684601,
+    "roe": 1.7464846838793964,
+    "market_cap": 13193800000000.0,
+    "current_price": 81000.0
+  }
+}

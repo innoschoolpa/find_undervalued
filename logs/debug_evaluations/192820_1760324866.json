@@ -1,0 +1,71 @@
+{
+  "symbol": "192820",
+  "name": "코스맥스",
+  "timestamp": "2025-10-13T12:07:46.689256",
+  "score": 23.22136183962741,
+  "score_percentage": 16.23871457316602,
+  "grade": "C (위험)",
+  "recommendation": "SELL",
+  "details": {
+    "per_score": 2.787037037037038,
+    "pbr_score": 0.1,
+    "roe_score": 16.33432480259037,
+    "relative_per": 34.25925925925925,
+    "relative_pbr": 143.18949613053164,
+    "sector_percentile": 78.71110946372993,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "192820",
+      "sector_name": "철강/화학",
+      "original_score": 19.22136183962741,
+      "adjusted_score": 6.150835788680772,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_penalty_40_below_adjusted_15.4",
+      "sector_sample_adequate": false,
+      "sector_sample_penalty": 0.4,
+      "sample_adequacy_reason": "critical_sample_size_0_penalty_0.4",
+      "sector_score": 30.0,
+      "total_adjustment_factor": 0.32000000000000006
+    },
+    "raw_component_scores": {
+      "per": 2.787037037037038,
+      "pbr": 0.1,
+      "roe": 16.33432480259037,
+      "total": 19.22136183962741
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 4,
+    "criteria_met": [
+      "ROE"
+    ],
+    "mos_score": 0,
+    "mos_points": 0,
+    "safety_margin": -42.431724137931035,
+    "intrinsic_value": 116863.59999999999,
+    "confidence": "LOW",
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "score_percentage": 16.23871457316602,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 26.85185185185185,
+    "pbr": 4.863789922610633,
+    "roe": 18.113424539377533,
+    "market_cap": 2304000000000.0,
+    "current_price": 203000.0
+  }
+}

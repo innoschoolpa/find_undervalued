@@ -1,0 +1,72 @@
+{
+  "symbol": "000240",
+  "name": "한국앤컴퍼니",
+  "timestamp": "2025-10-13T17:40:24.327101",
+  "score": 63.21978238791249,
+  "score_percentage": 44.209638033505236,
+  "grade": "C+ (주의)",
+  "recommendation": "SELL",
+  "details": {
+    "per_score": 15.359254501047515,
+    "pbr_score": 15.03499793044468,
+    "roe_score": 10.825529956420292,
+    "relative_per": -27.1039941047012,
+    "relative_pbr": -26.766654594260643,
+    "sector_percentile": 54.12764978210146,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "000240",
+      "sector_name": "금융",
+      "original_score": 41.21978238791249,
+      "adjusted_score": 41.21978238791249,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_positive_no_adjustment",
+      "sector_sample_adequate": true,
+      "sector_sample_penalty": 1.0,
+      "sample_adequacy_reason": "sufficient_sample_size",
+      "sector_score": 60.0,
+      "total_adjustment_factor": 1.0
+    },
+    "raw_component_scores": {
+      "per": 15.359254501047515,
+      "pbr": 15.03499793044468,
+      "roe": 10.825529956420292,
+      "total": 41.21978238791249
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 6,
+    "criteria_met": [
+      "PER",
+      "PBR"
+    ],
+    "mos_score": 16,
+    "mos_points": 16,
+    "safety_margin": 47.28427559562138,
+    "intrinsic_value": 32402.540631036703,
+    "confidence": "HIGH",
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "score_percentage": 44.209638033505236,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 5.955603681645912,
+    "pbr": 0.4686934105967319,
+    "roe": 7.869788448837853,
+    "market_cap": 2088600000000.0,
+    "current_price": 22000.0
+  }
+}

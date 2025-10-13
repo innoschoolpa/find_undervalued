@@ -1,0 +1,71 @@
+{
+  "symbol": "020150",
+  "name": "롯데에너지머티리얼즈",
+  "timestamp": "2025-10-13T19:14:00.839049",
+  "score": 17.882482748002758,
+  "score_percentage": 12.50523269091102,
+  "grade": "C (위험)",
+  "recommendation": "SELL",
+  "details": {
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "per_score": 0.1,
+    "pbr_score": 14.78248274800276,
+    "roe_score": 0.0,
+    "relative_per": 869.302607845451,
+    "relative_pbr": -36.38060991632667,
+    "sector_percentile": 0.0,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "020150",
+      "sector_name": "전기전자",
+      "original_score": 14.88248274800276,
+      "adjusted_score": 11.905986198402209,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_positive_no_adjustment",
+      "sector_sample_adequate": false,
+      "sector_sample_penalty": 0.8,
+      "sample_adequacy_reason": "insufficient_sample_size_17_penalty_0.8",
+      "sector_score": 60.0,
+      "total_adjustment_factor": 0.8
+    },
+    "raw_component_scores": {
+      "per": 0.1,
+      "pbr": 14.78248274800276,
+      "roe": 0.0,
+      "total": 14.88248274800276
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 3,
+    "criteria_met": [
+      "PBR"
+    ],
+    "mos_score": 0,
+    "mos_points": 0,
+    "safety_margin": 10.029347826086957,
+    "intrinsic_value": 25306.75,
+    "confidence": "MEDIUM",
+    "score_percentage": 12.50523269091102,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 167.8832116788321,
+    "pbr": 0.7952423760459166,
+    "roe": 0.4736878500795242,
+    "market_cap": 1204400000000.0,
+    "current_price": 23000.0
+  }
+}

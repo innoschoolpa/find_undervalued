@@ -1,0 +1,69 @@
+{
+  "symbol": "035420",
+  "name": "NAVER",
+  "timestamp": "2025-10-13T11:53:52.752581",
+  "score": 25.334228434403194,
+  "score_percentage": 17.716243660421814,
+  "grade": "C (위험)",
+  "recommendation": "SELL",
+  "details": {
+    "per_score": 7.108028795465756,
+    "pbr_score": 8.45579809908097,
+    "roe_score": 9.770401539856469,
+    "relative_per": 45.225840222337865,
+    "relative_pbr": 23.481941684827866,
+    "sector_percentile": 50.691838788804006,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "035420",
+      "sector_name": "IT",
+      "original_score": 25.334228434403194,
+      "adjusted_score": 20.267382747522557,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_positive_no_adjustment",
+      "sector_sample_adequate": false,
+      "sector_sample_penalty": 0.8,
+      "sample_adequacy_reason": "insufficient_sample_size_28_penalty_0.8",
+      "sector_score": 60.0,
+      "total_adjustment_factor": 0.8
+    },
+    "raw_component_scores": {
+      "per": 7.108028795465756,
+      "pbr": 8.45579809908097,
+      "roe": 9.770401539856469,
+      "total": 25.334228434403194
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 0,
+    "criteria_met": [],
+    "mos_score": 0,
+    "mos_points": 0,
+    "safety_margin": -17.163128642080906,
+    "intrinsic_value": 218482.2482065116,
+    "confidence": "MEDIUM",
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "score_percentage": 17.716243660421814,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 22.13967934189541,
+    "pbr": 1.5867429506500381,
+    "roe": 7.1669644629739935,
+    "market_cap": 41369900000000.0,
+    "current_price": 263750.0
+  }
+}

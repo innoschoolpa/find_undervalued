@@ -1,0 +1,69 @@
+{
+  "symbol": "100090",
+  "name": "SK오션플랜트",
+  "timestamp": "2025-10-13T18:07:47.637251",
+  "score": 5.542625688992817,
+  "score_percentage": 3.8759620202746965,
+  "grade": "C (위험)",
+  "recommendation": "SELL",
+  "details": {
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "per_score": 0.1,
+    "pbr_score": 5.442625688992817,
+    "roe_score": 0.0,
+    "relative_per": 316.96750902527083,
+    "relative_pbr": -3.541005511942541,
+    "sector_percentile": 0.0,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "100090",
+      "sector_name": "철강/화학",
+      "original_score": 5.542625688992817,
+      "adjusted_score": 1.7736402204777015,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_penalty_40_below_adjusted_4.4",
+      "sector_sample_adequate": false,
+      "sector_sample_penalty": 0.4,
+      "sample_adequacy_reason": "critical_sample_size_0_penalty_0.4",
+      "sector_score": 30.0,
+      "total_adjustment_factor": 0.32000000000000006
+    },
+    "raw_component_scores": {
+      "per": 0.1,
+      "pbr": 5.442625688992817,
+      "roe": 0.0,
+      "total": 5.542625688992817
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 0,
+    "criteria_met": [],
+    "mos_score": 0,
+    "mos_points": 0,
+    "safety_margin": -27.430303030303037,
+    "intrinsic_value": 16763.6,
+    "confidence": "LOW",
+    "score_percentage": 3.8759620202746965,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 83.39350180505416,
+    "pbr": 1.9291798897611492,
+    "roe": 2.3133455820945383,
+    "market_cap": 1443200000000.0,
+    "current_price": 23100.0
+  }
+}

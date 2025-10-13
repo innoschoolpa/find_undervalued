@@ -1,0 +1,71 @@
+{
+  "symbol": "014680",
+  "name": "한솔케미칼",
+  "timestamp": "2025-10-13T12:07:34.315031",
+  "score": 24.541823127639166,
+  "score_percentage": 17.162114075272143,
+  "grade": "C (위험)",
+  "recommendation": "SELL",
+  "details": {
+    "per_score": 4.354707567217963,
+    "pbr_score": 3.971953545591006,
+    "roe_score": 12.215162014830197,
+    "relative_per": 2.9058486556407637,
+    "relative_pbr": 25.701161360224823,
+    "sector_percentile": 51.075810074150986,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "014680",
+      "sector_name": "철강/화학",
+      "original_score": 20.541823127639166,
+      "adjusted_score": 6.573383400844533,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_penalty_40_below_adjusted_16.4",
+      "sector_sample_adequate": false,
+      "sector_sample_penalty": 0.4,
+      "sample_adequacy_reason": "critical_sample_size_0_penalty_0.4",
+      "sector_score": 30.0,
+      "total_adjustment_factor": 0.32
+    },
+    "raw_component_scores": {
+      "per": 4.354707567217963,
+      "pbr": 3.971953545591006,
+      "roe": 12.215162014830197,
+      "total": 20.541823127639166
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 4,
+    "criteria_met": [
+      "ROE"
+    ],
+    "mos_score": 0,
+    "mos_points": 0,
+    "safety_margin": -19.019827908716806,
+    "intrinsic_value": 180383.3333333333,
+    "confidence": "LOW",
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "score_percentage": 17.162114075272143,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 20.581169731128153,
+    "pbr": 2.5140232272044964,
+    "roe": 12.215162014830197,
+    "market_cap": 2524900000000.0,
+    "current_price": 222750.0
+  }
+}

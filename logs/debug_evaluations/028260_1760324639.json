@@ -1,0 +1,71 @@
+{
+  "symbol": "028260",
+  "name": "삼성물산",
+  "timestamp": "2025-10-13T12:03:59.256537",
+  "score": 26.801960426009998,
+  "score_percentage": 18.74262966853846,
+  "grade": "C (위험)",
+  "recommendation": "SELL",
+  "details": {
+    "per_score": 6.536373507057547,
+    "pbr_score": 11.263127575663578,
+    "roe_score": 6.002459343288873,
+    "relative_per": 211.89868323418813,
+    "relative_pbr": 20.76371362053997,
+    "sector_percentile": 24.568697887589686,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "028260",
+      "sector_name": "유통",
+      "original_score": 23.801960426009998,
+      "adjusted_score": 14.281176255605999,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_positive_no_adjustment",
+      "sector_sample_adequate": false,
+      "sector_sample_penalty": 0.6,
+      "sample_adequacy_reason": "very_insufficient_sample_size_9_penalty_0.6",
+      "sector_score": 60.0,
+      "total_adjustment_factor": 0.6
+    },
+    "raw_component_scores": {
+      "per": 6.536373507057547,
+      "pbr": 11.263127575663578,
+      "roe": 6.002459343288873,
+      "total": 23.801960426009998
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 3,
+    "criteria_met": [
+      "PBR"
+    ],
+    "mos_score": 0,
+    "mos_points": 0,
+    "safety_margin": -42.0355685483871,
+    "intrinsic_value": 115001.432,
+    "confidence": "LOW",
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "score_percentage": 18.74262966853846,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 16.156351791530945,
+    "pbr": 1.0989497939469137,
+    "roe": 6.801967474631098,
+    "market_cap": 33723300000000.0,
+    "current_price": 198400.0
+  }
+}

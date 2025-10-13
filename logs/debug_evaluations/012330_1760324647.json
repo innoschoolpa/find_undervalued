@@ -1,0 +1,72 @@
+{
+  "symbol": "012330",
+  "name": "현대모비스",
+  "timestamp": "2025-10-13T12:04:07.949363",
+  "score": 43.88522788694235,
+  "score_percentage": 30.688970550309335,
+  "grade": "C (위험)",
+  "recommendation": "SELL",
+  "details": {
+    "per_score": 11.564173006585392,
+    "pbr_score": 14.497069658405895,
+    "roe_score": 8.823985221951066,
+    "relative_per": 0.7727413377069725,
+    "relative_pbr": -20.67242259922255,
+    "sector_percentile": 44.93608451372687,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "012330",
+      "sector_name": "운송장비",
+      "original_score": 34.88522788694235,
+      "adjusted_score": 27.908182309553883,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_positive_no_adjustment",
+      "sector_sample_adequate": false,
+      "sector_sample_penalty": 0.8,
+      "sample_adequacy_reason": "insufficient_sample_size_25_penalty_0.8",
+      "sector_score": 60.0,
+      "total_adjustment_factor": 0.8
+    },
+    "raw_component_scores": {
+      "per": 11.564173006585392,
+      "pbr": 14.497069658405895,
+      "roe": 8.823985221951066,
+      "total": 34.88522788694235
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 6,
+    "criteria_met": [
+      "PER",
+      "PBR"
+    ],
+    "mos_score": 3,
+    "mos_points": 3,
+    "safety_margin": 8.812844448354216,
+    "intrinsic_value": 316101.313122469,
+    "confidence": "MEDIUM",
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "score_percentage": 30.688970550309335,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 6.681232750689972,
+    "pbr": 0.5790913150256753,
+    "roe": 8.667432143654514,
+    "market_cap": 26666500000000.0,
+    "current_price": 290500.0
+  }
+}

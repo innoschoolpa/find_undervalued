@@ -1,0 +1,71 @@
+{
+  "symbol": "010060",
+  "name": "OCI홀딩스",
+  "timestamp": "2025-10-13T12:08:53.793893",
+  "score": 25.111270530673963,
+  "score_percentage": 17.560329042429345,
+  "grade": "C (위험)",
+  "recommendation": "SELL",
+  "details": {
+    "per_score": 2.9934882796761233,
+    "pbr_score": 16.68163239945158,
+    "roe_score": 2.4361498515462605,
+    "relative_per": 108.35957188466368,
+    "relative_pbr": -36.372022330134214,
+    "sector_percentile": 12.180749257731303,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "010060",
+      "sector_name": "금융",
+      "original_score": 22.111270530673963,
+      "adjusted_score": 22.111270530673963,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_positive_no_adjustment",
+      "sector_sample_adequate": true,
+      "sector_sample_penalty": 1.0,
+      "sample_adequacy_reason": "sufficient_sample_size",
+      "sector_score": 60.0,
+      "total_adjustment_factor": 1.0
+    },
+    "raw_component_scores": {
+      "per": 2.9934882796761233,
+      "pbr": 16.68163239945158,
+      "roe": 2.4361498515462605,
+      "total": 22.111270530673963
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 3,
+    "criteria_met": [
+      "PBR"
+    ],
+    "mos_score": 0,
+    "mos_points": 0,
+    "safety_margin": 22.784037558685448,
+    "intrinsic_value": 104612.0,
+    "confidence": "HIGH",
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "score_percentage": 17.560329042429345,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 17.022977022977024,
+    "pbr": 0.40721905708714107,
+    "roe": 2.3921729820670667,
+    "market_cap": 1603000000000.0,
+    "current_price": 85200.0
+  }
+}

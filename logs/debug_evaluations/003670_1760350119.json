@@ -1,0 +1,71 @@
+{
+  "symbol": "003670",
+  "name": "포스코퓨처엠",
+  "timestamp": "2025-10-13T19:08:39.059442",
+  "score": 0.8799637033039375,
+  "score_percentage": 0.6153592330796765,
+  "grade": "C (위험)",
+  "recommendation": "SELL",
+  "details": {
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "per_score": 0,
+    "pbr_score": 0.8799637033039375,
+    "roe_score": 0.0,
+    "relative_per": null,
+    "relative_pbr": 243.62913330064825,
+    "sector_percentile": 0.0,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "003670",
+      "sector_name": "전기전자",
+      "original_score": 0.8799637033039375,
+      "adjusted_score": 0.7039709626431501,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_positive_no_adjustment",
+      "sector_sample_adequate": false,
+      "sector_sample_penalty": 0.8,
+      "sample_adequacy_reason": "insufficient_sample_size_17_penalty_0.8",
+      "sector_score": 60.0,
+      "total_adjustment_factor": 0.8
+    },
+    "raw_component_scores": {
+      "per": 0.0,
+      "pbr": 0.8799637033039375,
+      "roe": 0.0,
+      "total": 0.8799637033039375
+    },
+    "alternative_valuation_used": true,
+    "alternative_reason": "negative_per",
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 0,
+    "criteria_met": [],
+    "mos_score": 0,
+    "mos_points": 0,
+    "safety_margin": -79.62920101458465,
+    "intrinsic_value": 32124.75,
+    "confidence": "MEDIUM",
+    "score_percentage": 0.6153592330796765,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 0,
+    "pbr": 4.2953641662581035,
+    "roe": -7.138966061992701,
+    "market_cap": 14026800000000.0,
+    "current_price": 157700.0
+  }
+}

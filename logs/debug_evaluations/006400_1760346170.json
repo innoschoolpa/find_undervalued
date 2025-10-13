@@ -1,0 +1,71 @@
+{
+  "symbol": "006400",
+  "name": "삼성SDI",
+  "timestamp": "2025-10-13T18:02:50.935045",
+  "score": 23.55418715542664,
+  "score_percentage": 16.4714595492494,
+  "grade": "C (위험)",
+  "recommendation": "SELL",
+  "details": {
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "per_score": 3.6713517513400773,
+    "pbr_score": 15.17462539972853,
+    "roe_score": 1.708210004358035,
+    "relative_per": 46.340513867240986,
+    "relative_pbr": -39.58115821915105,
+    "sector_percentile": 24.403000062257647,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "006400",
+      "sector_name": "전기전자",
+      "original_score": 20.55418715542664,
+      "adjusted_score": 16.443349724341314,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_positive_no_adjustment",
+      "sector_sample_adequate": false,
+      "sector_sample_penalty": 0.8,
+      "sample_adequacy_reason": "insufficient_sample_size_17_penalty_0.8",
+      "sector_score": 60.0,
+      "total_adjustment_factor": 0.8
+    },
+    "raw_component_scores": {
+      "per": 3.6713517513400773,
+      "pbr": 15.17462539972853,
+      "roe": 1.708210004358035,
+      "total": 20.55418715542664
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 3,
+    "criteria_met": [
+      "PBR"
+    ],
+    "mos_score": 0,
+    "mos_points": 0,
+    "safety_margin": 15.857897862232779,
+    "intrinsic_value": 243880.875,
+    "confidence": "MEDIUM",
+    "score_percentage": 16.4714595492494,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 25.34617700180614,
+    "pbr": 0.7552355222606119,
+    "roe": 2.979682191151725,
+    "market_cap": 16963300000000.0,
+    "current_price": 210500.0
+  }
+}

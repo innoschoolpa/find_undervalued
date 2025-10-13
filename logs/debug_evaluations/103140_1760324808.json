@@ -1,0 +1,72 @@
+{
+  "symbol": "103140",
+  "name": "풍산",
+  "timestamp": "2025-10-13T12:06:48.844069",
+  "score": 33.507463009073504,
+  "score_percentage": 23.431792314037416,
+  "grade": "C (위험)",
+  "recommendation": "SELL",
+  "details": {
+    "per_score": 7.969448731647474,
+    "pbr_score": 7.914448956940696,
+    "roe_score": 10.623565320485334,
+    "relative_per": -27.816692389884846,
+    "relative_pbr": -23.31559165552557,
+    "sector_percentile": 43.11782660242666,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "103140",
+      "sector_name": "철강/화학",
+      "original_score": 26.507463009073504,
+      "adjusted_score": 8.482388162903522,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_penalty_40_below_adjusted_21.2",
+      "sector_sample_adequate": false,
+      "sector_sample_penalty": 0.4,
+      "sample_adequacy_reason": "critical_sample_size_0_penalty_0.4",
+      "sector_score": 30.0,
+      "total_adjustment_factor": 0.32000000000000006
+    },
+    "raw_component_scores": {
+      "per": 7.969448731647474,
+      "pbr": 7.914448956940696,
+      "roe": 10.623565320485334,
+      "total": 26.507463009073504
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 7,
+    "criteria_met": [
+      "PER",
+      "ROE"
+    ],
+    "mos_score": 0,
+    "mos_points": 0,
+    "safety_margin": 15.446820175438605,
+    "intrinsic_value": 140383.33333333334,
+    "confidence": "LOW",
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "score_percentage": 23.431792314037416,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 14.436661522023032,
+    "pbr": 1.5336881668894886,
+    "roe": 10.623565320485332,
+    "market_cap": 3407800000000.0,
+    "current_price": 121600.0
+  }
+}

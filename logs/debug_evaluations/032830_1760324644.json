@@ -1,0 +1,72 @@
+{
+  "symbol": "032830",
+  "name": "삼성생명",
+  "timestamp": "2025-10-13T12:04:04.373110",
+  "score": 22.506906048178855,
+  "score_percentage": 15.739095138586611,
+  "grade": "C (위험)",
+  "recommendation": "SELL",
+  "details": {
+    "per_score": 3.7430749365118143,
+    "pbr_score": 4.246277481639308,
+    "roe_score": 8.517553630027733,
+    "relative_per": 80.68205558779302,
+    "relative_pbr": 47.9577078829583,
+    "sector_percentile": 42.587768150138665,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "032830",
+      "sector_name": "금융",
+      "original_score": 16.506906048178855,
+      "adjusted_score": 16.506906048178855,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_positive_no_adjustment",
+      "sector_sample_adequate": true,
+      "sector_sample_penalty": 1.0,
+      "sample_adequacy_reason": "sufficient_sample_size",
+      "sector_score": 60.0,
+      "total_adjustment_factor": 1.0
+    },
+    "raw_component_scores": {
+      "per": 3.7430749365118143,
+      "pbr": 4.246277481639308,
+      "roe": 8.517553630027733,
+      "total": 16.506906048178855
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 6,
+    "criteria_met": [
+      "PER",
+      "PBR"
+    ],
+    "mos_score": 0,
+    "mos_points": 0,
+    "safety_margin": -40.578297124329424,
+    "intrinsic_value": 92400.74797166775,
+    "confidence": "HIGH",
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "score_percentage": 15.739095138586611,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 14.761723941522689,
+    "pbr": 0.9469293304509332,
+    "roe": 6.414761136315196,
+    "market_cap": 31100000000000.0,
+    "current_price": 155500.0
+  }
+}

@@ -1,0 +1,70 @@
+{
+  "symbol": "100090",
+  "name": "SK오션플랜트",
+  "timestamp": "2025-10-14T18:57:32.356651",
+  "score": 10.22479081611597,
+  "score_percentage": 7.1502033679132655,
+  "grade": "C (위험)",
+  "recommendation": "SELL",
+  "details": {
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "per_score": 0.1,
+    "pbr_score": 5.860197093703022,
+    "roe_score": 0.0,
+    "momentum_score": 42.645937224129476,
+    "quality_score": 0,
+    "relative_per": 302.5270758122743,
+    "relative_pbr": -6.881576749624186,
+    "sector_percentile": 0.0,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "100090",
+      "sector_name": "철강/화학",
+      "original_score": 5.960197093703021,
+      "adjusted_score": 1.9072630699849669,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_penalty_40_below_adjusted_4.8",
+      "sector_sample_adequate": false,
+      "sector_sample_penalty": 0.4,
+      "sample_adequacy_reason": "critical_sample_size_0_penalty_0.4",
+      "sector_score": 30.0,
+      "total_adjustment_factor": 0.32000000000000006
+    },
+    "raw_component_scores": {
+      "per": 0.1,
+      "pbr": 5.860197093703022,
+      "roe": 0.0,
+      "total": 5.960197093703021
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "sector_bonus": 0,
+    "criteria_met": [],
+    "mos_score": 0,
+    "mos_points": 0,
+    "safety_margin": -24.82690582959642,
+    "intrinsic_value": 16763.6,
+    "confidence": "LOW",
+    "score_percentage": 7.1502033679132655,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 80.50541516245487,
+    "pbr": 1.8623684650075163,
+    "roe": 2.3133455820945383,
+    "market_cap": 1393300000000.0,
+    "current_price": 22300.0
+  }
+}

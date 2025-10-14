@@ -1,0 +1,74 @@
+{
+  "symbol": "007340",
+  "name": "DN오토모티브",
+  "timestamp": "2025-10-14T18:33:35.035329",
+  "score": 104.89326834854077,
+  "score_percentage": 73.35193590807046,
+  "grade": "A (우수)",
+  "recommendation": "STRONG_BUY",
+  "details": {
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "per_score": 20.0,
+    "pbr_score": 14.95551450879632,
+    "roe_score": 16.396421983788777,
+    "momentum_score": 31.913318559556785,
+    "quality_score": 0,
+    "relative_per": -74.90174139011746,
+    "relative_pbr": -37.79284218921344,
+    "sector_percentile": 83.45629821750464,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "007340",
+      "sector_name": "전기전자",
+      "original_score": 51.3519364925851,
+      "adjusted_score": 41.08154919406808,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_positive_no_adjustment",
+      "sector_sample_adequate": false,
+      "sector_sample_penalty": 0.8,
+      "sample_adequacy_reason": "insufficient_sample_size_17_penalty_0.8",
+      "sector_score": 60.0,
+      "total_adjustment_factor": 0.8
+    },
+    "raw_component_scores": {
+      "per": 20.0,
+      "pbr": 14.95551450879632,
+      "roe": 16.396421983788777,
+      "total": 51.3519364925851
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "sector_bonus": 10,
+    "criteria_met": [
+      "PER",
+      "PBR",
+      "ROE"
+    ],
+    "mos_score": 30,
+    "mos_points": 30,
+    "safety_margin": 125.05448717948717,
+    "intrinsic_value": 52662.75,
+    "confidence": "MEDIUM",
+    "score_percentage": 73.35193590807046,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 4.347018391231655,
+    "pbr": 0.777589472634832,
+    "roe": 17.887880902535475,
+    "market_cap": 1369200000000.0,
+    "current_price": 23400.0
+  }
+}

@@ -1,0 +1,73 @@
+{
+  "symbol": "003090",
+  "name": "대웅",
+  "timestamp": "2025-10-14T18:34:04.376193",
+  "score": 44.71537665469613,
+  "score_percentage": 31.269494164123167,
+  "grade": "C (위험)",
+  "recommendation": "HOLD",
+  "details": {
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "per_score": 7.526509996257806,
+    "pbr_score": 9.655672987944413,
+    "roe_score": 11.241260098895511,
+    "momentum_score": 26.092477690288714,
+    "quality_score": 0,
+    "relative_per": 130.46607076300808,
+    "relative_pbr": 8.41871306987587,
+    "sector_percentile": 56.20630049447756,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "003090",
+      "sector_name": "제약",
+      "original_score": 28.42344308309773,
+      "adjusted_score": 28.42344308309773,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_positive_no_adjustment",
+      "sector_sample_adequate": true,
+      "sector_sample_penalty": 1.0,
+      "sample_adequacy_reason": "sufficient_sample_size",
+      "sector_score": 60.0,
+      "total_adjustment_factor": 1.0
+    },
+    "raw_component_scores": {
+      "per": 7.526509996257806,
+      "pbr": 9.655672987944413,
+      "roe": 11.241260098895511,
+      "total": 28.42344308309773
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "sector_bonus": 6,
+    "criteria_met": [
+      "PER",
+      "PBR"
+    ],
+    "mos_score": 0,
+    "mos_points": 0,
+    "safety_margin": 10.53502541308692,
+    "intrinsic_value": 23101.820311335166,
+    "confidence": "HIGH",
+    "score_percentage": 31.269494164123167,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 20.983935742971887,
+    "pbr": 1.1329755515802027,
+    "roe": 5.399251910879818,
+    "market_cap": 1215200000000.0,
+    "current_price": 20900.0
+  }
+}

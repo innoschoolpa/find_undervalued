@@ -1,0 +1,74 @@
+{
+  "symbol": "005850",
+  "name": "에스엘",
+  "timestamp": "2025-10-14T18:43:37.574585",
+  "score": 98.73485112432007,
+  "score_percentage": 69.04535043658746,
+  "grade": "A (우수)",
+  "recommendation": "STRONG_BUY",
+  "details": {
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "per_score": 16.240562113874553,
+    "pbr_score": 12.437178217251583,
+    "roe_score": 16.25069983428982,
+    "momentum_score": 34.564109589041095,
+    "quality_score": 0,
+    "relative_per": -35.807090320850435,
+    "relative_pbr": -6.811100716905649,
+    "sector_percentile": 82.63511595219866,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "005850",
+      "sector_name": "운송장비",
+      "original_score": 44.92844016541596,
+      "adjusted_score": 35.942752132332764,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_positive_no_adjustment",
+      "sector_sample_adequate": false,
+      "sector_sample_penalty": 0.8,
+      "sample_adequacy_reason": "insufficient_sample_size_25_penalty_0.8",
+      "sector_score": 60.0,
+      "total_adjustment_factor": 0.8
+    },
+    "raw_component_scores": {
+      "per": 16.240562113874553,
+      "pbr": 12.437178217251583,
+      "roe": 16.25069983428982,
+      "total": 44.92844016541596
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "sector_bonus": 10,
+    "criteria_met": [
+      "PER",
+      "PBR",
+      "ROE"
+    ],
+    "mos_score": 30,
+    "mos_points": 30,
+    "safety_margin": 50.23248592592591,
+    "intrinsic_value": 50703.46399999999,
+    "confidence": "MEDIUM",
+    "score_percentage": 69.04535043658746,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 4.2559899117276165,
+    "pbr": 0.6802789647665888,
+    "roe": 15.984036120293476,
+    "market_cap": 1567600000000.0,
+    "current_price": 33750.0
+  }
+}

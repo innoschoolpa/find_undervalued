@@ -1,0 +1,72 @@
+{
+  "symbol": "353200",
+  "name": "대덕전자",
+  "timestamp": "2025-10-14T19:26:33.009376",
+  "score": 16.072712119874332,
+  "score_percentage": 11.239658825086945,
+  "grade": "C (위험)",
+  "recommendation": "SELL",
+  "details": {
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "per_score": 0.1,
+    "pbr_score": 5.5797099317486465,
+    "roe_score": 1.4930327582833867,
+    "momentum_score": 58.999694298422966,
+    "quality_score": 0,
+    "relative_per": 293.2609599575178,
+    "relative_pbr": 47.79948223111321,
+    "sector_percentile": 21.32903940404838,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "353200",
+      "sector_name": "전기전자",
+      "original_score": 7.172742690032033,
+      "adjusted_score": 5.738194152025627,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_positive_no_adjustment",
+      "sector_sample_adequate": false,
+      "sector_sample_penalty": 0.8,
+      "sample_adequacy_reason": "insufficient_sample_size_17_penalty_0.8",
+      "sector_score": 60.0,
+      "total_adjustment_factor": 0.8
+    },
+    "raw_component_scores": {
+      "per": 0.1,
+      "pbr": 5.5797099317486465,
+      "roe": 1.4930327582833867,
+      "total": 7.172742690032033
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "sector_bonus": 3,
+    "criteria_met": [
+      "PBR"
+    ],
+    "mos_score": 0,
+    "mos_points": 0,
+    "safety_margin": -52.638535031847134,
+    "intrinsic_value": 14871.5,
+    "confidence": "MEDIUM",
+    "score_percentage": 11.239658825086945,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 68.11279826464208,
+    "pbr": 1.847493527888915,
+    "roe": 2.7124029183337255,
+    "market_cap": 1551700000000.0,
+    "current_price": 31400.0
+  }
+}

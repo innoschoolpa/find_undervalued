@@ -1,0 +1,73 @@
+{
+  "symbol": "002790",
+  "name": "아모레퍼시픽홀딩스",
+  "timestamp": "2025-10-14T19:18:03.023565",
+  "score": 52.80152256951263,
+  "score_percentage": 36.92414165700183,
+  "grade": "C+ (주의)",
+  "recommendation": "HOLD",
+  "details": {
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "per_score": 12.71896420411272,
+    "pbr_score": 15.973282130893045,
+    "roe_score": 6.440000544706811,
+    "momentum_score": 32.50435506778567,
+    "quality_score": 0,
+    "relative_per": -50.875856816450884,
+    "relative_pbr": -64.86641065446523,
+    "sector_percentile": 25.760002178827246,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "002790",
+      "sector_name": "철강/화학",
+      "original_score": 35.132246879712575,
+      "adjusted_score": 11.242319001508026,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_penalty_40_below_adjusted_28.1",
+      "sector_sample_adequate": false,
+      "sector_sample_penalty": 0.4,
+      "sample_adequacy_reason": "critical_sample_size_0_penalty_0.4",
+      "sector_score": 30.0,
+      "total_adjustment_factor": 0.32000000000000006
+    },
+    "raw_component_scores": {
+      "per": 12.71896420411272,
+      "pbr": 15.973282130893045,
+      "roe": 6.440000544706811,
+      "total": 35.132246879712575
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "sector_bonus": 6,
+    "criteria_met": [
+      "PER",
+      "PBR"
+    ],
+    "mos_score": 0,
+    "mos_points": 0,
+    "safety_margin": 99.23953488372092,
+    "intrinsic_value": 51403.799999999996,
+    "confidence": "LOW",
+    "score_percentage": 36.92414165700183,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 9.824828636709825,
+    "pbr": 0.7026717869106953,
+    "roe": 7.152000435765449,
+    "market_cap": 2050000000000.0,
+    "current_price": 25800.0
+  }
+}

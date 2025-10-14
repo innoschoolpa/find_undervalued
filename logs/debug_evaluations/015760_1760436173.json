@@ -1,0 +1,73 @@
+{
+  "symbol": "015760",
+  "name": "한국전력",
+  "timestamp": "2025-10-14T19:02:53.596480",
+  "score": 65.75916971859039,
+  "score_percentage": 45.98543336964362,
+  "grade": "B (보통)",
+  "recommendation": "BUY",
+  "details": {
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "per_score": 16.0685787828645,
+    "pbr_score": 16.936664683082167,
+    "roe_score": 8.434509545330267,
+    "momentum_score": 52.63704989154013,
+    "quality_score": 0,
+    "relative_per": -65.34289391432249,
+    "relative_pbr": -69.68332341541084,
+    "sector_percentile": 33.738038181321066,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "015760",
+      "sector_name": "유틸리티",
+      "original_score": 41.43975301127693,
+      "adjusted_score": 13.260720963608618,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_penalty_40_below_adjusted_33.2",
+      "sector_sample_adequate": false,
+      "sector_sample_penalty": 0.4,
+      "sample_adequacy_reason": "critical_sample_size_0_penalty_0.4",
+      "sector_score": 30.0,
+      "total_adjustment_factor": 0.32000000000000006
+    },
+    "raw_component_scores": {
+      "per": 16.0685787828645,
+      "pbr": 16.936664683082167,
+      "roe": 8.434509545330267,
+      "total": 41.43975301127693
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "sector_bonus": 6,
+    "criteria_met": [
+      "PER",
+      "PBR"
+    ],
+    "mos_score": 4,
+    "mos_points": 4,
+    "safety_margin": 140.45092838196288,
+    "intrinsic_value": 90650.0,
+    "confidence": "LOW",
+    "score_percentage": 45.98543336964362,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 6.931421217135503,
+    "pbr": 0.6063335316917832,
+    "roe": 8.747607636264213,
+    "market_cap": 24202000000000.0,
+    "current_price": 37700.0
+  }
+}

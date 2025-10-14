@@ -1,0 +1,74 @@
+{
+  "symbol": "086280",
+  "name": "현대글로비스",
+  "timestamp": "2025-10-14T18:39:55.746724",
+  "score": 62.59052175255115,
+  "score_percentage": 43.76959563115465,
+  "grade": "C+ (주의)",
+  "recommendation": "STRONG_BUY",
+  "details": {
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "per_score": 13.061192613373676,
+    "pbr_score": 10.844806365627607,
+    "roe_score": 14.728402791235759,
+    "momentum_score": 40.63212844036698,
+    "quality_score": 0,
+    "relative_per": -39.38940258605851,
+    "relative_pbr": -13.200644303587438,
+    "sector_percentile": 74.89752874568654,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "086280",
+      "sector_name": "운송",
+      "original_score": 38.63440177023704,
+      "adjusted_score": 30.907521416189635,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_positive_no_adjustment",
+      "sector_sample_adequate": false,
+      "sector_sample_penalty": 0.8,
+      "sample_adequacy_reason": "insufficient_sample_size_28_penalty_0.8",
+      "sector_score": 60.0,
+      "total_adjustment_factor": 0.8
+    },
+    "raw_component_scores": {
+      "per": 13.061192613373676,
+      "pbr": 10.844806365627607,
+      "roe": 14.728402791235759,
+      "total": 38.63440177023704
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "sector_bonus": 10,
+    "criteria_met": [
+      "PER",
+      "PBR",
+      "ROE"
+    ],
+    "mos_score": 0,
+    "mos_points": 0,
+    "safety_margin": 61.29151982378853,
+    "intrinsic_value": 256292.22499999998,
+    "confidence": "MEDIUM",
+    "score_percentage": 43.76959563115465,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 10.894754885155983,
+    "pbr": 1.3584099166488566,
+    "roe": 12.468476170121821,
+    "market_cap": 11917500000000.0,
+    "current_price": 158900.0
+  }
+}

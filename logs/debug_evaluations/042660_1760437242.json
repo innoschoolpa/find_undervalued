@@ -1,0 +1,72 @@
+{
+  "symbol": "042660",
+  "name": "한화오션",
+  "timestamp": "2025-10-14T19:20:42.716919",
+  "score": 32.16018803105888,
+  "score_percentage": 22.489641979761455,
+  "grade": "C (위험)",
+  "recommendation": "HOLD",
+  "details": {
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "per_score": 0.1,
+    "pbr_score": 2.695811900539564,
+    "roe_score": 11.146038697983887,
+    "momentum_score": 46.849076765609,
+    "quality_score": 0,
+    "relative_per": 802.0027786234966,
+    "relative_pbr": 790.5534820122881,
+    "sector_percentile": 56.18892646082202,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "042660",
+      "sector_name": "운송장비",
+      "original_score": 13.941850598523452,
+      "adjusted_score": 11.153480478818762,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_positive_no_adjustment",
+      "sector_sample_adequate": false,
+      "sector_sample_penalty": 0.8,
+      "sample_adequacy_reason": "insufficient_sample_size_25_penalty_0.8",
+      "sector_score": 60.0,
+      "total_adjustment_factor": 0.8
+    },
+    "raw_component_scores": {
+      "per": 0.1,
+      "pbr": 2.695811900539564,
+      "roe": 11.146038697983887,
+      "total": 13.941850598523452
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "sector_bonus": 4,
+    "criteria_met": [
+      "ROE"
+    ],
+    "mos_score": 0,
+    "mos_points": 0,
+    "safety_margin": -87.84330948010174,
+    "intrinsic_value": 12533.547926015102,
+    "confidence": "MEDIUM",
+    "score_percentage": 22.489641979761455,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 59.80278422273782,
+    "pbr": 6.501040418689703,
+    "roe": 10.870798915442336,
+    "market_cap": 31591200000000.0,
+    "current_price": 103100.0
+  }
+}

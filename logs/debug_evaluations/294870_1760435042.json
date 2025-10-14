@@ -1,0 +1,73 @@
+{
+  "symbol": "294870",
+  "name": "HDC현대산업개발",
+  "timestamp": "2025-10-14T18:44:02.377239",
+  "score": 48.94825385567162,
+  "score_percentage": 34.22954815081931,
+  "grade": "C (위험)",
+  "recommendation": "HOLD",
+  "details": {
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "per_score": 8.370098655752486,
+    "pbr_score": 14.87843357658419,
+    "roe_score": 9.192751526027381,
+    "momentum_score": 30.057429048414022,
+    "quality_score": 0,
+    "relative_per": 19.55881613097017,
+    "relative_pbr": -30.39024195249168,
+    "sector_percentile": 45.96375763013691,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "294870",
+      "sector_name": "건설",
+      "original_score": 32.44128375836406,
+      "adjusted_score": 32.44128375836406,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_positive_no_adjustment",
+      "sector_sample_adequate": true,
+      "sector_sample_penalty": 1.0,
+      "sample_adequacy_reason": "sufficient_sample_size",
+      "sector_score": 60.0,
+      "total_adjustment_factor": 1.0
+    },
+    "raw_component_scores": {
+      "per": 8.370098655752486,
+      "pbr": 14.87843357658419,
+      "roe": 9.192751526027381,
+      "total": 32.44128375836406
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "sector_bonus": 6,
+    "criteria_met": [
+      "PER",
+      "PBR"
+    ],
+    "mos_score": 0,
+    "mos_points": 0,
+    "safety_margin": 29.342138548291903,
+    "intrinsic_value": 26127.111986754964,
+    "confidence": "HIGH",
+    "score_percentage": 34.22954815081931,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 8.548455353364368,
+    "pbr": 0.42461952408980075,
+    "roe": 4.967207601109896,
+    "market_cap": 1331300000000.0,
+    "current_price": 20200.0
+  }
+}

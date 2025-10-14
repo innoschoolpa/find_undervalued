@@ -152,6 +152,14 @@ class KISDataProvider:
                 if e.response.status_code == 500:
                     self.consecutive_500_errors += 1
                     
+                    # ✅ 오류 모니터링 대시보드에 로깅
+                    try:
+                        from value_stock_finder import main_app
+                        if hasattr(main_app, 'value_app') and hasattr(main_app.value_app, 'log_api_error'):
+                            main_app.value_app.log_api_error("500", path, tr_id, "Internal server error", attempt, 0.0)
+                    except:
+                        pass  # 오류 로깅 실패해도 메인 로직은 계속
+                    
                     # ⚠️ AppKey 차단 방지: 연속 500 에러 시 프로그램 중단 권장
                     if self.consecutive_500_errors >= 2:
                         logger.error("=" * 60)
@@ -190,6 +198,14 @@ class KISDataProvider:
                     logger.error("=" * 60)
                     logger.error(f"🚨 유량 제한 초과 (429) - AppKey 차단 위험!")
                     logger.error("=" * 60)
+                    
+                    # ✅ 오류 모니터링 대시보드에 로깅
+                    try:
+                        from value_stock_finder import main_app
+                        if hasattr(main_app, 'value_app') and hasattr(main_app.value_app, 'log_api_error'):
+                            main_app.value_app.log_api_error("429", path, tr_id, "Rate limit exceeded", attempt, 0.0)
+                    except:
+                        pass  # 오류 로깅 실패해도 메인 로직은 계속
                     if attempt < max_retries:
                         # ✅ Retry-After 헤더 존중 (크리티컬 - 서버 지시 우선)
                         retry_after = e.response.headers.get('Retry-After')

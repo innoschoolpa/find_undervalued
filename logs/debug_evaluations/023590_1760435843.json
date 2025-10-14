@@ -1,0 +1,73 @@
+{
+  "symbol": "023590",
+  "name": "다우기술",
+  "timestamp": "2025-10-14T18:57:23.037301",
+  "score": 100.65396551260906,
+  "score_percentage": 70.38738847035599,
+  "grade": "A (우수)",
+  "recommendation": "STRONG_BUY",
+  "details": {
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "per_score": 16.20017784660846,
+    "pbr_score": 19.782214172935824,
+    "roe_score": 14.320488117570706,
+    "momentum_score": 40.01085375494071,
+    "quality_score": 0,
+    "relative_per": -72.33435858864536,
+    "relative_pbr": -59.7053831078461,
+    "sector_percentile": 72.73787304239832,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "023590",
+      "sector_name": "IT",
+      "original_score": 50.30288013711499,
+      "adjusted_score": 40.24230410969199,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_positive_no_adjustment",
+      "sector_sample_adequate": false,
+      "sector_sample_penalty": 0.8,
+      "sample_adequacy_reason": "insufficient_sample_size_28_penalty_0.8",
+      "sector_score": 60.0,
+      "total_adjustment_factor": 0.8
+    },
+    "raw_component_scores": {
+      "per": 16.20017784660846,
+      "pbr": 19.782214172935824,
+      "roe": 14.320488117570706,
+      "total": 50.30288013711499
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "sector_bonus": 6,
+    "criteria_met": [
+      "PER",
+      "PBR"
+    ],
+    "mos_score": 30,
+    "mos_points": 30,
+    "safety_margin": 247.44095067264573,
+    "intrinsic_value": 116218.99799999999,
+    "confidence": "MEDIUM",
+    "score_percentage": 70.38738847035599,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 4.217627033161014,
+    "pbr": 0.5177858270641775,
+    "roe": 12.276709699390112,
+    "market_cap": 1500800000000.0,
+    "current_price": 33450.0
+  }
+}

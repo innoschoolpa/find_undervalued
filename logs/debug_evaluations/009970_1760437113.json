@@ -1,0 +1,74 @@
+{
+  "symbol": "009970",
+  "name": "영원무역홀딩스",
+  "timestamp": "2025-10-14T19:18:33.901937",
+  "score": 95.35343059247006,
+  "score_percentage": 66.68072069403502,
+  "grade": "A (우수)",
+  "recommendation": "STRONG_BUY",
+  "details": {
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "per_score": 15.75927498655085,
+    "pbr_score": 9.369101218073258,
+    "roe_score": 16.036491525704214,
+    "momentum_score": 44.50933333333333,
+    "quality_score": 0,
+    "relative_per": -33.43316359789553,
+    "relative_pbr": 4.33742912574635,
+    "sector_percentile": 80.18245762852108,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "009970",
+      "sector_name": "금융",
+      "original_score": 41.164867730328325,
+      "adjusted_score": 41.164867730328325,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_positive_no_adjustment",
+      "sector_sample_adequate": true,
+      "sector_sample_penalty": 1.0,
+      "sample_adequacy_reason": "sufficient_sample_size",
+      "sector_score": 60.0,
+      "total_adjustment_factor": 1.0
+    },
+    "raw_component_scores": {
+      "per": 15.75927498655085,
+      "pbr": 9.369101218073258,
+      "roe": 16.036491525704214,
+      "total": 41.164867730328325
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "sector_bonus": 10,
+    "criteria_met": [
+      "PER",
+      "PBR",
+      "ROE"
+    ],
+    "mos_score": 30,
+    "mos_points": 30,
+    "safety_margin": 34.18003603603601,
+    "intrinsic_value": 178727.80799999996,
+    "confidence": "HIGH",
+    "score_percentage": 66.68072069403502,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 5.438510534051935,
+    "pbr": 0.6677595464047766,
+    "roe": 12.278353461370711,
+    "market_cap": 1798100000000.0,
+    "current_price": 133200.0
+  }
+}

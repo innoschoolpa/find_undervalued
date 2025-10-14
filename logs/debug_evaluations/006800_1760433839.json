@@ -1,0 +1,70 @@
+{
+  "symbol": "006800",
+  "name": "미래에셋증권",
+  "timestamp": "2025-10-14T18:23:59.470153",
+  "score": 25.826643995137204,
+  "score_percentage": 18.060590206389655,
+  "grade": "C (위험)",
+  "recommendation": "SELL",
+  "details": {
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "per_score": 3.0936205602182953,
+    "pbr_score": 0.1,
+    "roe_score": 9.963932012366584,
+    "momentum_score": 42.892509466437176,
+    "quality_score": 0,
+    "relative_per": 104.6623171359625,
+    "relative_pbr": 90.06378004025098,
+    "sector_percentile": 49.81966006183292,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "006800",
+      "sector_name": "금융",
+      "original_score": 13.15755257258488,
+      "adjusted_score": 13.15755257258488,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_positive_no_adjustment",
+      "sector_sample_adequate": true,
+      "sector_sample_penalty": 1.0,
+      "sample_adequacy_reason": "sufficient_sample_size",
+      "sector_score": 60.0,
+      "total_adjustment_factor": 1.0
+    },
+    "raw_component_scores": {
+      "per": 3.0936205602182953,
+      "pbr": 0.1,
+      "roe": 9.963932012366584,
+      "total": 13.15755257258488
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "sector_bonus": 0,
+    "criteria_met": [],
+    "mos_score": 0,
+    "mos_points": 0,
+    "safety_margin": -47.54073161904672,
+    "intrinsic_value": 10780.3796522859,
+    "confidence": "HIGH",
+    "score_percentage": 18.060590206389655,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 16.720911310008137,
+    "pbr": 1.2164081922576062,
+    "roe": 7.2747721084408665,
+    "market_cap": 11720000000000.0,
+    "current_price": 20550.0
+  }
+}

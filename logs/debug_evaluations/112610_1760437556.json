@@ -1,0 +1,74 @@
+{
+  "symbol": "112610",
+  "name": "씨에스윈드",
+  "timestamp": "2025-10-14T19:25:56.442505",
+  "score": 52.11493124110238,
+  "score_percentage": 36.44400786091076,
+  "grade": "C+ (주의)",
+  "recommendation": "HOLD",
+  "details": {
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "per_score": 9.49071329776724,
+    "pbr_score": 8.081949215568226,
+    "roe_score": 11.948861422955696,
+    "momentum_score": 29.299134846461946,
+    "quality_score": 0,
+    "relative_per": -36.94427978660344,
+    "relative_pbr": -24.65559372454581,
+    "sector_percentile": 49.74430711477848,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "112610",
+      "sector_name": "철강/화학",
+      "original_score": 29.52152393629116,
+      "adjusted_score": 9.446887659613173,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_penalty_40_below_adjusted_23.6",
+      "sector_sample_adequate": false,
+      "sector_sample_penalty": 0.4,
+      "sample_adequacy_reason": "critical_sample_size_0_penalty_0.4",
+      "sector_score": 30.0,
+      "total_adjustment_factor": 0.32000000000000006
+    },
+    "raw_component_scores": {
+      "per": 9.49071329776724,
+      "pbr": 8.081949215568226,
+      "roe": 11.948861422955696,
+      "total": 29.52152393629116
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "sector_bonus": 10,
+    "criteria_met": [
+      "PER",
+      "PBR",
+      "ROE"
+    ],
+    "mos_score": 0,
+    "mos_points": 0,
+    "safety_margin": 32.15824520172347,
+    "intrinsic_value": 56233.333333333336,
+    "confidence": "LOW",
+    "score_percentage": 36.44400786091076,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 12.611144042679312,
+    "pbr": 1.5068881255090838,
+    "roe": 11.948861422955696,
+    "market_cap": 1794400000000.0,
+    "current_price": 42550.0
+  }
+}

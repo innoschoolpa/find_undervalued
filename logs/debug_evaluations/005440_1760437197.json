@@ -1,0 +1,74 @@
+{
+  "symbol": "005440",
+  "name": "현대지에프홀딩스",
+  "timestamp": "2025-10-14T19:19:57.282893",
+  "score": 112.07575487895055,
+  "score_percentage": 78.37465376150388,
+  "grade": "A+ (매우 우수)",
+  "recommendation": "STRONG_BUY",
+  "details": {
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "per_score": 20.0,
+    "pbr_score": 17.712711906414196,
+    "roe_score": 19.9,
+    "momentum_score": 41.13042972536349,
+    "quality_score": 0,
+    "relative_per": -78.23956734690088,
+    "relative_pbr": -42.386652787416146,
+    "sector_percentile": 99.5,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "005440",
+      "sector_name": "금융",
+      "original_score": 57.6127119064142,
+      "adjusted_score": 57.6127119064142,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_positive_no_adjustment",
+      "sector_sample_adequate": true,
+      "sector_sample_penalty": 1.0,
+      "sample_adequacy_reason": "sufficient_sample_size",
+      "sector_score": 60.0,
+      "total_adjustment_factor": 1.0
+    },
+    "raw_component_scores": {
+      "per": 20.0,
+      "pbr": 17.712711906414196,
+      "roe": 19.9,
+      "total": 57.6127119064142
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "sector_bonus": 10,
+    "criteria_met": [
+      "PER",
+      "PBR",
+      "ROE"
+    ],
+    "mos_score": 30,
+    "mos_points": 30,
+    "safety_margin": 142.9992471769134,
+    "intrinsic_value": 19367.039999999997,
+    "confidence": "HIGH",
+    "score_percentage": 78.37465376150388,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 1.7778273477581976,
+    "pbr": 0.36872542216053666,
+    "roe": 20.740226694425168,
+    "market_cap": 1242600000000.0,
+    "current_price": 7970.0
+  }
+}

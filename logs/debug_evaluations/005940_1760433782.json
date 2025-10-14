@@ -1,0 +1,73 @@
+{
+  "symbol": "005940",
+  "name": "NH투자증권",
+  "timestamp": "2025-10-14T18:23:02.814098",
+  "score": 43.84718446851889,
+  "score_percentage": 30.66236676120202,
+  "grade": "C (위험)",
+  "recommendation": "HOLD",
+  "details": {
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "per_score": 7.337622903412378,
+    "pbr_score": 6.058785477167171,
+    "roe_score": 11.616889133699251,
+    "momentum_score": 39.64473046532046,
+    "quality_score": 0,
+    "relative_per": 18.248851580037552,
+    "relative_pbr": 27.095849844475705,
+    "sector_percentile": 58.08444566849625,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "005940",
+      "sector_name": "금융",
+      "original_score": 25.0132975142788,
+      "adjusted_score": 25.0132975142788,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_positive_no_adjustment",
+      "sector_sample_adequate": true,
+      "sector_sample_penalty": 1.0,
+      "sample_adequacy_reason": "sufficient_sample_size",
+      "sector_score": 60.0,
+      "total_adjustment_factor": 1.0
+    },
+    "raw_component_scores": {
+      "per": 7.337622903412378,
+      "pbr": 6.058785477167171,
+      "roe": 11.616889133699251,
+      "total": 25.0132975142788
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "sector_bonus": 6,
+    "criteria_met": [
+      "PER",
+      "PBR"
+    ],
+    "mos_score": 0,
+    "mos_points": 0,
+    "safety_margin": -9.204738323938816,
+    "intrinsic_value": 17332.81545396008,
+    "confidence": "HIGH",
+    "score_percentage": 30.66236676120202,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 9.660931174089068,
+    "pbr": 0.8134134390046445,
+    "roe": 8.419617367591291,
+    "market_cap": 6802600000000.0,
+    "current_price": 19090.0
+  }
+}

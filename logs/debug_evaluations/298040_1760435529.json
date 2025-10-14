@@ -1,0 +1,72 @@
+{
+  "symbol": "298040",
+  "name": "효성중공업",
+  "timestamp": "2025-10-14T18:52:09.174748",
+  "score": 32.070170698601345,
+  "score_percentage": 22.426692796224717,
+  "grade": "C (위험)",
+  "recommendation": "HOLD",
+  "details": {
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "per_score": 0.1,
+    "pbr_score": 0.1,
+    "roe_score": 12.62721850339604,
+    "momentum_score": 55.317543739279586,
+    "quality_score": 0,
+    "relative_per": 254.26493387505963,
+    "relative_pbr": 472.3969856363521,
+    "sector_percentile": 72.10924313865623,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "298040",
+      "sector_name": "전기전자",
+      "original_score": 12.82721850339604,
+      "adjusted_score": 10.261774802716833,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_positive_no_adjustment",
+      "sector_sample_adequate": false,
+      "sector_sample_penalty": 0.8,
+      "sample_adequacy_reason": "insufficient_sample_size_17_penalty_0.8",
+      "sector_score": 60.0,
+      "total_adjustment_factor": 0.8
+    },
+    "raw_component_scores": {
+      "per": 0.1,
+      "pbr": 0.1,
+      "roe": 12.62721850339604,
+      "total": 12.82721850339604
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "sector_bonus": 4,
+    "criteria_met": [
+      "ROE"
+    ],
+    "mos_score": 0,
+    "mos_points": 0,
+    "safety_margin": -75.7231268443472,
+    "intrinsic_value": 355656.1917303134,
+    "confidence": "MEDIUM",
+    "score_percentage": 22.426692796224717,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 61.35868654716033,
+    "pbr": 7.154962320454401,
+    "roe": 11.660879205677084,
+    "market_cap": 13660500000000.0,
+    "current_price": 1465000.0
+  }
+}

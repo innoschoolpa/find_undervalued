@@ -1,0 +1,73 @@
+{
+  "symbol": "001800",
+  "name": "오리온홀딩스",
+  "timestamp": "2025-10-14T18:32:35.828478",
+  "score": 54.58380150662242,
+  "score_percentage": 38.17049056407163,
+  "grade": "C+ (주의)",
+  "recommendation": "HOLD",
+  "details": {
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "per_score": 11.669133051036326,
+    "pbr_score": 13.78122534840915,
+    "roe_score": 9.06798543880447,
+    "momentum_score": 31.71025641025641,
+    "quality_score": 0,
+    "relative_per": -7.150508786569332,
+    "relative_pbr": -20.08775966342361,
+    "sector_percentile": 45.33992719402235,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "001800",
+      "sector_name": "금융",
+      "original_score": 34.51834383824995,
+      "adjusted_score": 34.51834383824995,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_positive_no_adjustment",
+      "sector_sample_adequate": true,
+      "sector_sample_penalty": 1.0,
+      "sample_adequacy_reason": "sufficient_sample_size",
+      "sector_score": 60.0,
+      "total_adjustment_factor": 1.0
+    },
+    "raw_component_scores": {
+      "per": 11.669133051036326,
+      "pbr": 13.78122534840915,
+      "roe": 9.06798543880447,
+      "total": 34.51834383824995
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "sector_bonus": 6,
+    "criteria_met": [
+      "PER",
+      "PBR"
+    ],
+    "mos_score": 3,
+    "mos_points": 3,
+    "safety_margin": 15.632679100240518,
+    "intrinsic_value": 22490.55608499678,
+    "confidence": "HIGH",
+    "score_percentage": 38.17049056407163,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 7.585803432137285,
+    "pbr": 0.5114383381540889,
+    "roe": 6.742045753352616,
+    "market_cap": 1218500000000.0,
+    "current_price": 19450.0
+  }
+}

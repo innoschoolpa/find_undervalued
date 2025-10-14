@@ -104,6 +104,51 @@ except ImportError:
     # ✅ FIX: print → logger (Streamlit 렌더 순서 보호)
     logger.warning("⚠️ value_finder_improvements 모듈을 찾을 수 없습니다. 기본 평가 방식을 사용합니다.")
 
+# ✅ 모멘텀 경량화 제공자 임포트 (차트 API 500 회피)
+try:
+    from momentum_lightweight_provider import create_momentum_provider
+    HAS_MOMENTUM_LIGHTWEIGHT = True
+    logger.info("✅ 모멘텀 경량화 제공자 로드 성공 (차트 API 500 회피)")
+except ImportError as e:
+    HAS_MOMENTUM_LIGHTWEIGHT = False
+    logger.warning(f"⚠️ 모멘텀 경량화 제공자 로드 실패: {e} - 모멘텀 점수 비활성화")
+
+# ✅ 품질 팩터 강화 모듈 임포트 (필수 최소치 + 소프트 감점)
+try:
+    from quality_factor_enhancer import QualityFactorEnhancer, QualityScore
+    HAS_QUALITY_ENHANCER = True
+    logger.info("✅ 품질 팩터 강화 모듈 로드 성공 (필수 최소치 + 소프트 감점)")
+except ImportError as e:
+    HAS_QUALITY_ENHANCER = False
+    logger.warning(f"⚠️ 품질 팩터 강화 모듈 로드 실패: {e} - 기본 품질 평가 사용")
+
+# ✅ 유니버스 품질 진단 모듈 임포트 (오탐/누락 지표)
+try:
+    from universe_quality_diagnostic import UniverseQualityDiagnostic, UniverseDiagnosticResult
+    HAS_UNIVERSE_DIAGNOSTIC = True
+    logger.info("✅ 유니버스 품질 진단 모듈 로드 성공 (오탐/누락 지표)")
+except ImportError as e:
+    HAS_UNIVERSE_DIAGNOSTIC = False
+    logger.warning(f"⚠️ 유니버스 품질 진단 모듈 로드 실패: {e} - 진단 기능 비활성화")
+
+# ✅ 캘리브레이션 리포트 자동화 모듈 임포트 (주간)
+try:
+    from calibration_report_automation import CalibrationReportAutomation, CalibrationReport
+    HAS_CALIBRATION_AUTOMATION = True
+    logger.info("✅ 캘리브레이션 리포트 자동화 모듈 로드 성공 (주간)")
+except ImportError as e:
+    HAS_CALIBRATION_AUTOMATION = False
+    logger.warning(f"⚠️ 캘리브레이션 리포트 자동화 모듈 로드 실패: {e} - 리포트 기능 비활성화")
+
+# ✅ 오류/차단 관측 대시보드 모듈 임포트 (시간대별 401/429/500)
+try:
+    from error_monitoring_dashboard import ErrorMonitoringDashboard, ErrorStats
+    HAS_ERROR_MONITORING = True
+    logger.info("✅ 오류/차단 관측 대시보드 모듈 로드 성공 (시간대별 401/429/500)")
+except ImportError as e:
+    HAS_ERROR_MONITORING = False
+    logger.warning(f"⚠️ 오류/차단 관측 대시보드 모듈 로드 실패: {e} - 모니터링 기능 비활성화")
+
 # ✅ v2.1 Quick Patches 임포트
 try:
     from quick_patches_v2_1 import QuickPatches, ValueStockFinderPatches
@@ -294,7 +339,8 @@ def _get_mcp_integration():
     if not MCP_AVAILABLE:
         return None
     logger.info("✅ MCP 통합 모듈 초기화 (최초 1회만)")
-    return MCPKISIntegration(oauth_manager=None)
+    # OAuth 매니저는 ValueStockFinder 인스턴스에서 전달받아야 함
+    return None  # 지연 초기화로 변경
 
 @st.cache_resource
 def _get_value_stock_finder():
@@ -304,7 +350,17 @@ def _get_value_stock_finder():
     cls = globals().get("ValueStockFinder", None)
     if cls is None:
         raise RuntimeError("ValueStockFinder 클래스가 아직 정의되지 않았습니다. 함수 호출 순서를 확인하세요.")
-    return cls()
+    
+    # KIS 데이터 제공자 초기화 (모멘텀 점수 계산용)
+    try:
+        from kis_data_provider import KISDataProvider
+        kis_provider = KISDataProvider()
+        logger.info("✅ KIS 데이터 제공자 초기화 성공 (모멘텀 점수 활성화)")
+    except Exception as e:
+        kis_provider = None
+        logger.warning(f"⚠️ KIS 데이터 제공자 초기화 실패: {e} - 모멘텀 점수 비활성화")
+    
+    return cls(kis_provider=kis_provider)
 
 @st.cache_resource(ttl=86400)  # ✅ 24시간 캐시 (Streamlit 재실행 간 유지)
 def _load_sector_cache():
@@ -473,6 +529,48 @@ class ValueStockFinder:
     _session_universe = None
     _session_universe_size = 0
     
+    def __init__(self, kis_provider=None):
+        """
+        Args:
+            kis_provider: KIS 데이터 제공자 (모멘텀 점수 계산용)
+        """
+        self.kis_provider = kis_provider
+        
+        # 기존 OAuth 매니저 초기화 로직 호출
+        self._init_oauth_manager()
+        
+        # 품질 팩터 강화 모듈 초기화
+        if HAS_QUALITY_ENHANCER:
+            self.quality_enhancer = QualityFactorEnhancer()
+            logger.info("✅ 품질 팩터 강화 모듈 초기화 완료")
+        else:
+            self.quality_enhancer = None
+            logger.warning("⚠️ 품질 팩터 강화 모듈 비활성화")
+        
+        # 유니버스 품질 진단 모듈 초기화
+        if HAS_UNIVERSE_DIAGNOSTIC:
+            self.universe_diagnostic = UniverseQualityDiagnostic()
+            logger.info("✅ 유니버스 품질 진단 모듈 초기화 완료")
+        else:
+            self.universe_diagnostic = None
+            logger.warning("⚠️ 유니버스 품질 진단 모듈 비활성화")
+        
+        # 캘리브레이션 리포트 자동화 모듈 초기화
+        if HAS_CALIBRATION_AUTOMATION:
+            self.calibration_automation = CalibrationReportAutomation()
+            logger.info("✅ 캘리브레이션 리포트 자동화 모듈 초기화 완료")
+        else:
+            self.calibration_automation = None
+            logger.warning("⚠️ 캘리브레이션 리포트 자동화 모듈 비활성화")
+        
+        # 오류/차단 관측 대시보드 모듈 초기화
+        if HAS_ERROR_MONITORING:
+            self.error_monitoring = ErrorMonitoringDashboard()
+            logger.info("✅ 오류/차단 관측 대시보드 모듈 초기화 완료")
+        else:
+            self.error_monitoring = None
+            logger.warning("⚠️ 오류/차단 관측 대시보드 모듈 비활성화")
+    
     # UI 업데이트 상수 (동적 디바운스)
     def _safe_progress(self, progress_bar, progress, text):
         """✅ Streamlit 버전 호환 + 값 스케일 자동화
@@ -575,7 +673,8 @@ class ValueStockFinder:
         logger.warning("⚠️ 토큰 캐시를 현재 디렉터리에 저장합니다 (권한 이슈)")
         return os.path.abspath('.kis_token_cache.json')
     
-    def __init__(self):
+    def _init_oauth_manager(self):
+        """OAuth 매니저 초기화 (기존 __init__ 로직을 별도 메서드로 분리)"""
         # KIS OAuth 매니저 초기화 (config.yaml에서 설정 로드)
         # ✅ PyYAML 미설치시 ImportError 방지
         try:
@@ -733,6 +832,7 @@ class ValueStockFinder:
                 logger.error("토큰 발급 최종 실패")
                 return None
         
+        # OAuth 매니저 생성 및 기존 초기화 로직 실행
         self.oauth_manager = SimpleOAuthManager(
             appkey=kis_config.get('app_key', ''),
             appsecret=kis_config.get('app_secret', ''),
@@ -878,8 +978,10 @@ class ValueStockFinder:
     def _get_mcp_singleton(self):
         """✅ FIX: 네이밍 충돌 해소 (전역 함수와 구분)
         MCP 통합 초기화 (중복 방지, ChatGPT 권장 - 전역 캐시 사용)"""
-        # ✅ 전역 싱글톤 사용 (중복 초기화 완전 제거)
-        return _get_mcp_integration()
+        if not MCP_AVAILABLE:
+            return None
+        logger.info("✅ MCP 통합 모듈 초기화 (OAuth 매니저 포함)")
+        return MCPKISIntegration(oauth_manager=self.oauth_manager)
     
     @property
     def analyzer(self):
@@ -1951,6 +2053,8 @@ class ValueStockFinder:
                         'per_score': value_analysis['details'].get('per_score', 0),
                         'pbr_score': value_analysis['details'].get('pbr_score', 0),
                         'roe_score': value_analysis['details'].get('roe_score', 0),
+                        'momentum_score': value_analysis['details'].get('momentum_score', 0),  # ✅ 모멘텀 점수 추가
+                        'quality_score': value_analysis['details'].get('quality_score', 0),    # ✅ 품질 점수 추가
                         # ✅ margin_score 제거, mos_score만 사용 (일관성 확보)
                         'mos_score': value_analysis['details'].get('mos_score', 0),
                         'sector_bonus': value_analysis['details'].get('sector_bonus', 0)
@@ -2068,6 +2172,197 @@ class ValueStockFinder:
         }
         return sector_b.get(sector, 0.35)
     
+    def compute_momentum_score_lightweight(self, symbol: str, stock_data: Dict[str, Any]) -> float:
+        """✅ 모멘텀 경량화 점수 계산 (차트 API 500 회피)"""
+        if not HAS_MOMENTUM_LIGHTWEIGHT:
+            return 50.0  # 중립 점수
+        
+        try:
+            # 모멘텀 제공자 생성 (KIS 데이터 제공자 필요)
+            if hasattr(self, 'kis_provider'):
+                momentum_provider = create_momentum_provider(self.kis_provider, "lightweight")
+                return momentum_provider.get_momentum_score_lightweight(symbol)
+            else:
+                # KIS 제공자가 없으면 기본 모멘텀 계산
+                return self._compute_basic_momentum(stock_data)
+                
+        except Exception as e:
+            logger.warning(f"⚠️ {symbol} 모멘텀 점수 계산 실패: {e}")
+            return 50.0
+    
+    def _compute_basic_momentum(self, stock_data: Dict[str, Any]) -> float:
+        """기본 모멘텀 점수 계산 (KIS 제공자 없을 때)"""
+        try:
+            # 현재가 기반 모멘텀
+            current_price = stock_data.get('current_price', 0)
+            change_rate = stock_data.get('change_rate', 0)
+            
+            if current_price <= 0:
+                return 50.0
+            
+            # 등락률 기반 모멘텀 (간단한 방식)
+            momentum = 50 + (change_rate * 2)  # 등락률 * 2로 스케일링
+            return max(0, min(100, momentum))
+            
+        except Exception as e:
+            logger.debug(f"기본 모멘텀 계산 실패: {e}")
+            return 50.0
+    
+    def compute_quality_score_enhanced(self, stock_data: Dict[str, Any], sector: str = '') -> float:
+        """✅ 품질 점수 강화 계산 (필수 최소치 + 소프트 감점)"""
+        if not HAS_QUALITY_ENHANCER or not self.quality_enhancer:
+            return 50.0  # 중립 점수
+        
+        try:
+            # 품질 팩터 강화 평가
+            quality_score = self.quality_enhancer.evaluate_quality(stock_data, sector)
+            
+            # 하드 탈락인 경우 0점 반환
+            if quality_score.is_hard_reject:
+                logger.debug(f"품질 하드 탈락: {stock_data.get('symbol', 'UNKNOWN')} - {quality_score.penalties}")
+                return 0.0
+            
+            # 소프트 감점 점수 반환 (0-100)
+            return quality_score.total_score
+            
+        except Exception as e:
+            logger.warning(f"품질 점수 계산 실패: {e}")
+            return 50.0
+    
+    def diagnose_universe_quality(self, original_stocks: list, filtered_stocks: list) -> Optional[UniverseDiagnosticResult]:
+        """✅ 유니버스 품질 진단 (오탐/누락 지표)"""
+        if not HAS_UNIVERSE_DIAGNOSTIC or not self.universe_diagnostic:
+            return None
+        
+        try:
+            # 유니버스 품질 진단 실행
+            diagnostic_result = self.universe_diagnostic.diagnose_universe_quality(original_stocks, filtered_stocks)
+            
+            # 진단 결과 로깅
+            logger.info(f"📊 유니버스 품질 진단 완료:")
+            logger.info(f"  • 원본: {diagnostic_result.total_stocks}개 → 필터링 후: {diagnostic_result.filtered_stocks}개")
+            logger.info(f"  • ETF 제거: {diagnostic_result.etf_removed}개, ETN 제거: {diagnostic_result.etn_removed}개")
+            logger.info(f"  • REIT 제거: {diagnostic_result.reit_removed}개, 우선주 제거: {diagnostic_result.preferred_removed}개")
+            
+            return diagnostic_result
+            
+        except Exception as e:
+            logger.warning(f"유니버스 품질 진단 실패: {e}")
+            return None
+    
+    def create_universe_diagnostic_dashboard(self, diagnostic_result: UniverseDiagnosticResult):
+        """✅ 유니버스 진단 대시보드 생성 (Streamlit용)"""
+        if not HAS_UNIVERSE_DIAGNOSTIC or not self.universe_diagnostic:
+            st.warning("⚠️ 유니버스 품질 진단 모듈이 비활성화되어 있습니다.")
+            return
+        
+        try:
+            # 진단 대시보드 생성
+            fig = self.universe_diagnostic.create_diagnostic_dashboard(diagnostic_result)
+            st.plotly_chart(fig, use_container_width=True)
+            
+            # 진단 보고서 표시
+            report = self.universe_diagnostic.generate_diagnostic_report(diagnostic_result)
+            st.text_area("📊 유니버스 품질 진단 보고서", report, height=300)
+            
+        except Exception as e:
+            st.error(f"진단 대시보드 생성 실패: {e}")
+    
+    def generate_calibration_report(self, days_back: int = 7) -> Optional[CalibrationReport]:
+        """✅ 캘리브레이션 리포트 생성 (주간)"""
+        if not HAS_CALIBRATION_AUTOMATION or not self.calibration_automation:
+            return None
+        
+        try:
+            # 캘리브레이션 리포트 생성
+            report = self.calibration_automation.generate_weekly_report(days_back)
+            
+            # 리포트 결과 로깅
+            logger.info(f"📊 캘리브레이션 리포트 생성 완료:")
+            logger.info(f"  • 분석 기간: {report.period_days}일")
+            logger.info(f"  • 총 선택 종목: {report.total_selections}개")
+            logger.info(f"  • 평균 수익률: {report.performance_metrics.get('mean_return', 0):.2f}%")
+            logger.info(f"  • 승률: {report.performance_metrics.get('win_rate', 0):.1f}%")
+            
+            return report
+            
+        except Exception as e:
+            logger.warning(f"캘리브레이션 리포트 생성 실패: {e}")
+            return None
+    
+    def create_calibration_report_dashboard(self, report: CalibrationReport):
+        """✅ 캘리브레이션 리포트 대시보드 생성 (Streamlit용)"""
+        if not HAS_CALIBRATION_AUTOMATION or not self.calibration_automation:
+            st.warning("⚠️ 캘리브레이션 리포트 자동화 모듈이 비활성화되어 있습니다.")
+            return
+        
+        try:
+            # 리포트 대시보드 생성
+            fig = self.calibration_automation.create_report_dashboard(report)
+            st.plotly_chart(fig, use_container_width=True)
+            
+            # 리포트 요약 표시
+            summary = self.calibration_automation.generate_report_summary(report)
+            st.text_area("📊 캘리브레이션 리포트 요약", summary, height=400)
+            
+        except Exception as e:
+            st.error(f"캘리브레이션 리포트 대시보드 생성 실패: {e}")
+    
+    def log_api_error(self, error_type: str, endpoint: str, tr_id: str, 
+                     message: str, retry_count: int = 0, response_time: float = 0.0):
+        """✅ API 오류 로깅 (모니터링 대시보드용)"""
+        if HAS_ERROR_MONITORING and self.error_monitoring:
+            self.error_monitoring.log_error(error_type, endpoint, tr_id, message, retry_count, response_time)
+    
+    def get_error_stats(self, hours_back: int = 24) -> Optional[ErrorStats]:
+        """✅ 오류 통계 조회"""
+        if not HAS_ERROR_MONITORING or not self.error_monitoring:
+            return None
+        
+        try:
+            return self.error_monitoring.get_error_stats(hours_back)
+        except Exception as e:
+            logger.warning(f"오류 통계 조회 실패: {e}")
+            return None
+    
+    def create_error_monitoring_dashboard(self, hours_back: int = 24):
+        """✅ 오류 모니터링 대시보드 생성 (Streamlit용)"""
+        if not HAS_ERROR_MONITORING or not self.error_monitoring:
+            st.warning("⚠️ 오류/차단 관측 대시보드 모듈이 비활성화되어 있습니다.")
+            return
+        
+        try:
+            # 오류 대시보드 생성
+            fig = self.error_monitoring.create_error_dashboard(hours_back)
+            st.plotly_chart(fig, use_container_width=True)
+            
+            # 오류 통계 표시
+            stats = self.error_monitoring.get_error_stats(hours_back)
+            if stats:
+                col1, col2, col3, col4 = st.columns(4)
+                
+                with col1:
+                    st.metric("총 오류 수", f"{stats.total_errors}개")
+                
+                with col2:
+                    st.metric("오류율", f"{stats.error_rate:.2f}%")
+                
+                with col3:
+                    st.metric("연속 오류", f"{stats.consecutive_errors}회")
+                
+                with col4:
+                    st.metric("평균 응답시간", f"{stats.avg_response_time:.2f}초")
+            
+            # 권장사항 표시
+            recommendations = self.error_monitoring.get_recommendations(stats) if stats else []
+            if recommendations:
+                st.markdown("#### 💡 권장사항")
+                for i, rec in enumerate(recommendations, 1):
+                    st.info(f"{i}. {rec}")
+            
+        except Exception as e:
+            st.error(f"오류 모니터링 대시보드 생성 실패: {e}")
+
     def compute_mos_score(self, per, pbr, roe, sector):
         """✅ PATCH 4: 안전마진(MoS) 점수 계산 (이상치 하드캡 + DEBUG 로깅)"""
         # ✅ 섹터 정규화 추가 (정확도 향상)
@@ -2259,10 +2554,23 @@ class ValueStockFinder:
             score += dao['per_score']
             score += dao['pbr_score']
             score += dao['roe_score']
+            
+            # ✅ 모멘텀 점수 추가 (경량화 방식)
+            symbol = stock_data.get('symbol', stock_data.get('code', ''))
+            momentum_score = self.compute_momentum_score_lightweight(symbol, stock_data)
+            score += momentum_score * 0.1  # 모멘텀 점수 10% 가중치
+            
+            # ✅ 품질 점수 추가 (필수 최소치 + 소프트 감점)
+            sector_name = stock_data.get('sector_name', stock_data.get('sector', ''))
+            quality_score = self.compute_quality_score_enhanced(stock_data, sector_name)
+            score += quality_score * 0.15  # 품질 점수 15% 가중치
+            
             details.update({
                 'per_score': dao['per_score'],
                 'pbr_score': dao['pbr_score'],
                 'roe_score': dao['roe_score'],
+                'momentum_score': momentum_score,  # ✅ 모멘텀 점수 추가
+                'quality_score': quality_score,    # ✅ 품질 점수 추가
                 'relative_per': dao.get('relative_per'),
                 'relative_pbr': dao.get('relative_pbr'),
                 'sector_percentile': dao.get('sector_percentile'),
@@ -2960,7 +3268,7 @@ class ValueStockFinder:
         api_strategy = options.get("api_strategy", "안전 모드 (배치 처리)")
 
         # 1) 유니버스
-        uni = self.get_stock_universe_from_api(max_stocks)  # ✅ FIX: 정확한 수량만 수집 (불필요한 API 호출 방지)
+        uni = self.get_stock_universe(max_stocks)  # ✅ FIX: 세션 캐시 활용으로 중복 호출 방지
         if not uni:
             st.error("유니버스를 불러오지 못했습니다. API 설정을 확인하세요.")
             return pd.DataFrame()
@@ -3081,13 +3389,29 @@ class ValueStockFinder:
             return False, None
     
     def get_stock_universe(self, max_count=250):
-        """✅ FIX: 중복 수집 방지 - 새로운 함수로 위임 (필터링은 이미 포함됨)"""
+        """✅ FIX: 중복 수집 방지 - 세션 캐시 활용"""
+        # ✅ 세션 캐시 확인 (같은 max_count면 재사용)
+        cache_key = f"universe_{max_count}"
+        if hasattr(self, '_session_universe_cache') and cache_key in self._session_universe_cache:
+            logger.info(f"✅ 세션 캐시에서 유니버스 재사용: {max_count}개")
+            return self._session_universe_cache[cache_key]
+        
+        # ✅ 세션 캐시 초기화
+        if not hasattr(self, '_session_universe_cache'):
+            self._session_universe_cache = {}
+        
         # ✅ 새로운 get_stock_universe_from_api()는 이미 모든 필터링을 포함하고 있음
         # - ETF/ETN/REIT/우선주 1차 배제
         # - 블랙리스트 제외  
         # - 종목명 정규화
         # - 시총 정렬
-        return self.get_stock_universe_from_api(max_count)
+        result = self.get_stock_universe_from_api(max_count)
+        
+        # ✅ 세션 캐시에 저장
+        self._session_universe_cache[cache_key] = result
+        logger.info(f"✅ 유니버스 세션 캐시 저장: {max_count}개")
+        
+        return result
     
     def screen_all_stocks(self, options):
         """전체 종목 스크리닝"""
@@ -3861,6 +4185,8 @@ class ValueStockFinder:
                         'PER점수': f"{stock.get('per_score', 0):.1f}",
                         'PBR점수': f"{stock.get('pbr_score', 0):.1f}",
                         'ROE점수': f"{stock.get('roe_score', 0):.1f}",
+                        '모멘텀점수': f"{stock.get('momentum_score', 0):.1f}",  # ✅ 모멘텀 점수 추가
+                        '품질점수': f"{stock.get('quality_score', 0):.1f}",    # ✅ 품질 점수 추가
                         'MoS점수': f"{stock.get('mos_score', 0):.1f}",  # ✅ MoS 점수
                         '섹터보너스': f"+{stock.get('sector_bonus', 0):.0f}"  # ✅ 섹터 보너스
                     })
@@ -3962,6 +4288,8 @@ class ValueStockFinder:
                     'PER점수': f"{stock.get('per_score', 0):.1f}",
                     'PBR점수': f"{stock.get('pbr_score', 0):.1f}",
                     'ROE점수': f"{stock.get('roe_score', 0):.1f}",
+                    '모멘텀점수': f"{stock.get('momentum_score', 0):.1f}",  # ✅ 모멘텀 점수 추가
+                    '품질점수': f"{stock.get('quality_score', 0):.1f}",    # ✅ 품질 점수 추가
                     'MoS점수': f"{stock.get('mos_score', 0):.1f}",
                     '섹터보너스': f"+{stock.get('sector_bonus', 0):.0f}",
                     '섹터조정': f"{stock.get('sector_adjustment', 1.0):.2f}x"
@@ -4367,8 +4695,8 @@ class ValueStockFinder:
             return
         
         # 서브탭 (MCP 활성화 시에만 표시)
-        sub_tab1, sub_tab2, sub_tab3, sub_tab4, sub_tab5 = st.tabs([
-            "💎 자동 가치주 발굴", "📈 실시간 시장", "🏢 섹터 분석", "📊 순위 분석", "🔍 종목 심화"
+        sub_tab1, sub_tab2, sub_tab3, sub_tab4, sub_tab5, sub_tab6, sub_tab7, sub_tab8 = st.tabs([
+            "💎 자동 가치주 발굴", "📈 실시간 시장", "🏢 섹터 분석", "📊 순위 분석", "🔍 종목 심화", "📊 유니버스 진단", "📈 캘리브레이션 리포트", "🚨 오류 모니터링"
         ])
         
         with sub_tab1:
@@ -4386,6 +4714,229 @@ class ValueStockFinder:
         
         with sub_tab5:
             self.render_stock_detail()
+        
+        with sub_tab6:
+            self.render_universe_diagnostic()
+        
+        with sub_tab7:
+            self.render_calibration_report()
+        
+        with sub_tab8:
+            self.render_error_monitoring()
+    
+    def render_error_monitoring(self):
+        """오류 모니터링 탭 렌더링"""
+        st.markdown("#### 🚨 오류/차단 관측 대시보드")
+        
+        st.info("""
+        **🔍 모니터링 항목:**
+        - 시간대별 401/429/500 오류 발생 현황
+        - API 응답시간 및 성능 지표
+        - 연속 오류 발생 패턴 분석
+        - AppKey 차단 위험도 실시간 평가
+        """)
+        
+        # 모니터링 기간 선택
+        col1, col2 = st.columns(2)
+        with col1:
+            hours_back = st.selectbox(
+                "모니터링 기간 선택",
+                [1, 6, 12, 24, 48, 72],
+                index=3,  # 기본 24시간
+                help="과거 몇 시간간의 오류 데이터를 분석할지 선택하세요"
+            )
+        
+        with col2:
+            if st.button("🔄 데이터 새로고침", type="primary"):
+                st.rerun()
+        
+        # 오류 모니터링 대시보드 표시
+        self.create_error_monitoring_dashboard(hours_back)
+        
+        # 추가 기능
+        st.markdown("#### 🔧 추가 기능")
+        
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            if st.button("📊 상세 보고서"):
+                if HAS_ERROR_MONITORING and self.error_monitoring:
+                    report = self.error_monitoring.generate_error_report(hours_back)
+                    st.text_area("📊 오류 모니터링 상세 보고서", report, height=400)
+                else:
+                    st.warning("⚠️ 오류 모니터링 모듈이 비활성화되어 있습니다.")
+        
+        with col2:
+            if st.button("📥 오류 데이터 다운로드"):
+                if HAS_ERROR_MONITORING and self.error_monitoring:
+                    df = self.error_monitoring.export_error_data(hours_back)
+                    if not df.empty:
+                        csv_data = df.to_csv(index=False)
+                        st.download_button(
+                            label="📥 CSV 다운로드",
+                            data=csv_data,
+                            file_name=f"error_monitoring_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
+                            mime="text/csv"
+                        )
+                    else:
+                        st.info("📊 다운로드할 오류 데이터가 없습니다.")
+                else:
+                    st.warning("⚠️ 오류 모니터링 모듈이 비활성화되어 있습니다.")
+        
+        with col3:
+            if st.button("🧹 오류 로그 초기화"):
+                if st.button("⚠️ 정말 초기화하시겠습니까?", key="confirm_clear"):
+                    if HAS_ERROR_MONITORING and self.error_monitoring:
+                        # 오류 이벤트 초기화
+                        with self.error_monitoring.error_lock:
+                            self.error_monitoring.error_events.clear()
+                        st.success("✅ 오류 로그가 초기화되었습니다.")
+                        st.rerun()
+                    else:
+                        st.warning("⚠️ 오류 모니터링 모듈이 비활성화되어 있습니다.")
+    
+    def render_calibration_report(self):
+        """캘리브레이션 리포트 탭 렌더링"""
+        st.markdown("#### 📈 캘리브레이션 리포트")
+        
+        st.info("""
+        **📊 분석 항목:**
+        - 최근 선택 종목들의 ex-post 성과 분석
+        - 컷라인 효과성 및 최적화 제안
+        - 섹터별 성과 비교 분석
+        - 리스크 메트릭 및 관리 제안
+        """)
+        
+        # 분석 기간 선택
+        col1, col2 = st.columns(2)
+        with col1:
+            days_back = st.selectbox(
+                "분석 기간 선택",
+                [7, 14, 30, 60, 90],
+                index=0,
+                help="과거 며칠간의 데이터를 분석할지 선택하세요"
+            )
+        
+        with col2:
+            if st.button("🔄 리포트 생성", type="primary"):
+                with st.spinner(f"📊 최근 {days_back}일간 캘리브레이션 리포트 생성 중..."):
+                    report = self.generate_calibration_report(days_back)
+                    
+                    if report:
+                        # 리포트를 세션 상태에 저장
+                        st.session_state['calibration_report'] = report
+                        st.success(f"✅ 캘리브레이션 리포트 생성 완료!")
+                        st.rerun()
+                    else:
+                        st.error("❌ 캘리브레이션 리포트 생성에 실패했습니다.")
+        
+        # 리포트 결과 표시
+        if 'calibration_report' in st.session_state:
+            report = st.session_state['calibration_report']
+            
+            # 리포트 대시보드 표시
+            self.create_calibration_report_dashboard(report)
+            
+            # 추가 옵션
+            st.markdown("#### 🔧 추가 옵션")
+            
+            col1, col2, col3 = st.columns(3)
+            with col1:
+                if st.button("🔄 리포트 새로고침"):
+                    st.session_state.pop('calibration_report', None)
+                    st.rerun()
+            
+            with col2:
+                if st.button("📥 리포트 다운로드"):
+                    # 리포트를 JSON으로 다운로드
+                    import json
+                    report_data = {
+                        'report_date': report.report_date,
+                        'period_days': report.period_days,
+                        'total_selections': report.total_selections,
+                        'performance_metrics': report.performance_metrics,
+                        'cut_analysis': report.cut_analysis,
+                        'sector_performance': report.sector_performance,
+                        'risk_metrics': report.risk_metrics,
+                        'recommendations': report.recommendations
+                    }
+                    
+                    json_data = json.dumps(report_data, ensure_ascii=False, indent=2)
+                    st.download_button(
+                        label="📥 JSON 다운로드",
+                        data=json_data,
+                        file_name=f"calibration_report_{report.report_date}.json",
+                        mime="application/json"
+                    )
+            
+            with col3:
+                if st.button("📧 리포트 이메일 전송"):
+                    st.info("📧 이메일 전송 기능은 향후 구현 예정입니다.")
+        else:
+            st.warning("⚠️ 아직 캘리브레이션 리포트가 생성되지 않았습니다.")
+            st.info("💡 위의 '리포트 생성' 버튼을 클릭하여 분석을 시작하세요.")
+    
+    def render_universe_diagnostic(self):
+        """유니버스 품질 진단 탭 렌더링"""
+        st.markdown("#### 📊 유니버스 품질 진단")
+        
+        st.info("""
+        **🔍 진단 항목:**
+        - ETF/ETN/REIT/우선주 필터링 효과
+        - 섹터별 커버리지 분석
+        - 시가총액 상위 종목 포함률
+        - 품질 메트릭 분포
+        """)
+        
+        # 진단 결과 확인
+        if 'universe_diagnostic' in st.session_state:
+            diagnostic_result = st.session_state['universe_diagnostic']
+            
+            # 진단 대시보드 표시
+            self.create_universe_diagnostic_dashboard(diagnostic_result)
+            
+            # 추가 분석 옵션
+            st.markdown("#### 🔧 추가 분석")
+            
+            col1, col2 = st.columns(2)
+            with col1:
+                if st.button("🔄 진단 새로고침"):
+                    st.session_state.pop('universe_diagnostic', None)
+                    st.rerun()
+            
+            with col2:
+                if st.button("📥 진단 결과 다운로드"):
+                    # 진단 결과를 CSV로 다운로드
+                    import io
+                    import csv
+                    
+                    output = io.StringIO()
+                    writer = csv.writer(output)
+                    
+                    # 기본 통계
+                    writer.writerow(['항목', '값'])
+                    writer.writerow(['원본 종목 수', diagnostic_result.total_stocks])
+                    writer.writerow(['필터링 후 종목 수', diagnostic_result.filtered_stocks])
+                    writer.writerow(['ETF 제거 수', diagnostic_result.etf_removed])
+                    writer.writerow(['ETN 제거 수', diagnostic_result.etn_removed])
+                    writer.writerow(['REIT 제거 수', diagnostic_result.reit_removed])
+                    writer.writerow(['우선주 제거 수', diagnostic_result.preferred_removed])
+                    
+                    # 섹터 커버리지
+                    writer.writerow([])
+                    writer.writerow(['섹터', '종목 수'])
+                    for sector, count in diagnostic_result.sector_coverage.items():
+                        writer.writerow([sector, count])
+                    
+                    csv_data = output.getvalue()
+                    st.download_button(
+                        label="📥 CSV 다운로드",
+                        data=csv_data,
+                        file_name=f"universe_diagnostic_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
+                        mime="text/csv"
+                    )
+        else:
+            st.warning("⚠️ 아직 유니버스 품질 진단이 실행되지 않았습니다.")
+            st.info("💡 '자동 가치주 발굴' 탭에서 스크리닝을 실행하면 자동으로 진단이 수행됩니다.")
     
     def render_mcp_value_finder(self):
         """MCP 자동 가치주 발굴 렌더링"""
@@ -4452,6 +5003,9 @@ class ValueStockFinder:
                 # 개선: universe_data 그대로 → 전체 데이터 전달 → mcp가 재사용 (300번 호출)
                 stock_universe = universe_data if isinstance(universe_data, dict) else None
                 
+                # ✅ 유니버스 품질 진단 (원본 데이터 저장)
+                original_universe_list = list(stock_universe.values()) if stock_universe else []
+                
                 if stock_universe:
                     logger.info(f"✅ 기존 시스템에서 {len(stock_universe)}개 종목 전체 데이터 확보 (중복 API 호출 방지)")
                 else:
@@ -4470,7 +5024,7 @@ class ValueStockFinder:
                     stock_universe=stock_universe,  # ✅ 외부 유니버스 전달!
                     quality_check=False,  # ✅ 재무비율 API 호출 생략 (500 에러 방지)
                     min_trading_value=None,  # ✅ 거래대금 필터 비활성화 (데이터 불일치 회피)
-                    momentum_scoring=False  # ⚠️ 차트 API 500 오류 지속 → 완전 비활성화
+                    momentum_scoring=HAS_MOMENTUM_LIGHTWEIGHT  # ✅ 모멘텀 경량화 제공자 사용
                 )
                 
                 elapsed_time = time.time() - start_time
@@ -4484,6 +5038,16 @@ class ValueStockFinder:
                         shortage_reason = f" (목표 {target_count}개 → 실제 {actual_count}개: 섹터캡/비중상한/리스크제외)"
                     
                     st.success(f"✅ {actual_count}개 가치주 발굴 완료!{shortage_reason} (소요 시간: {elapsed_time:.1f}초)")
+                    
+                    # ✅ 유니버스 품질 진단 실행
+                    if original_universe_list:
+                        filtered_universe_list = [stock for stock in value_stocks if 'name' in stock]
+                        diagnostic_result = self.diagnose_universe_quality(original_universe_list, filtered_universe_list)
+                        
+                        if diagnostic_result:
+                            # 진단 결과를 세션 상태에 저장
+                            st.session_state['universe_diagnostic'] = diagnostic_result
+                            st.info("📊 유니버스 품질 진단 완료 - '유니버스 진단' 탭에서 상세 결과를 확인하세요.")
                     
                     # 요약 통계
                     col1, col2, col3, col4 = st.columns(4)
@@ -5074,7 +5638,16 @@ def main_app():
     try:
         # st.session_state를 사용하여 ValueStockFinder 인스턴스를 한 번만 생성하고 재사용
         if "value_app" not in st.session_state:
-            st.session_state["value_app"] = ValueStockFinder()
+            # KIS 데이터 제공자 초기화 (모멘텀 점수 계산용)
+            try:
+                from kis_data_provider import KISDataProvider
+                kis_provider = KISDataProvider()
+                logger.info("✅ KIS 데이터 제공자 초기화 성공 (모멘텀 점수 활성화)")
+            except Exception as e:
+                kis_provider = None
+                logger.warning(f"⚠️ KIS 데이터 제공자 초기화 실패: {e} - 모멘텀 점수 비활성화")
+            
+            st.session_state["value_app"] = ValueStockFinder(kis_provider=kis_provider)
 
         st.session_state["value_app"].run()
 

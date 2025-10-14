@@ -1,0 +1,72 @@
+{
+  "symbol": "009420",
+  "name": "한올바이오파마",
+  "timestamp": "2025-10-14T19:18:32.359695",
+  "score": 8.022837552439206,
+  "score_percentage": 5.610375910796648,
+  "grade": "C (위험)",
+  "recommendation": "SELL",
+  "details": {
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "per_score": 0,
+    "pbr_score": 0.1,
+    "roe_score": 4.55592326672492,
+    "momentum_score": 33.66914285714286,
+    "quality_score": 0,
+    "relative_per": null,
+    "relative_pbr": 859.9765738090766,
+    "sector_percentile": 22.779616333624602,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "009420",
+      "sector_name": "제약",
+      "original_score": 4.65592326672492,
+      "adjusted_score": 4.65592326672492,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_positive_no_adjustment",
+      "sector_sample_adequate": true,
+      "sector_sample_penalty": 1.0,
+      "sample_adequacy_reason": "sufficient_sample_size",
+      "sector_score": 60.0,
+      "total_adjustment_factor": 1.0
+    },
+    "raw_component_scores": {
+      "per": 0.0,
+      "pbr": 0.1,
+      "roe": 4.55592326672492,
+      "total": 4.65592326672492
+    },
+    "alternative_valuation_used": true,
+    "alternative_reason": "negative_per",
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "sector_bonus": 0,
+    "criteria_met": [],
+    "mos_score": 0,
+    "mos_points": 0,
+    "safety_margin": -92.70815539568345,
+    "intrinsic_value": 2533.9159999999997,
+    "confidence": "HIGH",
+    "score_percentage": 5.610375910796648,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 0.0,
+    "pbr": 10.03175519630485,
+    "roe": -1.010392609699769,
+    "market_cap": 1815400000000.0,
+    "current_price": 34750.0
+  }
+}

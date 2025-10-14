@@ -1,0 +1,71 @@
+{
+  "symbol": "000100",
+  "name": "유한양행",
+  "timestamp": "2025-10-14T16:40:50.240339",
+  "score": 14.81372696752645,
+  "score_percentage": 10.359249627640873,
+  "grade": "C (위험)",
+  "recommendation": "SELL",
+  "details": {
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "per_score": 0.1,
+    "pbr_score": 3.198293311184781,
+    "roe_score": 8.515433656341667,
+    "relative_per": 1416.6365551117285,
+    "relative_pbr": 302.8505030176021,
+    "sector_percentile": 42.57716828170834,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "000100",
+      "sector_name": "제약",
+      "original_score": 11.81372696752645,
+      "adjusted_score": 11.81372696752645,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_positive_no_adjustment",
+      "sector_sample_adequate": true,
+      "sector_sample_penalty": 1.0,
+      "sample_adequacy_reason": "sufficient_sample_size",
+      "sector_score": 60.0,
+      "total_adjustment_factor": 1.0
+    },
+    "raw_component_scores": {
+      "per": 0.1,
+      "pbr": 3.198293311184781,
+      "roe": 8.515433656341667,
+      "total": 11.81372696752645
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 3,
+    "criteria_met": [
+      "PBR"
+    ],
+    "mos_score": 0,
+    "mos_points": 0,
+    "safety_margin": -82.62382708333334,
+    "intrinsic_value": 20851.407499999998,
+    "confidence": "HIGH",
+    "score_percentage": 10.359249627640873,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 138.0897583429229,
+    "pbr": 4.209787756533942,
+    "roe": 3.0485879670233293,
+    "market_cap": 9596200000000.0,
+    "current_price": 120000.0
+  }
+}

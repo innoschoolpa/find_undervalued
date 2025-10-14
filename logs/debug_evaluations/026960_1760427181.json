@@ -1,0 +1,72 @@
+{
+  "symbol": "026960",
+  "name": "동서",
+  "timestamp": "2025-10-14T16:33:01.558175",
+  "score": 29.324307513326648,
+  "score_percentage": 20.506508750578075,
+  "grade": "C (위험)",
+  "recommendation": "SELL",
+  "details": {
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "per_score": 6.287254280279012,
+    "pbr_score": 8.043554311701943,
+    "roe_score": 8.993498921345694,
+    "relative_per": 217.66978501284146,
+    "relative_pbr": 66.2671769371087,
+    "sector_percentile": 38.20607447852257,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "026960",
+      "sector_name": "유통",
+      "original_score": 23.324307513326648,
+      "adjusted_score": 13.994584507995988,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_positive_no_adjustment",
+      "sector_sample_adequate": false,
+      "sector_sample_penalty": 0.6,
+      "sample_adequacy_reason": "very_insufficient_sample_size_9_penalty_0.6",
+      "sector_score": 60.0,
+      "total_adjustment_factor": 0.6
+    },
+    "raw_component_scores": {
+      "per": 6.287254280279012,
+      "pbr": 8.043554311701943,
+      "roe": 8.993498921345694,
+      "total": 23.324307513326648
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 6,
+    "criteria_met": [
+      "PER",
+      "PBR"
+    ],
+    "mos_score": 0,
+    "mos_points": 0,
+    "safety_margin": -48.65001822966905,
+    "intrinsic_value": 13325.320269400881,
+    "confidence": "LOW",
+    "score_percentage": 20.506508750578075,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 16.455294863665188,
+    "pbr": 1.5130313101276893,
+    "roe": 9.194799137076554,
+    "market_cap": 2587200000000.0,
+    "current_price": 25950.0
+  }
+}

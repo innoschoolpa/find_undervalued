@@ -1,0 +1,72 @@
+{
+  "symbol": "085620",
+  "name": "미래에셋생명",
+  "timestamp": "2025-10-14T15:28:15.267923",
+  "score": 29.071276222688162,
+  "score_percentage": 20.329563792089626,
+  "grade": "C (위험)",
+  "recommendation": "SELL",
+  "details": {
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "per_score": 4.742522135636565,
+    "pbr_score": 12.79916125240266,
+    "roe_score": 5.529592834648937,
+    "relative_per": 43.77876243365599,
+    "relative_pbr": -14.870544153389142,
+    "sector_percentile": 27.64796417324468,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "085620",
+      "sector_name": "금융",
+      "original_score": 23.071276222688162,
+      "adjusted_score": 23.071276222688162,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_positive_no_adjustment",
+      "sector_sample_adequate": true,
+      "sector_sample_penalty": 1.0,
+      "sample_adequacy_reason": "sufficient_sample_size",
+      "sector_score": 60.0,
+      "total_adjustment_factor": 1.0
+    },
+    "raw_component_scores": {
+      "per": 4.742522135636565,
+      "pbr": 12.79916125240266,
+      "roe": 5.529592834648937,
+      "total": 23.071276222688162
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 6,
+    "criteria_met": [
+      "PER",
+      "PBR"
+    ],
+    "mos_score": 0,
+    "mos_points": 0,
+    "safety_margin": -8.228004956629492,
+    "intrinsic_value": 7406.0,
+    "confidence": "HIGH",
+    "score_percentage": 20.329563792089626,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 11.746724890829695,
+    "pbr": 0.5448285174183095,
+    "roe": 4.638131244936538,
+    "market_cap": 1428500000000.0,
+    "current_price": 8070.0
+  }
+}

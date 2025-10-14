@@ -1,0 +1,71 @@
+{
+  "symbol": "051900",
+  "name": "LG생활건강",
+  "timestamp": "2025-10-14T16:41:52.241324",
+  "score": 22.140353995138646,
+  "score_percentage": 15.482765031565487,
+  "grade": "C (위험)",
+  "recommendation": "SELL",
+  "details": {
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "per_score": 2.8840749414519906,
+    "pbr_score": 13.901059526466161,
+    "roe_score": 2.355219527220495,
+    "relative_per": 32.318501170960175,
+    "relative_pbr": -55.60423810586463,
+    "sector_percentile": 12.851732356005064,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "051900",
+      "sector_name": "철강/화학",
+      "original_score": 19.140353995138646,
+      "adjusted_score": 6.124913278444367,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_penalty_40_below_adjusted_15.3",
+      "sector_sample_adequate": false,
+      "sector_sample_penalty": 0.4,
+      "sample_adequacy_reason": "critical_sample_size_0_penalty_0.4",
+      "sector_score": 30.0,
+      "total_adjustment_factor": 0.32000000000000006
+    },
+    "raw_component_scores": {
+      "per": 2.8840749414519906,
+      "pbr": 13.901059526466161,
+      "roe": 2.355219527220495,
+      "total": 19.140353995138646
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 3,
+    "criteria_met": [
+      "PBR"
+    ],
+    "mos_score": 0,
+    "mos_points": 0,
+    "safety_margin": 57.672707964601756,
+    "intrinsic_value": 445425.39999999997,
+    "confidence": "LOW",
+    "score_percentage": 15.482765031565487,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 26.463700234192036,
+    "pbr": 0.8879152378827072,
+    "roe": 3.355219527220495,
+    "market_cap": 4322900000000.0,
+    "current_price": 282500.0
+  }
+}

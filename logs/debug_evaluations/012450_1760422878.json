@@ -1,0 +1,71 @@
+{
+  "symbol": "012450",
+  "name": "한화에어로스페이스",
+  "timestamp": "2025-10-14T15:21:18.320702",
+  "score": 30.65677079638857,
+  "score_percentage": 21.438301256215784,
+  "grade": "C (위험)",
+  "recommendation": "SELL",
+  "details": {
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "per_score": 4.788219824871703,
+    "pbr_score": 1.9685509715168705,
+    "roe_score": 19.9,
+    "relative_per": 205.0360770479327,
+    "relative_pbr": 1081.7235197141595,
+    "sector_percentile": 99.5,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "012450",
+      "sector_name": "운송장비",
+      "original_score": 26.65677079638857,
+      "adjusted_score": 21.32541663711086,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_positive_no_adjustment",
+      "sector_sample_adequate": false,
+      "sector_sample_penalty": 0.8,
+      "sample_adequacy_reason": "insufficient_sample_size_25_penalty_0.8",
+      "sector_score": 60.0,
+      "total_adjustment_factor": 0.8
+    },
+    "raw_component_scores": {
+      "per": 4.788219824871703,
+      "pbr": 1.9685509715168705,
+      "roe": 19.9,
+      "total": 26.65677079638857
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 4,
+    "criteria_met": [
+      "ROE"
+    ],
+    "mos_score": 0,
+    "mos_points": 0,
+    "safety_margin": -88.15289721627408,
+    "intrinsic_value": 110651.94000000002,
+    "confidence": "MEDIUM",
+    "score_percentage": 21.438301256215784,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 20.22389190827794,
+    "pbr": 8.626581693913364,
+    "roe": 42.655398540685326,
+    "market_cap": 48160200000000.0,
+    "current_price": 934000.0
+  }
+}

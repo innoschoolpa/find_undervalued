@@ -22,7 +22,7 @@ v2.2 기존 기능:
 """
 
 # ✅ v2.3: 버전 관리 통일
-APP_VERSION = "v2.3.10"  # ✅ 중복 수집 완전 제거 (get_stock_universe 통일)
+APP_VERSION = "v2.3.12"  # ✅ 중복 수집 완전 제거 (버튼 클릭 시에만 실행)
 
 import streamlit as st
 import pandas as pd
@@ -449,7 +449,8 @@ def _to_major_sector(sec):
 def load_cutoffs(path_pattern="logs/calibration/calibration_*.json"):
     """최신 캘리브레이션 파일에서 컷오프 로드"""
     import glob
-    files = sorted(glob.glob(path_pattern))
+    # ✅ FIX: 최신 5개만 스캔하여 초기 구동 시간 단축
+    files = sorted(glob.glob(path_pattern))[-5:]
     if not files: 
         return {'BUY':40,'HOLD':22,'SELL':0,'STRONG_BUY':67}
     try:
@@ -843,7 +844,12 @@ class ValueStockFinder:
             from sector_cache_manager import SectorCacheManager
             self.sector_cache_manager = SectorCacheManager(ttl_hours=24)
             self._sector_stats_cache = None  # 지연 로딩
-            logger.debug("✅ 섹터 캐시 매니저 초기화 완료")
+            # ✅ FIX: 최초 1회만 INFO 표시하고 플래그로 억제
+            if not getattr(self, "_logged_cache_once", False):
+                logger.info("✅ 섹터 캐시 구동 정상")
+                self._logged_cache_once = True
+            else:
+                logger.debug("✅ 섹터 캐시 매니저 초기화 완료")
         except ImportError as e:
             logger.warning(f"⚠️ 섹터 캐시 매니저 로드 실패: {e} - 섹터 통계 비활성화")
             self.sector_cache_manager = None
@@ -1124,7 +1130,26 @@ class ValueStockFinder:
         if '제조' in s_lower or 'manufacturing' in s_lower or '산업' in s_lower:
             return '제조업'
         
-        return '기타'
+        # ✅ FIX: 섹터명 최종 정리 (화이트리스트 강제)
+        # 유효한 섹터만 허용하고 나머지는 '기타'로 통일
+        VALID_SECTORS = {
+            "금융", "IT", "제조업", "제약", "석유", "통신", "건설", 
+            "전기전자", "운송장비", "운송", "유통", "유틸리티", 
+            "엔터테인먼트", "식품", "지주회사", "철강/화학", "기타"
+        }
+        
+        # 최종 반환값이 유효한 섹터인지 확인
+        final_sector = '기타'  # 기본값
+        if s in VALID_SECTORS:
+            final_sector = s
+        elif any(s in valid for valid in VALID_SECTORS):
+            # 부분 매칭으로 가장 적합한 섹터 찾기
+            for valid in VALID_SECTORS:
+                if valid in s or s in valid:
+                    final_sector = valid
+                    break
+        
+        return final_sector
     
     def _get_sector_criteria_display(self, sector_name: str, options: Dict[str, Any] = None) -> str:
         """업종별 기준을 간단한 문자열로 표시 (사용자 슬라이더 반영)"""
@@ -1505,7 +1530,7 @@ class ValueStockFinder:
             
             if db_stats and normalized in db_stats:
                 stats = db_stats[normalized]
-                logger.info(f"✅ DB 캐시 히트: {normalized} (n={stats.get('sample_size', 0)})")
+                logger.debug(f"✅ DB 캐시 히트: {normalized} (n={stats.get('sample_size', 0)})")
         except Exception as e:
             logger.debug(f"⚠️ DB 캐시 조회 실패 (폴백 진행): {e}")
         
@@ -1867,6 +1892,12 @@ class ValueStockFinder:
             # 데이터 조회
             stock_data = self.get_stock_data(symbol, name)
             
+            # ✅ FIX: 빠른 모드 재시도 소프트백오프 (QPS 스파이크 대응)
+            if options.get("fast_mode") and stock_data is None:
+                time.sleep(0.15)  # 150ms 백오프
+                if self.rate_limiter.take(1, timeout=0.3):
+                    stock_data = self.get_stock_data(symbol, name)
+            
             if stock_data:
                 # 섹터 메타데이터 확장
                 sector_meta = self._augment_sector_data(symbol, stock_data)
@@ -1981,8 +2012,8 @@ class ValueStockFinder:
         g_raw = max(0.0, roe_decimal * b)
         
         # ✅ v2.3.1: g >= r 완화 클램프 (차단 → 클램핑) + b 재조정
-        # g가 r에 닿으면 b를 조정하여 g를 r-3% 이하로 끌어내림
-        margin = 0.03  # 0.02 → 0.03 (더 넉넉한 마진)
+        # ✅ FIX: g≥r 클램핑 마진 비율화 (저금리 레짐 대응)
+        margin = max(0.02, 0.15 * r)  # 2% 또는 r의 15% 중 큰 값
         if g_raw >= r - margin:
             # b를 줄여서 g를 안전하게 끌어내림
             if roe_decimal > 1e-6:
@@ -2161,11 +2192,29 @@ class ValueStockFinder:
             logger.warning(f"내재가치 계산 실패: {e}")
             return None
     
+    def _sanitize_metrics(self, stock_data):
+        """✅ FIX: 전역 NaN/Inf 가드 (점수 시작 직전)"""
+        def safe_float(x):
+            try:
+                return float(x) if math.isfinite(float(x)) else 0.0
+            except:
+                return 0.0
+        
+        stock_data['per'] = safe_float(stock_data.get('per'))
+        stock_data['pbr'] = safe_float(stock_data.get('pbr'))
+        stock_data['roe'] = safe_float(stock_data.get('roe'))
+        stock_data['current_price'] = safe_float(stock_data.get('current_price'))
+        stock_data['market_cap'] = max(0.0, safe_float(stock_data.get('market_cap')))
+        return stock_data
+
     def evaluate_value_stock(self, stock_data, percentile_cap: float = 99.5):
         """✅ PATCH 5: 가치주 평가 (리스크 선적용)"""
         try:
             score = 0
             details = {}
+            
+            # ✅ FIX: 전역 NaN/Inf 가드 (점수 시작 직전)
+            stock_data = self._sanitize_metrics(stock_data)
             
             # ✅ 1. 데이터 품질 가드 (우선 체크)
             if self.data_guard and self.data_guard.is_dummy_data(stock_data):
@@ -3049,7 +3098,7 @@ class ValueStockFinder:
         
         max_stocks = options['max_stocks']  # ✅ v2.2.3: 변수 정의를 위로 이동
         
-        # ✅ NEW: 간단한 스크리닝 실행 버튼
+        # ✅ FIX: 중복 수집 방지 - 버튼 클릭 시에만 실행
         if st.button("🔍 스크리닝 실행", type="primary"):
             df = self.run_universe_screening(options)
             if not df.empty:
@@ -3061,8 +3110,10 @@ class ValueStockFinder:
                 ]], use_container_width=True)
             else:
                 st.warning("조건을 만족하는 결과가 없습니다.")
-        
-        # 기존 스크리닝 로직은 그대로 유지 (하위 호환성)
+        else:
+            # 버튼 클릭 전에는 기본 정보만 표시
+            st.info("🔍 위의 '스크리닝 실행' 버튼을 클릭하여 분석을 시작하세요.")
+            return
         
         # ✅ v2.2.3: 섹터 캐시 상태 확인 및 알림
         sector_cache = _load_sector_cache()  # @st.cache_resource (전역)

@@ -1,0 +1,73 @@
+{
+  "symbol": "361610",
+  "name": "SK아이이테크놀로지",
+  "timestamp": "2025-10-14T15:39:37.313689",
+  "score": 16.608441087214675,
+  "score_percentage": 11.61429446658369,
+  "grade": "C (위험)",
+  "recommendation": "SELL",
+  "details": {
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "per_score": 0,
+    "pbr_score": 13.608441087214675,
+    "roe_score": 0.0,
+    "relative_per": null,
+    "relative_pbr": -28.106980738559685,
+    "sector_percentile": 0.0,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "361610",
+      "sector_name": "전기전자",
+      "original_score": 13.608441087214675,
+      "adjusted_score": 10.88675286977174,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_positive_no_adjustment",
+      "sector_sample_adequate": false,
+      "sector_sample_penalty": 0.8,
+      "sample_adequacy_reason": "insufficient_sample_size_17_penalty_0.8",
+      "sector_score": 60.0,
+      "total_adjustment_factor": 0.8
+    },
+    "raw_component_scores": {
+      "per": 0.0,
+      "pbr": 13.608441087214675,
+      "roe": 0.0,
+      "total": 13.608441087214675
+    },
+    "alternative_valuation_used": true,
+    "alternative_reason": "negative_per",
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 3,
+    "criteria_met": [
+      "PBR"
+    ],
+    "mos_score": 0,
+    "mos_points": 0,
+    "safety_margin": -2.6331058020477816,
+    "intrinsic_value": 28528.5,
+    "confidence": "MEDIUM",
+    "score_percentage": 11.61429446658369,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 0,
+    "pbr": 0.8986627407680039,
+    "roe": -10.60912771439087,
+    "market_cap": 2396400000000.0,
+    "current_price": 29300.0
+  }
+}

@@ -1,0 +1,71 @@
+{
+  "symbol": "272210",
+  "name": "한화시스템",
+  "timestamp": "2025-10-14T16:40:46.643484",
+  "score": 26.523140681239607,
+  "score_percentage": 18.547650826041682,
+  "grade": "C (위험)",
+  "recommendation": "SELL",
+  "details": {
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "per_score": 5.054503952752358,
+    "pbr_score": 1.0294809418711992,
+    "roe_score": 16.43915578661605,
+    "relative_per": 23.635804929107486,
+    "relative_pbr": 208.36015268318238,
+    "sector_percentile": 83.61999716733277,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "272210",
+      "sector_name": "전기전자",
+      "original_score": 22.523140681239607,
+      "adjusted_score": 18.018512544991687,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_positive_no_adjustment",
+      "sector_sample_adequate": false,
+      "sector_sample_penalty": 0.8,
+      "sample_adequacy_reason": "insufficient_sample_size_17_penalty_0.8",
+      "sector_score": 60.0,
+      "total_adjustment_factor": 0.8
+    },
+    "raw_component_scores": {
+      "per": 5.054503952752358,
+      "pbr": 1.0294809418711992,
+      "roe": 16.43915578661605,
+      "total": 22.523140681239607
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 4,
+    "criteria_met": [
+      "ROE"
+    ],
+    "mos_score": 0,
+    "mos_points": 0,
+    "safety_margin": -54.59854368932039,
+    "intrinsic_value": 23381.75,
+    "confidence": "MEDIUM",
+    "score_percentage": 18.547650826041682,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 21.413721413721415,
+    "pbr": 3.85450190853978,
+    "roe": 18.000149689394508,
+    "market_cap": 9729300000000.0,
+    "current_price": 51500.0
+  }
+}

@@ -1,0 +1,73 @@
+{
+  "symbol": "000270",
+  "name": "기아",
+  "timestamp": "2025-10-14T15:10:55.832622",
+  "score": 84.77883428347337,
+  "score_percentage": 59.285898100331025,
+  "grade": "B+ (양호)",
+  "recommendation": "STRONG_BUY",
+  "details": {
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "per_score": 16.271780070960602,
+    "pbr_score": 11.544290254697913,
+    "roe_score": 16.962763957814865,
+    "relative_per": -36.79652540288508,
+    "relative_pbr": -0.8027222137807044,
+    "sector_percentile": 86.4558283258435,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "000270",
+      "sector_name": "운송장비",
+      "original_score": 44.77883428347338,
+      "adjusted_score": 35.82306742677871,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_positive_no_adjustment",
+      "sector_sample_adequate": false,
+      "sector_sample_penalty": 0.8,
+      "sample_adequacy_reason": "insufficient_sample_size_25_penalty_0.8",
+      "sector_score": 60.0,
+      "total_adjustment_factor": 0.8
+    },
+    "raw_component_scores": {
+      "per": 16.271780070960602,
+      "pbr": 11.544290254697913,
+      "roe": 16.962763957814865,
+      "total": 44.77883428347338
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 10,
+    "criteria_met": [
+      "PER",
+      "PBR",
+      "ROE"
+    ],
+    "mos_score": 30,
+    "mos_points": 30,
+    "safety_margin": 41.13290518084066,
+    "intrinsic_value": 144378.962,
+    "confidence": "MEDIUM",
+    "score_percentage": 59.285898100331025,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 4.190390365788719,
+    "pbr": 0.7241401278394008,
+    "roe": 17.280970616757863,
+    "market_cap": 40324000000000.0,
+    "current_price": 102300.0
+  }
+}

@@ -1,0 +1,71 @@
+{
+  "symbol": "062040",
+  "name": "산일전기",
+  "timestamp": "2025-10-14T15:27:09.262925",
+  "score": 24.954929945646633,
+  "score_percentage": 17.45099996199065,
+  "grade": "C (위험)",
+  "recommendation": "SELL",
+  "details": {
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "per_score": 0.9549299456466344,
+    "pbr_score": 0.1,
+    "roe_score": 19.9,
+    "relative_per": 95.68125029567223,
+    "relative_pbr": 512.4938652457407,
+    "sector_percentile": 99.5,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "062040",
+      "sector_name": "전기전자",
+      "original_score": 20.954929945646633,
+      "adjusted_score": 16.763943956517306,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_positive_no_adjustment",
+      "sector_sample_adequate": false,
+      "sector_sample_penalty": 0.8,
+      "sample_adequacy_reason": "insufficient_sample_size_17_penalty_0.8",
+      "sector_score": 60.0,
+      "total_adjustment_factor": 0.8
+    },
+    "raw_component_scores": {
+      "per": 0.9549299456466344,
+      "pbr": 0.1,
+      "roe": 19.9,
+      "total": 20.954929945646633
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 4,
+    "criteria_met": [
+      "ROE"
+    ],
+    "mos_score": 0,
+    "mos_points": 0,
+    "safety_margin": -77.1426282051282,
+    "intrinsic_value": 24960.25,
+    "confidence": "MEDIUM",
+    "score_percentage": 17.45099996199065,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 33.89199255121043,
+    "pbr": 7.656173315571759,
+    "roe": 22.58991796957162,
+    "market_cap": 3324600000000.0,
+    "current_price": 109200.0
+  }
+}

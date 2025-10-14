@@ -1,0 +1,69 @@
+{
+  "symbol": "010130",
+  "name": "고려아연",
+  "timestamp": "2025-10-14T14:36:02.983760",
+  "score": 2.993304413055484,
+  "score_percentage": 2.093219869269569,
+  "grade": "C (위험)",
+  "recommendation": "SELL",
+  "details": {
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "per_score": 0.1,
+    "pbr_score": 2.8933044130554837,
+    "roe_score": 0.0,
+    "relative_per": 655.1686615886834,
+    "relative_pbr": 52.66738967361295,
+    "sector_percentile": 0.0,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "010130",
+      "sector_name": "철강/화학",
+      "original_score": 2.993304413055484,
+      "adjusted_score": 0.9578574121777548,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_penalty_40_below_adjusted_2.4",
+      "sector_sample_adequate": false,
+      "sector_sample_penalty": 0.4,
+      "sample_adequacy_reason": "critical_sample_size_0_penalty_0.4",
+      "sector_score": 30.0,
+      "total_adjustment_factor": 0.32
+    },
+    "raw_component_scores": {
+      "per": 0.1,
+      "pbr": 2.8933044130554837,
+      "roe": 0.0,
+      "total": 2.993304413055484
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 0,
+    "criteria_met": [],
+    "mos_score": 0,
+    "mos_points": 0,
+    "safety_margin": -54.14868876080692,
+    "intrinsic_value": 636416.2,
+    "confidence": "LOW",
+    "score_percentage": 2.093219869269569,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 151.03373231773668,
+    "pbr": 3.053347793472259,
+    "roe": 2.021633013113117,
+    "market_cap": 26867800000000.0,
+    "current_price": 1388000.0
+  }
+}

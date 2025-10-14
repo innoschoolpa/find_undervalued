@@ -1,0 +1,73 @@
+{
+  "symbol": "175330",
+  "name": "JB금융지주",
+  "timestamp": "2025-10-14T14:41:04.982131",
+  "score": 74.58707793941075,
+  "score_percentage": 52.158795761825694,
+  "grade": "B (보통)",
+  "recommendation": "STRONG_BUY",
+  "details": {
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "per_score": 14.852555285590743,
+    "pbr_score": 6.88380918814648,
+    "roe_score": 15.850713465673525,
+    "relative_per": -20.788180538026435,
+    "relative_pbr": 21.423811831492955,
+    "sector_percentile": 79.25356732836762,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "175330",
+      "sector_name": "금융",
+      "original_score": 37.58707793941075,
+      "adjusted_score": 37.58707793941075,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_positive_no_adjustment",
+      "sector_sample_adequate": true,
+      "sector_sample_penalty": 1.0,
+      "sample_adequacy_reason": "sufficient_sample_size",
+      "sector_score": 60.0,
+      "total_adjustment_factor": 1.0
+    },
+    "raw_component_scores": {
+      "per": 14.852555285590743,
+      "pbr": 6.88380918814648,
+      "roe": 15.850713465673525,
+      "total": 37.58707793941075
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 10,
+    "criteria_met": [
+      "PER",
+      "PBR",
+      "ROE"
+    ],
+    "mos_score": 27,
+    "mos_points": 27,
+    "safety_margin": 15.298636971046761,
+    "intrinsic_value": 25884.543999999998,
+    "confidence": "HIGH",
+    "score_percentage": 52.158795761825694,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 6.47160565004324,
+    "pbr": 0.7771123957215549,
+    "roe": 12.008030738343315,
+    "market_cap": 4292100000000.0,
+    "current_price": 22450.0
+  }
+}

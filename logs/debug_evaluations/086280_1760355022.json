@@ -1,0 +1,73 @@
+{
+  "symbol": "086280",
+  "name": "현대글로비스",
+  "timestamp": "2025-10-13T20:30:22.560586",
+  "score": 48.65065679701303,
+  "score_percentage": 34.02143831958953,
+  "grade": "C (위험)",
+  "recommendation": "HOLD",
+  "details": {
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "per_score": 13.068567917270792,
+    "pbr_score": 10.85368608850648,
+    "roe_score": 14.728402791235759,
+    "relative_per": -39.46569031093446,
+    "relative_pbr": -13.30989459395423,
+    "sector_percentile": 74.89752874568654,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "086280",
+      "sector_name": "운송",
+      "original_score": 38.65065679701303,
+      "adjusted_score": 30.920525437610422,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_positive_no_adjustment",
+      "sector_sample_adequate": false,
+      "sector_sample_penalty": 0.8,
+      "sample_adequacy_reason": "insufficient_sample_size_28_penalty_0.8",
+      "sector_score": 60.0,
+      "total_adjustment_factor": 0.8
+    },
+    "raw_component_scores": {
+      "per": 13.068567917270792,
+      "pbr": 10.85368608850648,
+      "roe": 14.728402791235759,
+      "total": 38.65065679701303
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 10,
+    "criteria_met": [
+      "PER",
+      "PBR",
+      "ROE"
+    ],
+    "mos_score": 0,
+    "mos_points": 0,
+    "safety_margin": 61.49478575929427,
+    "intrinsic_value": 256292.225,
+    "confidence": "MEDIUM",
+    "score_percentage": 34.02143831958953,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 10.88104216660953,
+    "pbr": 1.3567001496046163,
+    "roe": 12.468476170121821,
+    "market_cap": 11902500000000.0,
+    "current_price": 158700.0
+  }
+}

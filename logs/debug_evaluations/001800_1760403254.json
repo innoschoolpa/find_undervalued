@@ -1,0 +1,72 @@
+{
+  "symbol": "001800",
+  "name": "오리온홀딩스",
+  "timestamp": "2025-10-14T09:54:14.466244",
+  "score": 43.348449620565326,
+  "score_percentage": 30.313601133262463,
+  "grade": "C (위험)",
+  "recommendation": "HOLD",
+  "details": {
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "per_score": 11.568843325161575,
+    "pbr_score": 13.71162085659928,
+    "roe_score": 9.06798543880447,
+    "relative_per": -6.7208710380238905,
+    "relative_pbr": -19.717985800683667,
+    "sector_percentile": 45.33992719402235,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "001800",
+      "sector_name": "금융",
+      "original_score": 34.348449620565326,
+      "adjusted_score": 34.348449620565326,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_positive_no_adjustment",
+      "sector_sample_adequate": true,
+      "sector_sample_penalty": 1.0,
+      "sample_adequacy_reason": "sufficient_sample_size",
+      "sector_score": 60.0,
+      "total_adjustment_factor": 1.0
+    },
+    "raw_component_scores": {
+      "per": 11.568843325161575,
+      "pbr": 13.71162085659928,
+      "roe": 9.06798543880447,
+      "total": 34.348449620565326
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 6,
+    "criteria_met": [
+      "PER",
+      "PBR"
+    ],
+    "mos_score": 3,
+    "mos_points": 3,
+    "safety_margin": 15.100082318304917,
+    "intrinsic_value": 22490.55608499678,
+    "confidence": "HIGH",
+    "score_percentage": 30.313601133262463,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 7.620904836193448,
+    "pbr": 0.5138048908756245,
+    "roe": 6.742045753352616,
+    "market_cap": 1225300000000.0,
+    "current_price": 19540.0
+  }
+}

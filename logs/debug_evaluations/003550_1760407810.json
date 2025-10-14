@@ -1,0 +1,71 @@
+{
+  "symbol": "003550",
+  "name": "LG",
+  "timestamp": "2025-10-14T11:10:10.984905",
+  "score": 21.44611309815873,
+  "score_percentage": 14.997281886824288,
+  "grade": "C (위험)",
+  "recommendation": "SELL",
+  "details": {
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "per_score": 0.1,
+    "pbr_score": 16.32013438307311,
+    "roe_score": 2.025978715085617,
+    "relative_per": 147.1879806551506,
+    "relative_pbr": -34.263283901259825,
+    "sector_percentile": 10.129893575428087,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "003550",
+      "sector_name": "금융",
+      "original_score": 18.44611309815873,
+      "adjusted_score": 18.44611309815873,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_positive_no_adjustment",
+      "sector_sample_adequate": true,
+      "sector_sample_penalty": 1.0,
+      "sample_adequacy_reason": "sufficient_sample_size",
+      "sector_score": 60.0,
+      "total_adjustment_factor": 1.0
+    },
+    "raw_component_scores": {
+      "per": 0.1,
+      "pbr": 16.32013438307311,
+      "roe": 2.025978715085617,
+      "total": 18.44611309815873
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 3,
+    "criteria_met": [
+      "PBR"
+    ],
+    "mos_score": 0,
+    "mos_points": 0,
+    "safety_margin": 18.845303867403317,
+    "intrinsic_value": 86044.0,
+    "confidence": "HIGH",
+    "score_percentage": 14.997281886824288,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 20.195258019525802,
+    "pbr": 0.42071498303193716,
+    "roe": 2.083236483659523,
+    "market_cap": 11165600000000.0,
+    "current_price": 72400.0
+  }
+}

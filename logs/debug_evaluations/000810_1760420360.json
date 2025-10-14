@@ -1,0 +1,72 @@
+{
+  "symbol": "000810",
+  "name": "삼성화재",
+  "timestamp": "2025-10-14T14:39:20.677066",
+  "score": 30.23453671438142,
+  "score_percentage": 21.143032667399595,
+  "grade": "C (위험)",
+  "recommendation": "SELL",
+  "details": {
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "per_score": 5.178401161474175,
+    "pbr_score": 0.1,
+    "roe_score": 15.956135552907245,
+    "relative_per": 33.04890268756993,
+    "relative_pbr": 106.5560783418202,
+    "sector_percentile": 79.78067776453622,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "000810",
+      "sector_name": "금융",
+      "original_score": 21.23453671438142,
+      "adjusted_score": 21.23453671438142,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_positive_no_adjustment",
+      "sector_sample_adequate": true,
+      "sector_sample_penalty": 1.0,
+      "sample_adequacy_reason": "sufficient_sample_size",
+      "sector_score": 60.0,
+      "total_adjustment_factor": 1.0
+    },
+    "raw_component_scores": {
+      "per": 5.178401161474175,
+      "pbr": 0.1,
+      "roe": 15.956135552907245,
+      "total": 21.23453671438142
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 7,
+    "criteria_met": [
+      "PER",
+      "ROE"
+    ],
+    "mos_score": 2,
+    "mos_points": 2,
+    "safety_margin": -32.22179607403253,
+    "intrinsic_value": 302121.344,
+    "confidence": "HIGH",
+    "score_percentage": 21.143032667399595,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 10.870095349574463,
+    "pbr": 1.3219589013876492,
+    "roe": 12.161428753607026,
+    "market_cap": 20509500000000.0,
+    "current_price": 445750.0
+  }
+}

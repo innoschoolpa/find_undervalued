@@ -1,0 +1,73 @@
+{
+  "symbol": "300720",
+  "name": "한일시멘트",
+  "timestamp": "2025-10-14T14:22:57.524816",
+  "score": 60.55280147644694,
+  "score_percentage": 42.34461641709576,
+  "grade": "C+ (주의)",
+  "recommendation": "STRONG_BUY",
+  "details": {
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "per_score": 16.165223936770794,
+    "pbr_score": 15.685088213969225,
+    "roe_score": 10.70248932570692,
+    "relative_per": -65.82611968385396,
+    "relative_pbr": -63.42544106984613,
+    "sector_percentile": 43.5124466285346,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "300720",
+      "sector_name": "철강/화학",
+      "original_score": 42.55280147644694,
+      "adjusted_score": 13.61689647246302,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_penalty_40_below_adjusted_34.0",
+      "sector_sample_adequate": false,
+      "sector_sample_penalty": 0.4,
+      "sample_adequacy_reason": "critical_sample_size_0_penalty_0.4",
+      "sector_score": 30.0,
+      "total_adjustment_factor": 0.32000000000000006
+    },
+    "raw_component_scores": {
+      "per": 16.165223936770794,
+      "pbr": 15.685088213969225,
+      "roe": 10.70248932570692,
+      "total": 42.55280147644694
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 10,
+    "criteria_met": [
+      "PER",
+      "PBR",
+      "ROE"
+    ],
+    "mos_score": 8,
+    "mos_points": 8,
+    "safety_margin": 143.85095447870776,
+    "intrinsic_value": 44283.33333333333,
+    "confidence": "LOW",
+    "score_percentage": 42.34461641709576,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 6.834776063229206,
+    "pbr": 0.7314911786030774,
+    "roe": 10.70248932570692,
+    "market_cap": 1257800000000.0,
+    "current_price": 18160.0
+  }
+}

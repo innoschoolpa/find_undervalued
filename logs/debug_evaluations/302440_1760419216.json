@@ -1,0 +1,73 @@
+{
+  "symbol": "302440",
+  "name": "SK바이오사이언스",
+  "timestamp": "2025-10-14T14:20:16.742413",
+  "score": 12.354434368655909,
+  "score_percentage": 8.63946459346567,
+  "grade": "C (위험)",
+  "recommendation": "SELL",
+  "details": {
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "per_score": 0,
+    "pbr_score": 6.273118442553476,
+    "roe_score": 3.081315926102434,
+    "relative_per": null,
+    "relative_pbr": 91.12136248110885,
+    "sector_percentile": 15.406579630512168,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "302440",
+      "sector_name": "제약",
+      "original_score": 9.354434368655909,
+      "adjusted_score": 9.354434368655909,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_positive_no_adjustment",
+      "sector_sample_adequate": true,
+      "sector_sample_penalty": 1.0,
+      "sample_adequacy_reason": "sufficient_sample_size",
+      "sector_score": 60.0,
+      "total_adjustment_factor": 1.0
+    },
+    "raw_component_scores": {
+      "per": 0.0,
+      "pbr": 6.273118442553476,
+      "roe": 3.081315926102434,
+      "total": 9.354434368655909
+    },
+    "alternative_valuation_used": true,
+    "alternative_reason": "negative_per",
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 3,
+    "criteria_met": [
+      "PBR"
+    ],
+    "mos_score": 0,
+    "mos_points": 0,
+    "safety_margin": -63.37405767138195,
+    "intrinsic_value": 16829.620499999997,
+    "confidence": "HIGH",
+    "score_percentage": 8.63946459346567,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 0,
+    "pbr": 1.9972182379275873,
+    "roe": -3.033859260225149,
+    "market_cap": 3601100000000.0,
+    "current_price": 45950.0
+  }
+}

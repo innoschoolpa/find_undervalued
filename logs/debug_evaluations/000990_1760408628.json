@@ -1,0 +1,73 @@
+{
+  "symbol": "000990",
+  "name": "DB하이텍",
+  "timestamp": "2025-10-14T11:23:48.237419",
+  "score": 44.061826111241466,
+  "score_percentage": 30.81246581205697,
+  "grade": "C (위험)",
+  "recommendation": "HOLD",
+  "details": {
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "per_score": 12.202136134404109,
+    "pbr_score": 10.00208591861568,
+    "roe_score": 11.857604058221675,
+    "relative_per": -35.71119767574699,
+    "relative_pbr": -2.229224774841909,
+    "sector_percentile": 67.47627963783003,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "000990",
+      "sector_name": "전기전자",
+      "original_score": 34.061826111241466,
+      "adjusted_score": 27.249460888993173,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_positive_no_adjustment",
+      "sector_sample_adequate": false,
+      "sector_sample_penalty": 0.8,
+      "sample_adequacy_reason": "insufficient_sample_size_17_penalty_0.8",
+      "sector_score": 60.0,
+      "total_adjustment_factor": 0.8
+    },
+    "raw_component_scores": {
+      "per": 12.202136134404109,
+      "pbr": 10.00208591861568,
+      "roe": 11.857604058221675,
+      "total": 34.061826111241466
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 10,
+    "criteria_met": [
+      "PER",
+      "PBR",
+      "ROE"
+    ],
+    "mos_score": 0,
+    "mos_points": 0,
+    "safety_margin": 33.77827167789719,
+    "intrinsic_value": 76788.72794311299,
+    "confidence": "MEDIUM",
+    "score_percentage": 30.81246581205697,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 11.134820562560622,
+    "pbr": 1.222134690314476,
+    "roe": 10.975791513190112,
+    "market_cap": 2548500000000.0,
+    "current_price": 57400.0
+  }
+}

@@ -1,0 +1,72 @@
+{
+  "symbol": "047050",
+  "name": "포스코인터내셔널",
+  "timestamp": "2025-10-14T14:40:11.300220",
+  "score": 28.516146179721225,
+  "score_percentage": 19.94136096484002,
+  "grade": "C (위험)",
+  "recommendation": "SELL",
+  "details": {
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "per_score": 5.96866096866097,
+    "pbr_score": 9.260686849219733,
+    "roe_score": 7.286798361840521,
+    "relative_per": 225.05032505032509,
+    "relative_pbr": 44.86704440932336,
+    "sector_percentile": 27.980013181876494,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "047050",
+      "sector_name": "유통",
+      "original_score": 22.516146179721225,
+      "adjusted_score": 13.509687707832734,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_positive_no_adjustment",
+      "sector_sample_adequate": false,
+      "sector_sample_penalty": 0.6,
+      "sample_adequacy_reason": "very_insufficient_sample_size_9_penalty_0.6",
+      "sector_score": 60.0,
+      "total_adjustment_factor": 0.6
+    },
+    "raw_component_scores": {
+      "per": 5.96866096866097,
+      "pbr": 9.260686849219733,
+      "roe": 7.286798361840521,
+      "total": 22.516146179721225
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 6,
+    "criteria_met": [
+      "PER",
+      "PBR"
+    ],
+    "mos_score": 0,
+    "mos_points": 0,
+    "safety_margin": -49.815962599425646,
+    "intrinsic_value": 24715.63841978287,
+    "confidence": "LOW",
+    "score_percentage": 19.94136096484002,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 16.837606837606838,
+    "pbr": 1.3182901041248427,
+    "roe": 7.829438689472417,
+    "market_cap": 8664200000000.0,
+    "current_price": 49250.0
+  }
+}

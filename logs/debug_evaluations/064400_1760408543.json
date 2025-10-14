@@ -1,0 +1,73 @@
+{
+  "symbol": "064400",
+  "name": "LG씨엔에스",
+  "timestamp": "2025-10-14T11:22:23.932841",
+  "score": 40.33762372309269,
+  "score_percentage": 28.208128477687193,
+  "grade": "C (위험)",
+  "recommendation": "HOLD",
+  "details": {
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "per_score": 9.672371810538197,
+    "pbr_score": 3.3713728756851022,
+    "roe_score": 17.29387903686939,
+    "relative_per": 0.9037397154294746,
+    "relative_pbr": 106.28647609282508,
+    "sector_percentile": 87.21231071840451,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "064400",
+      "sector_name": "IT",
+      "original_score": 30.33762372309269,
+      "adjusted_score": 24.270098978474152,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_positive_no_adjustment",
+      "sector_sample_adequate": false,
+      "sector_sample_penalty": 0.8,
+      "sample_adequacy_reason": "insufficient_sample_size_28_penalty_0.8",
+      "sector_score": 60.0,
+      "total_adjustment_factor": 0.8
+    },
+    "raw_component_scores": {
+      "per": 9.672371810538197,
+      "pbr": 3.3713728756851022,
+      "roe": 17.29387903686939,
+      "total": 30.33762372309269
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 10,
+    "criteria_met": [
+      "PER",
+      "PBR",
+      "ROE"
+    ],
+    "mos_score": 0,
+    "mos_points": 0,
+    "safety_margin": -32.13321461897358,
+    "intrinsic_value": 43638.342999999986,
+    "confidence": "MEDIUM",
+    "score_percentage": 28.208128477687193,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 15.382775119617225,
+    "pbr": 2.6507812177928023,
+    "roe": 17.23213917632024,
+    "market_cap": 6229800000000.0,
+    "current_price": 64300.0
+  }
+}

@@ -1,0 +1,69 @@
+{
+  "symbol": "005070",
+  "name": "코스모신소재",
+  "timestamp": "2025-10-14T09:53:52.215272",
+  "score": 5.673452256033579,
+  "score_percentage": 3.9674491300934123,
+  "grade": "C (위험)",
+  "recommendation": "SELL",
+  "details": {
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "per_score": 0.1,
+    "pbr_score": 3.012329485834209,
+    "roe_score": 2.56112277019937,
+    "relative_per": 320.34990791896865,
+    "relative_pbr": 49.691762854144805,
+    "sector_percentile": 13.538019972819022,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "005070",
+      "sector_name": "철강/화학",
+      "original_score": 5.673452256033579,
+      "adjusted_score": 1.8155047219307456,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_penalty_40_below_adjusted_4.5",
+      "sector_sample_adequate": false,
+      "sector_sample_penalty": 0.4,
+      "sample_adequacy_reason": "critical_sample_size_0_penalty_0.4",
+      "sector_score": 30.0,
+      "total_adjustment_factor": 0.32000000000000006
+    },
+    "raw_component_scores": {
+      "per": 0.1,
+      "pbr": 3.012329485834209,
+      "roe": 2.56112277019937,
+      "total": 5.673452256033579
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 0,
+    "criteria_met": [],
+    "mos_score": 0,
+    "mos_points": 0,
+    "safety_margin": -53.237239868565176,
+    "intrinsic_value": 21347.199999999997,
+    "confidence": "LOW",
+    "score_percentage": 3.9674491300934123,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 84.06998158379373,
+    "pbr": 2.993835257082896,
+    "roe": 3.56112277019937,
+    "market_cap": 1489000000000.0,
+    "current_price": 45650.0
+  }
+}

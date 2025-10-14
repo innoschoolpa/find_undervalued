@@ -1,0 +1,72 @@
+{
+  "symbol": "078930",
+  "name": "GS",
+  "timestamp": "2025-10-14T10:26:33.994011",
+  "score": 42.64655404175649,
+  "score_percentage": 29.822765064165374,
+  "grade": "C (위험)",
+  "recommendation": "HOLD",
+  "details": {
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "per_score": 12.038343353373415,
+    "pbr_score": 20.0,
+    "roe_score": 4.608210688383075,
+    "relative_per": -8.73219306830716,
+    "relative_pbr": -53.068450899404,
+    "sector_percentile": 23.04105344191537,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "078930",
+      "sector_name": "금융",
+      "original_score": 36.64655404175649,
+      "adjusted_score": 36.64655404175649,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_positive_no_adjustment",
+      "sector_sample_adequate": true,
+      "sector_sample_penalty": 1.0,
+      "sample_adequacy_reason": "sufficient_sample_size",
+      "sector_score": 60.0,
+      "total_adjustment_factor": 1.0
+    },
+    "raw_component_scores": {
+      "per": 12.038343353373415,
+      "pbr": 20.0,
+      "roe": 4.608210688383075,
+      "total": 36.64655404175649
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 6,
+    "criteria_met": [
+      "PER",
+      "PBR"
+    ],
+    "mos_score": 0,
+    "mos_points": 0,
+    "safety_margin": 66.46584546472565,
+    "intrinsic_value": 74327.0,
+    "confidence": "HIGH",
+    "score_percentage": 29.822765064165374,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 7.456579826319305,
+    "pbr": 0.3003619142438145,
+    "roe": 4.02814589583866,
+    "market_cap": 4148700000000.0,
+    "current_price": 44650.0
+  }
+}

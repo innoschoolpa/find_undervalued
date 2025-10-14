@@ -1,0 +1,73 @@
+{
+  "symbol": "003490",
+  "name": "대한항공",
+  "timestamp": "2025-10-14T11:02:06.814610",
+  "score": 67.55964123666232,
+  "score_percentage": 47.24450436130232,
+  "grade": "B (보통)",
+  "recommendation": "STRONG_BUY",
+  "details": {
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "per_score": 15.616936935285992,
+    "pbr_score": 14.09012848246336,
+    "roe_score": 14.852575818912966,
+    "relative_per": -65.3757028673831,
+    "relative_pbr": -49.974243495637616,
+    "sector_percentile": 75.52578327947367,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "003490",
+      "sector_name": "운송",
+      "original_score": 44.559641236662316,
+      "adjusted_score": 35.647712989329854,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_positive_no_adjustment",
+      "sector_sample_adequate": false,
+      "sector_sample_penalty": 0.8,
+      "sample_adequacy_reason": "insufficient_sample_size_28_penalty_0.8",
+      "sector_score": 60.0,
+      "total_adjustment_factor": 0.8
+    },
+    "raw_component_scores": {
+      "per": 15.616936935285992,
+      "pbr": 14.09012848246336,
+      "roe": 14.852575818912966,
+      "total": 44.559641236662316
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 10,
+    "criteria_met": [
+      "PER",
+      "PBR",
+      "ROE"
+    ],
+    "mos_score": 13,
+    "mos_points": 13,
+    "safety_margin": 179.8558378378378,
+    "intrinsic_value": 62127.99599999999,
+    "confidence": "MEDIUM",
+    "score_percentage": 47.24450436130232,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 6.223717409587889,
+    "pbr": 0.7829030892932712,
+    "roe": 12.579348286077021,
+    "market_cap": 8174500000000.0,
+    "current_price": 22200.0
+  }
+}

@@ -1,0 +1,71 @@
+{
+  "symbol": "010060",
+  "name": "OCI홀딩스",
+  "timestamp": "2025-10-14T10:29:02.841754",
+  "score": 24.683906867859143,
+  "score_percentage": 17.26147333416723,
+  "grade": "C (위험)",
+  "recommendation": "SELL",
+  "details": {
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "per_score": 2.847777636727912,
+    "pbr_score": 16.39997937958497,
+    "roe_score": 2.4361498515462605,
+    "relative_per": 113.73974862346957,
+    "relative_pbr": -34.72904638091232,
+    "sector_percentile": 12.180749257731303,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "010060",
+      "sector_name": "금융",
+      "original_score": 21.683906867859143,
+      "adjusted_score": 21.683906867859143,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_positive_no_adjustment",
+      "sector_sample_adequate": true,
+      "sector_sample_penalty": 1.0,
+      "sample_adequacy_reason": "sufficient_sample_size",
+      "sector_score": 60.0,
+      "total_adjustment_factor": 1.0
+    },
+    "raw_component_scores": {
+      "per": 2.847777636727912,
+      "pbr": 16.39997937958497,
+      "roe": 2.4361498515462605,
+      "total": 21.683906867859143
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 3,
+    "criteria_met": [
+      "PBR"
+    ],
+    "mos_score": 0,
+    "mos_points": 0,
+    "safety_margin": 19.693363844393595,
+    "intrinsic_value": 104612.0,
+    "confidence": "HIGH",
+    "score_percentage": 17.26147333416723,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 17.462537462537462,
+    "pbr": 0.41773410316216114,
+    "roe": 2.3921729820670667,
+    "market_cap": 1644400000000.0,
+    "current_price": 87400.0
+  }
+}

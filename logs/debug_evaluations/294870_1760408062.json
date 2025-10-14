@@ -1,0 +1,72 @@
+{
+  "symbol": "294870",
+  "name": "HDC현대산업개발",
+  "timestamp": "2025-10-14T11:14:22.206653",
+  "score": 38.232002246681446,
+  "score_percentage": 26.73566590677024,
+  "grade": "C (위험)",
+  "recommendation": "HOLD",
+  "details": {
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "per_score": 8.271452767855646,
+    "pbr_score": 14.767797952798418,
+    "roe_score": 9.192751526027381,
+    "relative_per": 20.74256678573225,
+    "relative_pbr": -29.701036427268825,
+    "sector_percentile": 45.96375763013691,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "294870",
+      "sector_name": "건설",
+      "original_score": 32.232002246681446,
+      "adjusted_score": 32.232002246681446,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_positive_no_adjustment",
+      "sector_sample_adequate": true,
+      "sector_sample_penalty": 1.0,
+      "sample_adequacy_reason": "sufficient_sample_size",
+      "sector_score": 60.0,
+      "total_adjustment_factor": 1.0
+    },
+    "raw_component_scores": {
+      "per": 8.271452767855646,
+      "pbr": 14.767797952798418,
+      "roe": 9.192751526027381,
+      "total": 32.232002246681446
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 6,
+    "criteria_met": [
+      "PER",
+      "PBR"
+    ],
+    "mos_score": 0,
+    "mos_points": 0,
+    "safety_margin": 28.074078366445903,
+    "intrinsic_value": 26127.111986754964,
+    "confidence": "HIGH",
+    "score_percentage": 26.73566590677024,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 8.633093525179856,
+    "pbr": 0.42882367779366015,
+    "roe": 4.967207601109896,
+    "market_cap": 1344500000000.0,
+    "current_price": 20400.0
+  }
+}

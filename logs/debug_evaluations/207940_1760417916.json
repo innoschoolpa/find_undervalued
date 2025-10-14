@@ -1,0 +1,71 @@
+{
+  "symbol": "207940",
+  "name": "삼성바이오로직스",
+  "timestamp": "2025-10-14T13:58:36.754692",
+  "score": 23.02344530660219,
+  "score_percentage": 16.100311403218313,
+  "grade": "C (위험)",
+  "recommendation": "SELL",
+  "details": {
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "per_score": 2.797727410584656,
+    "pbr_score": 0.1,
+    "roe_score": 16.125717896017534,
+    "relative_per": 636.7202477313833,
+    "relative_pbr": 537.7003712652837,
+    "sector_percentile": 80.62858948008767,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "207940",
+      "sector_name": "제약",
+      "original_score": 19.02344530660219,
+      "adjusted_score": 19.02344530660219,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_positive_no_adjustment",
+      "sector_sample_adequate": true,
+      "sector_sample_penalty": 1.0,
+      "sample_adequacy_reason": "sufficient_sample_size",
+      "sector_score": 60.0,
+      "total_adjustment_factor": 1.0
+    },
+    "raw_component_scores": {
+      "per": 2.797727410584656,
+      "pbr": 0.1,
+      "roe": 16.125717896017534,
+      "total": 19.02344530660219
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 4,
+    "criteria_met": [
+      "ROE"
+    ],
+    "mos_score": 0,
+    "mos_points": 0,
+    "safety_margin": -78.04611596474047,
+    "intrinsic_value": 224149.156,
+    "confidence": "HIGH",
+    "score_percentage": 16.100311403218313,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 67.07837855594245,
+    "pbr": 6.663968879722215,
+    "roe": 9.934600422943372,
+    "market_cap": 72668700000000.0,
+    "current_price": 1021000.0
+  }
+}

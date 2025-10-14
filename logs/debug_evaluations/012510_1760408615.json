@@ -1,0 +1,69 @@
+{
+  "symbol": "012510",
+  "name": "더존비즈온",
+  "timestamp": "2025-10-14T11:23:35.737861",
+  "score": 16.16565870611951,
+  "score_percentage": 11.30465643784581,
+  "grade": "C (위험)",
+  "recommendation": "SELL",
+  "details": {
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "per_score": 4.249930637026177,
+    "pbr_score": 0.1,
+    "roe_score": 11.815728069093334,
+    "relative_per": 221.12524534548453,
+    "relative_pbr": 259.4703829244489,
+    "sector_percentile": 60.47940042091323,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "012510",
+      "sector_name": "IT",
+      "original_score": 16.16565870611951,
+      "adjusted_score": 12.932526964895608,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_positive_no_adjustment",
+      "sector_sample_adequate": false,
+      "sector_sample_penalty": 0.8,
+      "sample_adequacy_reason": "insufficient_sample_size_28_penalty_0.8",
+      "sector_score": 60.0,
+      "total_adjustment_factor": 0.8
+    },
+    "raw_component_scores": {
+      "per": 4.249930637026177,
+      "pbr": 0.1,
+      "roe": 11.815728069093334,
+      "total": 16.16565870611951
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 0,
+    "criteria_met": [],
+    "mos_score": 0,
+    "mos_points": 0,
+    "safety_margin": -62.53781221279907,
+    "intrinsic_value": 34240.43963750165,
+    "confidence": "MEDIUM",
+    "score_percentage": 11.30465643784581,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 48.95554365291912,
+    "pbr": 4.619194420579168,
+    "roe": 9.435487946631627,
+    "market_cap": 2777000000000.0,
+    "current_price": 91400.0
+  }
+}

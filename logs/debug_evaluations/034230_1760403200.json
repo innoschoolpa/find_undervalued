@@ -1,0 +1,71 @@
+{
+  "symbol": "034230",
+  "name": "파라다이스",
+  "timestamp": "2025-10-14T09:53:20.218029",
+  "score": 33.0,
+  "score_percentage": 23.076923076923077,
+  "grade": "C (위험)",
+  "recommendation": "HOLD",
+  "details": {
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "per_score": 10.0,
+    "pbr_score": 10.0,
+    "roe_score": 10.0,
+    "relative_per": null,
+    "relative_pbr": null,
+    "sector_percentile": 50.0,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "034230",
+      "sector_name": "기타",
+      "original_score": 30.0,
+      "adjusted_score": 30.0,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_positive_no_adjustment",
+      "sector_sample_adequate": true,
+      "sector_sample_penalty": 1.0,
+      "sample_adequacy_reason": "sufficient_sample_size",
+      "sector_score": 60.0,
+      "total_adjustment_factor": 1.0
+    },
+    "raw_component_scores": {
+      "per": 10.0,
+      "pbr": 10.0,
+      "roe": 10.0,
+      "total": 30.0
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 3,
+    "criteria_met": [
+      "PBR"
+    ],
+    "mos_score": 0,
+    "mos_points": 0,
+    "safety_margin": -32.7791932059448,
+    "intrinsic_value": 12664.4,
+    "confidence": "HIGH",
+    "score_percentage": 23.076923076923077,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 22.891859052247874,
+    "pbr": 1.0413442405483087,
+    "roe": 4.548971921291178,
+    "market_cap": 1739100000000.0,
+    "current_price": 18840.0
+  }
+}

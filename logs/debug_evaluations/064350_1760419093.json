@@ -1,0 +1,71 @@
+{
+  "symbol": "064350",
+  "name": "현대로템",
+  "timestamp": "2025-10-14T14:18:13.658712",
+  "score": 25.01549775742567,
+  "score_percentage": 17.493355075122846,
+  "grade": "C (위험)",
+  "recommendation": "SELL",
+  "details": {
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "per_score": 1.6408768774250575,
+    "pbr_score": 0.1,
+    "roe_score": 19.27462088000061,
+    "relative_per": 717.2631878766695,
+    "relative_pbr": 1376.8230173833765,
+    "sector_percentile": 99.5,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "064350",
+      "sector_name": "운송장비",
+      "original_score": 21.01549775742567,
+      "adjusted_score": 16.812398205940536,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_positive_no_adjustment",
+      "sector_sample_adequate": false,
+      "sector_sample_penalty": 0.8,
+      "sample_adequacy_reason": "insufficient_sample_size_25_penalty_0.8",
+      "sector_score": 60.0,
+      "total_adjustment_factor": 0.8
+    },
+    "raw_component_scores": {
+      "per": 1.6408768774250575,
+      "pbr": 0.1,
+      "roe": 19.27462088000061,
+      "total": 21.01549775742567
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 4,
+    "criteria_met": [
+      "ROE"
+    ],
+    "mos_score": 0,
+    "mos_points": 0,
+    "safety_margin": -90.5201910891089,
+    "intrinsic_value": 19149.214,
+    "confidence": "MEDIUM",
+    "score_percentage": 17.493355075122846,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 54.18454935622318,
+    "pbr": 10.780808026898649,
+    "roe": 19.89646154667236,
+    "market_cap": 22101300000000.0,
+    "current_price": 202000.0
+  }
+}

@@ -1,0 +1,71 @@
+{
+  "symbol": "030200",
+  "name": "KT",
+  "timestamp": "2025-10-14T12:59:09.039941",
+  "score": 21.38203116544594,
+  "score_percentage": 14.952469346465694,
+  "grade": "C (위험)",
+  "recommendation": "SELL",
+  "details": {
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "per_score": 2.888513513513513,
+    "pbr_score": 15.493517651932429,
+    "roe_score": 0.0,
+    "relative_per": 151.38731887781321,
+    "relative_pbr": 53.19351730750144,
+    "sector_percentile": 49.893875773611356,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "030200",
+      "sector_name": "통신",
+      "original_score": 18.38203116544594,
+      "adjusted_score": 11.029218699267565,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_positive_no_adjustment",
+      "sector_sample_adequate": false,
+      "sector_sample_penalty": 0.6,
+      "sample_adequacy_reason": "very_insufficient_sample_size_7_penalty_0.6",
+      "sector_score": 60.0,
+      "total_adjustment_factor": 0.6
+    },
+    "raw_component_scores": {
+      "per": 2.888513513513513,
+      "pbr": 15.493517651932429,
+      "roe": 0.0,
+      "total": 18.38203116544594
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 3,
+    "criteria_met": [
+      "PBR"
+    ],
+    "mos_score": 0,
+    "mos_points": 0,
+    "safety_margin": -33.39090444557997,
+    "intrinsic_value": 32588.5,
+    "confidence": "LOW",
+    "score_percentage": 14.952469346465694,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 26.445945945945947,
+    "pbr": 0.750648234806757,
+    "roe": 2.838424597634135,
+    "market_cap": 12330200000000.0,
+    "current_price": 48925.0
+  }
+}

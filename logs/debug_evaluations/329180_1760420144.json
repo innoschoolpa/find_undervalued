@@ -1,0 +1,71 @@
+{
+  "symbol": "329180",
+  "name": "HD현대중공업",
+  "timestamp": "2025-10-14T14:35:44.366662",
+  "score": 17.57427027309882,
+  "score_percentage": 12.289699491677496,
+  "grade": "C (위험)",
+  "recommendation": "SELL",
+  "details": {
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "per_score": 0.1,
+    "pbr_score": 2.2951378661718334,
+    "roe_score": 11.179132406926984,
+    "relative_per": 962.1193309380711,
+    "relative_pbr": 950.9694607034419,
+    "sector_percentile": 56.36926286193074,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "329180",
+      "sector_name": "운송장비",
+      "original_score": 13.574270273098817,
+      "adjusted_score": 10.859416218479055,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_positive_no_adjustment",
+      "sector_sample_adequate": false,
+      "sector_sample_penalty": 0.8,
+      "sample_adequacy_reason": "insufficient_sample_size_25_penalty_0.8",
+      "sector_score": 60.0,
+      "total_adjustment_factor": 0.8
+    },
+    "raw_component_scores": {
+      "per": 0.1,
+      "pbr": 2.2951378661718334,
+      "roe": 11.179132406926984,
+      "total": 13.574270273098817
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 4,
+    "criteria_met": [
+      "ROE"
+    ],
+    "mos_score": 0,
+    "mos_points": 0,
+    "safety_margin": -89.67595419044916,
+    "intrinsic_value": 50897.54584108569,
+    "confidence": "MEDIUM",
+    "score_percentage": 12.289699491677496,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 70.41851164119412,
+    "pbr": 7.672077063135125,
+    "roe": 10.894971910549495,
+    "market_cap": 43765100000000.0,
+    "current_price": 493000.0
+  }
+}

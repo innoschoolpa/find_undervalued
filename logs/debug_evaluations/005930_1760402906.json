@@ -1,0 +1,73 @@
+{
+  "symbol": "005930",
+  "name": "삼성전자",
+  "timestamp": "2025-10-14T09:48:26.172070",
+  "score": 31.738413892156586,
+  "score_percentage": 22.19469502948013,
+  "grade": "C (위험)",
+  "recommendation": "HOLD",
+  "details": {
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "per_score": 6.043591970662035,
+    "pbr_score": 6.804623216237989,
+    "roe_score": 8.89019870525656,
+    "relative_per": 10.691207688898219,
+    "relative_pbr": 31.054721215259782,
+    "sector_percentile": 51.036462971446475,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "005930",
+      "sector_name": "전기전자",
+      "original_score": 21.738413892156586,
+      "adjusted_score": 17.39073111372527,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_positive_no_adjustment",
+      "sector_sample_adequate": false,
+      "sector_sample_penalty": 0.8,
+      "sample_adequacy_reason": "insufficient_sample_size_17_penalty_0.8",
+      "sector_score": 60.0,
+      "total_adjustment_factor": 0.8
+    },
+    "raw_component_scores": {
+      "per": 6.043591970662035,
+      "pbr": 6.804623216237989,
+      "roe": 8.89019870525656,
+      "total": 21.738413892156586
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 10,
+    "criteria_met": [
+      "PER",
+      "PBR",
+      "ROE"
+    ],
+    "mos_score": 0,
+    "mos_points": 0,
+    "safety_margin": -22.302366712337093,
+    "intrinsic_value": 73735.0539899921,
+    "confidence": "MEDIUM",
+    "score_percentage": 22.19469502948013,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 19.171717171717173,
+    "pbr": 1.6381840151907474,
+    "roe": 8.544795442775763,
+    "market_cap": 561773600000000.0,
+    "current_price": 94900.0
+  }
+}

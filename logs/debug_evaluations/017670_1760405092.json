@@ -1,0 +1,73 @@
+{
+  "symbol": "017670",
+  "name": "SK텔레콤",
+  "timestamp": "2025-10-14T10:24:52.933949",
+  "score": 47.7141175726989,
+  "score_percentage": 33.36651578510413,
+  "grade": "C (위험)",
+  "recommendation": "HOLD",
+  "details": {
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "per_score": 13.403614457831328,
+    "pbr_score": 12.727239608000291,
+    "roe_score": 10.583263506867283,
+    "relative_per": -11.814558614686877,
+    "relative_pbr": 100.37159823672992,
+    "sector_percentile": 99.5,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "017670",
+      "sector_name": "통신",
+      "original_score": 36.7141175726989,
+      "adjusted_score": 22.028470543619342,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_positive_no_adjustment",
+      "sector_sample_adequate": false,
+      "sector_sample_penalty": 0.6,
+      "sample_adequacy_reason": "very_insufficient_sample_size_7_penalty_0.6",
+      "sector_score": 60.0,
+      "total_adjustment_factor": 0.6
+    },
+    "raw_component_scores": {
+      "per": 13.403614457831328,
+      "pbr": 12.727239608000291,
+      "roe": 10.583263506867283,
+      "total": 36.7141175726989
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 10,
+    "criteria_met": [
+      "PER",
+      "PBR",
+      "ROE"
+    ],
+    "mos_score": 1,
+    "mos_points": 1,
+    "safety_margin": -30.129818181818184,
+    "intrinsic_value": 37660.028,
+    "confidence": "LOW",
+    "score_percentage": 33.36651578510413,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 9.27710843373494,
+    "pbr": 0.9818208313599767,
+    "roe": 10.583263506867281,
+    "market_cap": 11577200000000.0,
+    "current_price": 53900.0
+  }
+}

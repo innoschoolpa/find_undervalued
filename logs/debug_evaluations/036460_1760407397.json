@@ -1,0 +1,73 @@
+{
+  "symbol": "036460",
+  "name": "한국가스공사",
+  "timestamp": "2025-10-14T11:03:17.058259",
+  "score": 90.47465659282744,
+  "score_percentage": 63.268990624354856,
+  "grade": "B+ (양호)",
+  "recommendation": "STRONG_BUY",
+  "details": {
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "per_score": 20.0,
+    "pbr_score": 20.0,
+    "roe_score": 10.474656592827449,
+    "relative_per": -84.26179359201417,
+    "relative_pbr": -83.5147692489312,
+    "sector_percentile": 42.373282964137246,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "036460",
+      "sector_name": "유틸리티",
+      "original_score": 50.47465659282745,
+      "adjusted_score": 16.151890109704787,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_penalty_40_below_adjusted_40.4",
+      "sector_sample_adequate": false,
+      "sector_sample_penalty": 0.4,
+      "sample_adequacy_reason": "critical_sample_size_0_penalty_0.4",
+      "sector_score": 30.0,
+      "total_adjustment_factor": 0.32000000000000006
+    },
+    "raw_component_scores": {
+      "per": 20.0,
+      "pbr": 20.0,
+      "roe": 10.474656592827449,
+      "total": 50.47465659282745
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 10,
+    "criteria_met": [
+      "PER",
+      "PBR",
+      "ROE"
+    ],
+    "mos_score": 30,
+    "mos_points": 30,
+    "safety_margin": 429.4970161977834,
+    "intrinsic_value": 207033.3333333333,
+    "confidence": "LOW",
+    "score_percentage": 63.268990624354856,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 3.147641281597166,
+    "pbr": 0.329704615021376,
+    "roe": 10.474656592827449,
+    "market_cap": 3609400000000.0,
+    "current_price": 39100.0
+  }
+}

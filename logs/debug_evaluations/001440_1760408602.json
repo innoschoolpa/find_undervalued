@@ -1,0 +1,71 @@
+{
+  "symbol": "001440",
+  "name": "대한전선",
+  "timestamp": "2025-10-14T11:23:22.301747",
+  "score": 12.718196129301298,
+  "score_percentage": 8.893843447063844,
+  "grade": "C (위험)",
+  "recommendation": "SELL",
+  "details": {
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "per_score": 0.1,
+    "pbr_score": 4.567613335172046,
+    "roe_score": 5.050582794129252,
+    "relative_per": 151.96823184532894,
+    "relative_pbr": 76.63386323492306,
+    "sector_percentile": 34.45769659757839,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "001440",
+      "sector_name": "전기전자",
+      "original_score": 9.718196129301298,
+      "adjusted_score": 7.774556903441038,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_positive_no_adjustment",
+      "sector_sample_adequate": false,
+      "sector_sample_penalty": 0.8,
+      "sample_adequacy_reason": "insufficient_sample_size_17_penalty_0.8",
+      "sector_score": 60.0,
+      "total_adjustment_factor": 0.8
+    },
+    "raw_component_scores": {
+      "per": 0.1,
+      "pbr": 4.567613335172046,
+      "roe": 5.050582794129252,
+      "total": 9.718196129301298
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 3,
+    "criteria_met": [
+      "PBR"
+    ],
+    "mos_score": 0,
+    "mos_points": 0,
+    "safety_margin": -60.370000000000005,
+    "intrinsic_value": 6935.25,
+    "confidence": "MEDIUM",
+    "score_percentage": 8.893843447063844,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 43.64089775561097,
+    "pbr": 2.207923290436538,
+    "roe": 5.059298511228867,
+    "market_cap": 3262800000000.0,
+    "current_price": 17500.0
+  }
+}

@@ -1,0 +1,72 @@
+{
+  "symbol": "439260",
+  "name": "대한조선",
+  "timestamp": "2025-10-14T09:51:48.564513",
+  "score": 37.44737512987357,
+  "score_percentage": 26.186975615296205,
+  "grade": "C (위험)",
+  "recommendation": "HOLD",
+  "details": {
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "per_score": 7.430806034965371,
+    "pbr_score": 3.1165690949082037,
+    "roe_score": 19.9,
+    "relative_per": 108.80400903697351,
+    "relative_pbr": 622.096903006616,
+    "sector_percentile": 99.5,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "439260",
+      "sector_name": "운송장비",
+      "original_score": 30.44737512987357,
+      "adjusted_score": 24.357900103898857,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_positive_no_adjustment",
+      "sector_sample_adequate": false,
+      "sector_sample_penalty": 0.8,
+      "sample_adequacy_reason": "insufficient_sample_size_25_penalty_0.8",
+      "sector_score": 60.0,
+      "total_adjustment_factor": 0.8
+    },
+    "raw_component_scores": {
+      "per": 7.430806034965371,
+      "pbr": 3.1165690949082037,
+      "roe": 19.9,
+      "total": 30.44737512987357
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 7,
+    "criteria_met": [
+      "PER",
+      "ROE"
+    ],
+    "mos_score": 0,
+    "mos_points": 0,
+    "safety_margin": -80.61202043422733,
+    "intrinsic_value": 15180.787999999999,
+    "confidence": "MEDIUM",
+    "score_percentage": 26.186975615296205,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 13.843705799151344,
+    "pbr": 5.271307391948297,
+    "roe": 38.077285579641845,
+    "market_cap": 3016600000000.0,
+    "current_price": 78300.0
+  }
+}

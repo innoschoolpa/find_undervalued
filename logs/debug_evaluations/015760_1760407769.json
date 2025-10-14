@@ -1,0 +1,72 @@
+{
+  "symbol": "015760",
+  "name": "한국전력",
+  "timestamp": "2025-10-14T11:09:29.334104",
+  "score": 51.54315956194579,
+  "score_percentage": 36.044167525836215,
+  "grade": "C+ (주의)",
+  "recommendation": "HOLD",
+  "details": {
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "per_score": 16.123735980878838,
+    "pbr_score": 16.984914035736686,
+    "roe_score": 8.434509545330267,
+    "relative_per": -65.61867990439418,
+    "relative_pbr": -69.92457017868344,
+    "sector_percentile": 33.738038181321066,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "015760",
+      "sector_name": "유틸리티",
+      "original_score": 41.54315956194579,
+      "adjusted_score": 13.293811059822653,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_penalty_40_below_adjusted_33.2",
+      "sector_sample_adequate": false,
+      "sector_sample_penalty": 0.4,
+      "sample_adequacy_reason": "critical_sample_size_0_penalty_0.4",
+      "sector_score": 30.0,
+      "total_adjustment_factor": 0.32
+    },
+    "raw_component_scores": {
+      "per": 16.123735980878838,
+      "pbr": 16.984914035736686,
+      "roe": 8.434509545330267,
+      "total": 41.54315956194579
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 6,
+    "criteria_met": [
+      "PER",
+      "PBR"
+    ],
+    "mos_score": 4,
+    "mos_points": 4,
+    "safety_margin": 142.37967914438502,
+    "intrinsic_value": 90650.0,
+    "confidence": "LOW",
+    "score_percentage": 36.044167525836215,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 6.876264019121162,
+    "pbr": 0.6015085964263313,
+    "roe": 8.747607636264213,
+    "market_cap": 24041600000000.0,
+    "current_price": 37400.0
+  }
+}

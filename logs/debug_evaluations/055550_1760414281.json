@@ -1,0 +1,72 @@
+{
+  "symbol": "055550",
+  "name": "신한지주",
+  "timestamp": "2025-10-14T12:58:01.850863",
+  "score": 42.092454824309144,
+  "score_percentage": 29.435283093922475,
+  "grade": "C (위험)",
+  "recommendation": "HOLD",
+  "details": {
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "per_score": 10.721085322000654,
+    "pbr_score": 10.624774816710662,
+    "roe_score": 10.746594685597831,
+    "relative_per": -3.0891048066123528,
+    "relative_pbr": -3.319116213775408,
+    "sector_percentile": 53.73297342798915,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "055550",
+      "sector_name": "금융",
+      "original_score": 32.092454824309144,
+      "adjusted_score": 32.092454824309144,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_positive_no_adjustment",
+      "sector_sample_adequate": true,
+      "sector_sample_penalty": 1.0,
+      "sample_adequacy_reason": "sufficient_sample_size",
+      "sector_score": 60.0,
+      "total_adjustment_factor": 1.0
+    },
+    "raw_component_scores": {
+      "per": 10.721085322000654,
+      "pbr": 10.624774816710662,
+      "roe": 10.746594685597831,
+      "total": 32.092454824309144
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 6,
+    "criteria_met": [
+      "PER",
+      "PBR"
+    ],
+    "mos_score": 4,
+    "mos_points": 4,
+    "safety_margin": 10.786670587228153,
+    "intrinsic_value": 76664.37604636188,
+    "confidence": "HIGH",
+    "score_percentage": 29.435283093922475,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 7.917620137299771,
+    "pbr": 0.6187576562318374,
+    "roe": 7.814944964546617,
+    "market_cap": 33596200000000.0,
+    "current_price": 69200.0
+  }
+}

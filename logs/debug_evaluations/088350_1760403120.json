@@ -1,0 +1,72 @@
+{
+  "symbol": "088350",
+  "name": "한화생명",
+  "timestamp": "2025-10-14T09:52:00.880029",
+  "score": 80.54395592259652,
+  "score_percentage": 56.32444470111645,
+  "grade": "B+ (양호)",
+  "recommendation": "BUY",
+  "details": {
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "per_score": 17.06435870006943,
+    "pbr_score": 20.0,
+    "roe_score": 7.47959722252709,
+    "relative_per": -54.08234613981746,
+    "relative_pbr": -66.01637189292543,
+    "sector_percentile": 37.39798611263545,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "088350",
+      "sector_name": "금융",
+      "original_score": 44.543955922596524,
+      "adjusted_score": 44.543955922596524,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_positive_no_adjustment",
+      "sector_sample_adequate": true,
+      "sector_sample_penalty": 1.0,
+      "sample_adequacy_reason": "sufficient_sample_size",
+      "sector_score": 60.0,
+      "total_adjustment_factor": 1.0
+    },
+    "raw_component_scores": {
+      "per": 17.06435870006943,
+      "pbr": 20.0,
+      "roe": 7.47959722252709,
+      "total": 44.543955922596524
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 6,
+    "criteria_met": [
+      "PER",
+      "PBR"
+    ],
+    "mos_score": 30,
+    "mos_points": 30,
+    "safety_margin": 133.8193378693793,
+    "intrinsic_value": 7447.145911139731,
+    "confidence": "HIGH",
+    "score_percentage": 56.32444470111645,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 3.751472320376914,
+    "pbr": 0.21749521988527726,
+    "roe": 5.797596285167987,
+    "market_cap": 2766300000000.0,
+    "current_price": 3185.0
+  }
+}

@@ -1,0 +1,71 @@
+{
+  "symbol": "035720",
+  "name": "카카오",
+  "timestamp": "2025-10-14T10:24:00.365944",
+  "score": 10.89566068122824,
+  "score_percentage": 7.619343133726042,
+  "grade": "C (위험)",
+  "recommendation": "SELL",
+  "details": {
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "per_score": 0.1,
+    "pbr_score": 3.3601327731029356,
+    "roe_score": 4.435527908125304,
+    "relative_per": 3108.3496439869227,
+    "relative_pbr": 106.46738223869878,
+    "sector_percentile": 24.641821711807246,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "035720",
+      "sector_name": "IT",
+      "original_score": 7.8956606812282395,
+      "adjusted_score": 6.316528544982592,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_positive_no_adjustment",
+      "sector_sample_adequate": false,
+      "sector_sample_penalty": 0.8,
+      "sample_adequacy_reason": "insufficient_sample_size_28_penalty_0.8",
+      "sector_score": 60.0,
+      "total_adjustment_factor": 0.8
+    },
+    "raw_component_scores": {
+      "per": 0.1,
+      "pbr": 3.3601327731029356,
+      "roe": 4.435527908125304,
+      "total": 7.8956606812282395
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 3,
+    "criteria_met": [
+      "PBR"
+    ],
+    "mos_score": 0,
+    "mos_points": 0,
+    "safety_margin": -66.09633965375104,
+    "intrinsic_value": 20562.569999999996,
+    "confidence": "MEDIUM",
+    "score_percentage": 7.619343133726042,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 489.11290322580646,
+    "pbr": 2.653105861767279,
+    "roe": 0.5424321959755031,
+    "market_cap": 26760200000000.0,
+    "current_price": 60650.0
+  }
+}

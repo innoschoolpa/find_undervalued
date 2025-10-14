@@ -22,7 +22,7 @@ v2.2 기존 기능:
 """
 
 # ✅ v2.3: 버전 관리 통일
-APP_VERSION = "v2.3.6"  # ✅ 정합성 강화 (MoS 30점 통일, DUMMY_SENTINEL 전역화, 문구 일원화)
+APP_VERSION = "v2.3.10"  # ✅ 중복 수집 완전 제거 (get_stock_universe 통일)
 
 import streamlit as st
 import pandas as pd
@@ -323,7 +323,7 @@ def _load_sector_cache():
         sector_stats = db.get_sector_stats()
         
         if sector_stats:
-            logger.info(f"✅ 섹터 캐시 로드 (DB): {len(sector_stats)}개 섹터")
+            logger.debug(f"✅ 섹터 캐시 로드 (DB): {len(sector_stats)}개 섹터")
             return sector_stats
     
     except Exception as e:
@@ -338,7 +338,7 @@ def _load_sector_cache():
         if manager.is_cache_valid():
             sector_stats = manager.load_cache()
             if sector_stats:
-                logger.info(f"✅ 섹터 캐시 로드 (pickle): {len(sector_stats)}개 섹터")
+                logger.debug(f"✅ 섹터 캐시 로드 (pickle): {len(sector_stats)}개 섹터")
                 return sector_stats
     
     except Exception as e:
@@ -843,7 +843,7 @@ class ValueStockFinder:
             from sector_cache_manager import SectorCacheManager
             self.sector_cache_manager = SectorCacheManager(ttl_hours=24)
             self._sector_stats_cache = None  # 지연 로딩
-            logger.info("✅ 섹터 캐시 매니저 초기화 완료")
+            logger.debug("✅ 섹터 캐시 매니저 초기화 완료")
         except ImportError as e:
             logger.warning(f"⚠️ 섹터 캐시 매니저 로드 실패: {e} - 섹터 통계 비활성화")
             self.sector_cache_manager = None
@@ -1010,7 +1010,7 @@ class ValueStockFinder:
         
         # ✅ DEBUG: 첫 실행 시 매핑 확인
         if not hasattr(self, '_sector_mapping_logged'):
-            logger.info(f"✅ 섹터 기준 매핑: '{normalized_sector}' → '{mapped_key}' (PER≤{criteria['per_max']}, PBR≤{criteria['pbr_max']}, ROE≥{criteria['roe_min']})")
+            logger.debug(f"✅ 섹터 기준 매핑: '{normalized_sector}' → '{mapped_key}' (PER≤{criteria['per_max']}, PBR≤{criteria['pbr_max']}, ROE≥{criteria['roe_min']})")
             self._sector_mapping_logged = True
         
         return criteria
@@ -1130,15 +1130,17 @@ class ValueStockFinder:
         """업종별 기준을 간단한 문자열로 표시 (사용자 슬라이더 반영)"""
         c = self.get_sector_specific_criteria(sector_name) or self.default_value_criteria
         
-        # 🔧 업종 기준과 사용자 슬라이더를 결합하여 표시
+        # ✅ FIX: 기준값은 숫자 그대로 쓰고, 마지막에 포맷팅 (타입 혼용 방지)
+        per_base = float(c.get('per_max', 15.0))
+        pbr_base = float(c.get('pbr_max', 1.5))
+        roe_base = float(c.get('roe_min', 10.0))
+        
         if options:
-            per = min(c.get('per_max', 15), options.get('per_max', c.get('per_max', 15)))
-            pbr = min(c.get('pbr_max', 1.5), options.get('pbr_max', c.get('pbr_max', 1.5)))
-            roe = max(c.get('roe_min', 10), options.get('roe_min', c.get('roe_min', 10)))
+            per = min(per_base, float(options.get('per_max', per_base)))
+            pbr = min(pbr_base, float(options.get('pbr_max', pbr_base)))
+            roe = max(roe_base, float(options.get('roe_min', roe_base)))
         else:
-            per = self._safe_num(c.get('per_max'), 0)
-            pbr = self._safe_num(c.get('pbr_max'), 1)
-            roe = self._safe_num(c.get('roe_min'), 0)
+            per, pbr, roe = per_base, pbr_base, roe_base
         
         return f"PER≤{per:.1f}, PBR≤{pbr:.1f}, ROE≥{roe:.1f}%"
     
@@ -1412,7 +1414,7 @@ class ValueStockFinder:
         if sample_size < 10:
             # 극소 표본 → 글로벌만 사용
             if use_global:
-                logger.info(f"⚠️ 섹터 표본 부족 (n={sample_size}) → 글로벌 분포 사용 ({metric_name})")
+                logger.debug(f"⚠️ 섹터 표본 부족 (n={sample_size}) → 글로벌 분포 사용 ({metric_name})")
                 global_pcts = self._get_global_percentiles_cached()[metric_name]
                 return self._percentile_from_breakpoints(value, global_pcts)
             return 50.0  # 중립
@@ -1884,7 +1886,12 @@ class ValueStockFinder:
                     per_ok = stock_data['per'] <= criteria['per_max'] if stock_data['per'] > 0 else False
                     pbr_ok = stock_data['pbr'] <= criteria['pbr_max'] if stock_data['pbr'] > 0 else False
                     roe_ok = stock_data['roe'] >= criteria['roe_min'] if stock_data['roe'] > 0 else False
-                    score_ok = value_analysis['value_score'] >= options['score_min']
+                    # ✅ FIX: 퍼센트 컷도 반영 (정합성)
+                    score_pct = (value_analysis['value_score'] / 143.0) * 100.0
+                    score_ok = (
+                        (value_analysis['value_score'] >= options['score_min']) or
+                        (score_pct >= options.get('score_min_pct', 50.0))
+                    )
                     
                     return {
                         'symbol': symbol,
@@ -2176,8 +2183,8 @@ class ValueStockFinder:
                 if risk_penalty <= -30:  # 심각한 리스크
                     logger.debug(f"HIGH 리스크 감지 ({risk_penalty}점) → SELL: {stock_data.get('symbol')}")
                     return {
-                        'score': 0,
-                        'grade': 'SELL',
+                        'value_score': 0,  # ✅ FIX: key 통일 (상위 호출부와 일치)
+                        'grade': 'C (위험)',  # 기존 등급 맥락에 맞춤
                         'recommendation': 'SELL',
                         'details': details,
                         'risk_penalty': risk_penalty,
@@ -2719,61 +2726,98 @@ class ValueStockFinder:
             'hold_percentile': hold_percentile
         }
     
-    def get_stock_universe_from_api(self, max_count: int = 250):
-        """✅ PATCH 1: KIS API로 시가총액순 종목 리스트 가져오기 (중복 수집 방지 + 락)"""
+    def get_stock_universe_from_api(self, max_count: int):
+        """
+        ✅ KIS 유니버스를 시총 기준으로 수집해 (code -> meta dict) 형태로 반환
+        - 전역 캐시(_universe_cache)와 락(_universe_lock)으로 중복 호출 방지
+        - ETF/ETN/REIT/우선주 1차 배제 + 블랙리스트 제외
+        - 종목명 정규화(QuickPatches.clean_name)
+        - 최신 캐시가 있으면 재사용 (TTL 240초)
+        """
         global _universe_cache, _universe_ts, _INFLIGHT
-        
+
+        ttl_sec = 240.0
         now = time.time()
-        ttl = 900  # 15분 캐시
-        
-        # 디바운스: 이미 수집 중이면 기존 캐시 반환
+
+        # 1) 캐시 HIT
         with _universe_lock:
-            if _INFLIGHT and _universe_cache is not None:
-                logger.info(f"UNIVERSE: 수집 중... 기존 캐시 반환 ({len(_universe_cache)}개)")
-                return dict(list(_universe_cache.items())[:max_count]), True
-            
-            # TTL 내 캐시 사용
-            if _universe_cache and (now - _universe_ts) < ttl and len(_universe_cache) >= max_count:
-                logger.info(f"UNIVERSE: 캐시 히트 ({len(_universe_cache)}개, ttl={int(ttl-(now-_universe_ts))}s)")
-                return dict(list(_universe_cache.items())[:max_count]), True
-            
+            if _universe_cache and (now - _universe_ts) < ttl_sec:
+                # 시총 정렬 후 상위 max_count만 잘라서 반환
+                sorted_codes = sorted(
+                    _universe_cache.keys(),
+                    key=lambda c: _universe_cache[c].get("market_cap", 0),
+                    reverse=True
+                )
+                top_codes = sorted_codes[:max_count]
+                return {c: _universe_cache[c] for c in top_codes}
+
+            # 2) 인플라이트 방지: 이미 누가 채우는 중이면 잠깐 대기 후 재확인
+            if _INFLIGHT:
+                # 최대 5초 대기 (100ms 간격)
+                for _ in range(50):
+                    time.sleep(0.1)
+                    if _universe_cache and (time.time() - _universe_ts) < ttl_sec:
+                        sorted_codes = sorted(
+                            _universe_cache.keys(),
+                            key=lambda c: _universe_cache[c].get("market_cap", 0),
+                            reverse=True
+                        )
+                        top_codes = sorted_codes[:max_count]
+                        return {c: _universe_cache[c] for c in top_codes}
+                # 여전히 없으면 우리가 직접 가져옴
             _INFLIGHT = True
-        
+
+        # 3) 실제 API 호출 (락 밖에서)
         try:
-            # ✅ 토큰 가드: None이면 즉시 폴백 전환
-            token = self.oauth_manager.get_valid_token()
-            if token is None:
-                logger.warning("KIS 토큰 없음 → API 경로 skip, 폴백 전환")
-                fallback = self._get_fallback_stock_list()
-                with _universe_lock:
-                    _universe_cache = fallback
-                    _universe_ts = time.time()
-                return dict(list(fallback.items())[:max_count]), False
-            
-            # 캐시된 API 호출
-            stock_universe, api_success = _cached_universe_from_api(max_count)
-            
-            if stock_universe and api_success:
-                with _universe_lock:
-                    _universe_cache = stock_universe
-                    _universe_ts = time.time()
-                logger.info(f"UNIVERSE: API 성공 ({len(stock_universe)}개 수집)")
-                return stock_universe, True
-            else:
-                logger.warning("캐시된 API에서 종목 리스트를 가져오지 못했습니다. 기본 종목을 사용합니다.")
-                fallback = self._get_fallback_stock_list()
-                with _universe_lock:
-                    _universe_cache = fallback
-                    _universe_ts = time.time()
-                return dict(list(fallback.items())[:max_count]), False
-                
-        except Exception as e:
-            logger.error(f"캐시된 API 종목 리스트 조회 실패: {e}")
-            fallback = self._get_fallback_stock_list()
+            raw_universe, ok = _cached_universe_from_api(max_count=max_count)
+            if not ok or not raw_universe:
+                logger.error("❌ 유니버스 API 실패 또는 빈 결과")
+                return {}
+
+            # 4) 1차 필터링 (ETF/ETN/REIT/우선주/블랙리스트)
+            filtered = {}
+            drop_cnt = 0
+            for code, meta in raw_universe.items():
+                if code in self.BAD_CODES:
+                    drop_cnt += 1
+                    continue
+
+                # 이름 정규화
+                nm = QuickPatches.clean_name(meta.get("name") or meta.get("stock_name") or meta.get("kor_name") or "")
+                if not nm:
+                    # 이름이 정말 비어있다면 스킵
+                    drop_cnt += 1
+                    continue
+
+                if _is_excludable({"name": nm, "asset_type": meta.get("asset_type", "")}):
+                    drop_cnt += 1
+                    continue
+
+                # 정리된 메타 저장
+                m = dict(meta)
+                m["name"] = nm
+                filtered[code] = m
+
+            if drop_cnt:
+                logger.info(f"🧹 1차 필터로 {drop_cnt}개 제외 (ETF/우선주/리츠/블랙리스트)")
+
+            # 5) 전역 캐시에 저장
             with _universe_lock:
-                _universe_cache = fallback
+                _universe_cache = filtered
                 _universe_ts = time.time()
-            return dict(list(fallback.items())[:max_count]), False
+
+            # 시총 상위 max_count 반환
+            sorted_codes = sorted(
+                filtered.keys(),
+                key=lambda c: filtered[c].get("market_cap", 0),
+                reverse=True
+            )
+            top_codes = sorted_codes[:max_count]
+            return {c: filtered[c] for c in top_codes}
+
+        except Exception as e:
+            logger.error(f"유니버스 수집 중 오류: {e}")
+            return {}
         finally:
             with _universe_lock:
                 _INFLIGHT = False
@@ -2857,6 +2901,75 @@ class ValueStockFinder:
         logger.info(f"✅ Fallback 종목 리스트 검증 완료: {len(validated_stocks)}개 종목 (중복 제거)")
         return validated_stocks
     
+    def run_universe_screening(self, options: Dict[str, Any]):
+        """
+        ✅ 유니버스 수집 → 병렬 분석 → 결과 DataFrame 반환
+        - 동적 진행률 표시
+        - v2.3 동적 컷(중앙값*0.9) 예시 포함
+        """
+        max_stocks = int(options.get("max_stocks", 15))
+        api_strategy = options.get("api_strategy", "안전 모드 (배치 처리)")
+
+        # 1) 유니버스
+        uni = self.get_stock_universe_from_api(max_stocks)  # ✅ FIX: 정확한 수량만 수집 (불필요한 API 호출 방지)
+        if not uni:
+            st.error("유니버스를 불러오지 못했습니다. API 설정을 확인하세요.")
+            return pd.DataFrame()
+
+        # 2) 시총 상위 max_stocks만 선별 (이미 정렬되어 있음)
+        pairs = [(c, uni[c].get("name", "")) for c in list(uni.keys())[:max_stocks]]
+
+        # 3) 병렬 분석
+        st.info(f"대상 {len(pairs)}개 • 전략: {api_strategy} • 예상 {self._estimate_analysis_time(len(pairs), api_strategy)}")
+        progress = st.progress(0)
+        status_txt = st.empty()
+
+        results = []
+        total = len(pairs)
+        last_ui = 0.0
+
+        # 워커 수 튜닝 (빠른 모드일수록 워커↑)
+        if api_strategy == "빠른 모드 (병렬 처리)":
+            max_workers = min(12, max(4, int(self.rate_limiter.capacity // 2)))
+        elif api_strategy == "안전 모드 (배치 처리)":
+            max_workers = 5
+        else:  # 순차
+            max_workers = 1
+
+        with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as ex:
+            futs = [ex.submit(self.analyze_single_stock_parallel, pair, options) for pair in pairs]
+            for i, fut in enumerate(concurrent.futures.as_completed(futs), 1):
+                try:
+                    r = fut.result()
+                    if r:
+                        results.append(r)
+                except Exception as e:
+                    logger.error(f"워커 에러: {e}")
+
+                # 진행률
+                self._safe_progress(progress, i / total, f"분석 중… {self._fmt_prog(i, total)}")
+                last_ui = self._maybe_update(status_txt, f"완료: {i}/{total}", last_ui, self._get_ui_update_interval(total))
+
+        if not results:
+            st.warning("조건을 만족하는 결과가 없습니다.")
+            return pd.DataFrame()
+
+        # 4) DataFrame 정리
+        df = pd.DataFrame(results)
+
+        # v2.3: 동적 컷 예시(중앙값*0.9)로 추천 플래그 보조컬럼
+        try:
+            p50 = df["value_score"].median()
+            dyn_cut = p50 * 0.9
+            df["pass_dynamic_cut"] = df["value_score"] >= dyn_cut
+        except Exception:
+            df["pass_dynamic_cut"] = False
+
+        # 보기 좋게 정렬
+        df = df.sort_values(["recommendation", "value_score"], ascending=[True, False]).reset_index(drop=True)
+
+        return df
+    
     def _get_fallback_stock_list_old(self):
         """레거시 폴백 리스트 (사용 안 함 - 참고용)"""
         # 소형주 리스트는 제거됨 (오류가 많고 실제로 사용되지 않음)
@@ -2919,64 +3032,13 @@ class ValueStockFinder:
             return False, None
     
     def get_stock_universe(self, max_count=250):
-        """분석 대상 종목 유니버스 반환 (API 우선, 실패 시 기본값)"""
-        result = self.get_stock_universe_from_api(max_count)
-        
-        # 결과/플래그 해석
-        if isinstance(result, tuple):
-            stock_universe, api_success = result
-            self._last_api_success = api_success
-        else:
-            # (레거시 대응) dict 단독 반환 시에는 성공으로 간주
-            stock_universe = result
-            self._last_api_success = True
-        
-        # ✅ PATCH-002: Fallback 시에는 네트워크 호출 없이, 미리 정의된 리스트를 그대로 신뢰하고 사용
-        if not self._last_api_success:
-            logger.info(f"폴백 유니버스 사용: {len(stock_universe)}개 종목 (실거래성 검증 생략)")
-            # Fallback 시 이전에 사용되었을 수 있는 캐시만 정리
-            try:
-                if hasattr(self, "_primed_cache"):
-                    self._primed_cache.clear()
-            except Exception:
-                pass
-        else:
-            # ✅ API 성공 시, 이전 폴백에서 남았을 수 있는 캐시 초기화 (오염 방지)
-            try:
-                if hasattr(self, "_primed_cache"):
-                    self._primed_cache.clear()
-            except Exception:
-                pass
-            try:
-                # _cached_sector_data는 lru_cache 함수 속성일 수 있음
-                if hasattr(self, "_cached_sector_data") and callable(getattr(self._cached_sector_data, 'cache_clear', None)):
-                    self._cached_sector_data.cache_clear()
-            except Exception:
-                pass
-        
-        logger.info(f"get_stock_universe 반환: {type(stock_universe)}, 길이: {len(stock_universe) if hasattr(stock_universe, '__len__') else 'N/A'}")
-        
-        # ✅ 공통: BAD_CODES 1차 필터링 (실제 분석에서 제외)
-        try:
-            stock_universe = {c: n for c, n in stock_universe.items() if c not in self.BAD_CODES}
-            logger.info(f"BAD_CODES 필터 적용 후: {len(stock_universe)}개 종목")
-        except Exception:
-            pass
-        
-        # ✅ PATCH 2: ETF/우선주/리츠 필터링
-        try:
-            pre_filter_count = len(stock_universe)
-            stock_universe = {
-                c: n for c, n in stock_universe.items()
-                if not _is_excludable({'code': c, 'name': n})
-            }
-            filtered_count = pre_filter_count - len(stock_universe)
-            if filtered_count > 0:
-                logger.info(f"ETF/우선주/리츠 필터 적용: {filtered_count}개 제외, {len(stock_universe)}개 남음")
-        except Exception as e:
-            logger.warning(f"ETF 필터 적용 실패: {e}")
-        
-        return stock_universe
+        """✅ FIX: 중복 수집 방지 - 새로운 함수로 위임 (필터링은 이미 포함됨)"""
+        # ✅ 새로운 get_stock_universe_from_api()는 이미 모든 필터링을 포함하고 있음
+        # - ETF/ETN/REIT/우선주 1차 배제
+        # - 블랙리스트 제외  
+        # - 종목명 정규화
+        # - 시총 정렬
+        return self.get_stock_universe_from_api(max_count)
     
     def screen_all_stocks(self, options):
         """전체 종목 스크리닝"""
@@ -2986,6 +3048,21 @@ class ValueStockFinder:
         options = QuickPatches.merge_options(options)
         
         max_stocks = options['max_stocks']  # ✅ v2.2.3: 변수 정의를 위로 이동
+        
+        # ✅ NEW: 간단한 스크리닝 실행 버튼
+        if st.button("🔍 스크리닝 실행", type="primary"):
+            df = self.run_universe_screening(options)
+            if not df.empty:
+                st.dataframe(df[[
+                    "symbol","name","sector","current_price",
+                    "per","pbr","roe",
+                    "value_score","grade","recommendation",
+                    "per_ok","pbr_ok","roe_ok","score_ok","pass_dynamic_cut"
+                ]], use_container_width=True)
+            else:
+                st.warning("조건을 만족하는 결과가 없습니다.")
+        
+        # 기존 스크리닝 로직은 그대로 유지 (하위 호환성)
         
         # ✅ v2.2.3: 섹터 캐시 상태 확인 및 알림
         sector_cache = _load_sector_cache()  # @st.cache_resource (전역)

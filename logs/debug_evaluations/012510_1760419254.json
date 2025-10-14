@@ -1,0 +1,69 @@
+{
+  "symbol": "012510",
+  "name": "더존비즈온",
+  "timestamp": "2025-10-14T14:20:54.846158",
+  "score": 16.17961579419069,
+  "score_percentage": 11.314416639294187,
+  "grade": "C (위험)",
+  "recommendation": "SELL",
+  "details": {
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "per_score": 4.263887725097353,
+    "pbr_score": 0.1,
+    "roe_score": 11.815728069093334,
+    "relative_per": 213.7470941942207,
+    "relative_pbr": 251.21121657716944,
+    "sector_percentile": 60.47940042091323,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "012510",
+      "sector_name": "IT",
+      "original_score": 16.17961579419069,
+      "adjusted_score": 12.943692635352551,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_positive_no_adjustment",
+      "sector_sample_adequate": false,
+      "sector_sample_penalty": 0.8,
+      "sample_adequacy_reason": "insufficient_sample_size_28_penalty_0.8",
+      "sector_score": 60.0,
+      "total_adjustment_factor": 0.8
+    },
+    "raw_component_scores": {
+      "per": 4.263887725097353,
+      "pbr": 0.1,
+      "roe": 11.815728069093334,
+      "total": 16.17961579419069
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 0,
+    "criteria_met": [],
+    "mos_score": 0,
+    "mos_points": 0,
+    "safety_margin": -61.656842511196366,
+    "intrinsic_value": 34240.43963750165,
+    "confidence": "MEDIUM",
+    "score_percentage": 11.314416639294187,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 47.830744509908946,
+    "pbr": 4.513064133016627,
+    "roe": 9.435487946631627,
+    "market_cap": 2713200000000.0,
+    "current_price": 89300.0
+  }
+}

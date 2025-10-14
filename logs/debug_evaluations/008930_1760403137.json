@@ -1,0 +1,69 @@
+{
+  "symbol": "008930",
+  "name": "한미사이언스",
+  "timestamp": "2025-10-14T09:52:17.342495",
+  "score": 9.55102759031924,
+  "score_percentage": 6.679040272950518,
+  "grade": "C (위험)",
+  "recommendation": "SELL",
+  "details": {
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "per_score": 0.1,
+    "pbr_score": 0.1,
+    "roe_score": 9.35102759031924,
+    "relative_per": 417.7875243664717,
+    "relative_pbr": 356.7653763096857,
+    "sector_percentile": 46.755137951596204,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "008930",
+      "sector_name": "금융",
+      "original_score": 9.55102759031924,
+      "adjusted_score": 9.55102759031924,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_positive_no_adjustment",
+      "sector_sample_adequate": true,
+      "sector_sample_penalty": 1.0,
+      "sample_adequacy_reason": "sufficient_sample_size",
+      "sector_score": 60.0,
+      "total_adjustment_factor": 1.0
+    },
+    "raw_component_scores": {
+      "per": 0.1,
+      "pbr": 0.1,
+      "roe": 9.35102759031924,
+      "total": 9.55102759031924
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 0,
+    "criteria_met": [],
+    "mos_score": 0,
+    "mos_points": 0,
+    "safety_margin": -79.26478542479451,
+    "intrinsic_value": 7578.720927237607,
+    "confidence": "HIGH",
+    "score_percentage": 6.679040272950518,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 42.30324074074074,
+    "pbr": 2.923298408381988,
+    "roe": 6.910341518035672,
+    "market_cap": 2499700000000.0,
+    "current_price": 36550.0
+  }
+}

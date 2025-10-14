@@ -1,0 +1,69 @@
+{
+  "symbol": "017960",
+  "name": "한국카본",
+  "timestamp": "2025-10-14T10:41:29.301117",
+  "score": 3.2476190476190476,
+  "score_percentage": 2.271062271062271,
+  "grade": "C (위험)",
+  "recommendation": "SELL",
+  "details": {
+    "risk_penalty": 0,
+    "risk_warnings": [],
+    "risk_count": 0,
+    "per_score": 0.1,
+    "pbr_score": 0.1,
+    "roe_score": 3.0476190476190474,
+    "relative_per": 337.97953964194375,
+    "relative_pbr": 77.27743271221532,
+    "sector_percentile": 15.159540673459306,
+    "sector_adjustment": 1.0,
+    "sector_context": {
+      "symbol": "017960",
+      "sector_name": "철강/화학",
+      "original_score": 3.2476190476190476,
+      "adjusted_score": 1.0392380952380955,
+      "contextualization_applied": true,
+      "adjustment_reason": "sector_penalty_40_below_adjusted_2.6",
+      "sector_sample_adequate": false,
+      "sector_sample_penalty": 0.4,
+      "sample_adequacy_reason": "critical_sample_size_0_penalty_0.4",
+      "sector_score": 30.0,
+      "total_adjustment_factor": 0.32000000000000006
+    },
+    "raw_component_scores": {
+      "per": 0.1,
+      "pbr": 0.1,
+      "roe": 3.0476190476190474,
+      "total": 3.2476190476190476
+    },
+    "piotroski_fscore": 0,
+    "piotroski_details": {
+      "profit": 0,
+      "cfo_positive": 0,
+      "roa_increase": 0,
+      "accrual_quality": 0,
+      "debt_decrease": 0,
+      "current_ratio_increase": 0,
+      "no_dilution": 0,
+      "margin_increase": 0,
+      "turnover_increase": 0
+    },
+    "quality_score": 0,
+    "sector_bonus": 0,
+    "criteria_met": [],
+    "mos_score": 0,
+    "mos_points": 0,
+    "safety_margin": -60.51386861313869,
+    "intrinsic_value": 13524.0,
+    "confidence": "LOW",
+    "score_percentage": 2.271062271062271,
+    "max_possible_score": 143
+  },
+  "raw_metrics": {
+    "per": 87.59590792838874,
+    "pbr": 3.5455486542443064,
+    "roe": 4.0476190476190474,
+    "market_cap": 1777900000000.0,
+    "current_price": 34250.0
+  }
+}

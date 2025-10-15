@@ -618,13 +618,13 @@ class ValueStockFinder:
         return f"{x:.{nd}f}%" if isinstance(x, (int, float)) else "N/A"
     
     def _get_ui_update_interval(self, total_items):
-        """대용량 처리 시 UI 업데이트 간격 조정"""
+        """대용량 처리 시 UI 업데이트 간격 조정 (진행률 초기화 방지)"""
         if total_items > 150:
-            return 0.75  # 대용량: 느린 업데이트
+            return 1.0   # 대용량: 느린 업데이트 (안정성 우선)
         elif total_items > 50:
-            return 0.5   # 중간: 보통 업데이트
+            return 0.75  # 중간: 보통 업데이트
         else:
-            return 0.25  # 소용량: 빠른 업데이트
+            return 0.5   # 소용량: 빠른 업데이트 (최소 0.5초로 안정성 확보)
     
     # 블랙리스트 상수 (단일화)
     # ✅ 047050 제거 (포스코인터내셔널 - 폴백 리스트에 포함)
@@ -3278,8 +3278,16 @@ class ValueStockFinder:
 
         # 3) 병렬 분석
         st.info(f"대상 {len(pairs)}개 • 전략: {api_strategy} • 예상 {self._estimate_analysis_time(len(pairs), api_strategy)}")
-        progress = st.progress(0)
+        
+        # ✅ 진행상태 초기화 방지: 세션 상태로 관리
+        if 'analysis_progress' not in st.session_state:
+            st.session_state.analysis_progress = 0
+        if 'analysis_status' not in st.session_state:
+            st.session_state.analysis_status = "분석 준비 중..."
+            
+        progress = st.progress(st.session_state.analysis_progress)
         status_txt = st.empty()
+        status_txt.text(st.session_state.analysis_status)
 
         results = []
         total = len(pairs)
@@ -3293,24 +3301,47 @@ class ValueStockFinder:
         else:  # 순차
             max_workers = 1
 
-        with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as ex:
-            futs = [ex.submit(self.analyze_single_stock_parallel, pair, options) for pair in pairs]
-            for i, fut in enumerate(concurrent.futures.as_completed(futs), 1):
-                try:
-                    r = fut.result()
-                    if r:
-                        results.append(r)
-                except Exception as e:
-                    logger.error(f"워커 에러: {e}")
+        try:
+            with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as ex:
+                futs = [ex.submit(self.analyze_single_stock_parallel, pair, options) for pair in pairs]
+                for i, fut in enumerate(concurrent.futures.as_completed(futs), 1):
+                    try:
+                        r = fut.result()
+                        if r:
+                            results.append(r)
+                    except Exception as e:
+                        logger.error(f"워커 에러: {e}")
 
-                # 진행률
-                self._safe_progress(progress, i / total, f"분석 중… {self._fmt_prog(i, total)}")
-                last_ui = self._maybe_update(status_txt, f"완료: {i}/{total}", last_ui, self._get_ui_update_interval(total))
+                    # 진행률 - 세션 상태 업데이트
+                    progress_val = i / total
+                    status_msg = f"분석 중… {self._fmt_prog(i, total)}"
+                    st.session_state.analysis_progress = progress_val
+                    st.session_state.analysis_status = status_msg
+                    
+                    self._safe_progress(progress, progress_val, status_msg)
+                    last_ui = self._maybe_update(status_txt, f"완료: {i}/{total}", last_ui, self._get_ui_update_interval(total))
+        except Exception as e:
+            logger.error(f"분석 중 예외 발생: {e}")
+            # 예외 발생 시에도 진행률을 현재 상태로 유지
+            if 'analysis_progress' in st.session_state:
+                st.session_state.analysis_status = f"분석 중단됨: {str(e)[:50]}..."
+                self._safe_progress(progress, st.session_state.analysis_progress, st.session_state.analysis_status)
+            st.error(f"분석 중 오류가 발생했습니다: {e}")
+            return pd.DataFrame()
 
         if not results:
             st.warning("조건을 만족하는 결과가 없습니다.")
+            # ✅ 분석 완료 시 진행률을 100%로 설정 (초기화하지 않음)
+            st.session_state.analysis_progress = 1.0
+            st.session_state.analysis_status = "분석 완료 - 결과 없음"
+            self._safe_progress(progress, 1.0, "분석 완료 - 결과 없음")
             return pd.DataFrame()
 
+        # ✅ 분석 완료 시 진행률을 100%로 설정 (초기화하지 않음)
+        st.session_state.analysis_progress = 1.0
+        st.session_state.analysis_status = "분석 완료"
+        self._safe_progress(progress, 1.0, "분석 완료")
+            
         # 4) DataFrame 정리
         df = pd.DataFrame(results)
 
@@ -3616,9 +3647,15 @@ class ValueStockFinder:
         # 빠른 모드 튜닝 파라미터
         fast_latency = options.get('fast_latency', 0.7)
         
-        # 진행률 표시
-        progress_bar = st.progress(0)
+        # 진행률 표시 - 세션 상태로 관리
+        if 'detailed_analysis_progress' not in st.session_state:
+            st.session_state.detailed_analysis_progress = 0
+        if 'detailed_analysis_status' not in st.session_state:
+            st.session_state.detailed_analysis_status = "상세 분석 준비 중..."
+            
+        progress_bar = st.progress(st.session_state.detailed_analysis_progress)
         status_text = st.empty()
+        status_text.text(st.session_state.detailed_analysis_status)
         results_container = st.empty()
         
         results = []
@@ -3650,43 +3687,58 @@ class ValueStockFinder:
             max_workers = min(3, batch_size)  # 배치 크기에 맞춘 워커 수
             
             # 배치별로 처리
-            with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
-                for batch_start in range(0, len(stock_items), batch_size):
-                    batch_end = min(batch_start + batch_size, len(stock_items))
-                    batch = stock_items[batch_start:batch_end]
-                    
-                    current_time = time.time()
-                    if current_time - last_ui_update > self._get_ui_update_interval(len(stock_items)):
-                        status_text.text(f"📊 배치 {batch_start//batch_size + 1} 처리 중: {len(batch)}개 종목")
-                        last_ui_update = current_time
-                    
-                    # 현재 배치 병렬 처리
-                    batch_error = False
-                    future_to_stock = {
-                        executor.submit(self.analyze_single_stock_parallel, (symbol, name), options): (symbol, name)
-                        for symbol, name in batch
-                    }
-                    
-                    for future in concurrent.futures.as_completed(future_to_stock):
-                        symbol, name = future_to_stock[future]
-                        try:
-                            result = future.result()
-                            if result:
-                                results.append(result)
-                        except Exception as e:
-                            msg = f"{name} 분석 오류: {e}"
-                            logger.error(msg)
-                            if len(error_samples) < 3:
-                                # ✅ 메시지 길이 제한 (사용자 권장 - UI 깔끔화)
-                                error_samples.append(textwrap.shorten(msg, width=120, placeholder="..."))
-                            err_counter[type(e).__name__] += 1
-                            batch_error = True
+            try:
+                with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
+                    for batch_start in range(0, len(stock_items), batch_size):
+                        batch_end = min(batch_start + batch_size, len(stock_items))
+                        batch = stock_items[batch_start:batch_end]
+                        
+                        current_time = time.time()
+                        if current_time - last_ui_update > self._get_ui_update_interval(len(stock_items)):
+                            status_text.text(f"📊 배치 {batch_start//batch_size + 1} 처리 중: {len(batch)}개 종목")
+                            last_ui_update = current_time
+                        
+                        # 현재 배치 병렬 처리
+                        batch_error = False
+                        future_to_stock = {
+                            executor.submit(self.analyze_single_stock_parallel, (symbol, name), options): (symbol, name)
+                            for symbol, name in batch
+                        }
+                        
+                        for future in concurrent.futures.as_completed(future_to_stock):
+                            symbol, name = future_to_stock[future]
+                            try:
+                                result = future.result()
+                                if result:
+                                    results.append(result)
+                            except Exception as e:
+                                msg = f"{name} 분석 오류: {e}"
+                                logger.error(msg)
+                                if len(error_samples) < 3:
+                                    # ✅ 메시지 길이 제한 (사용자 권장 - UI 깔끔화)
+                                    error_samples.append(textwrap.shorten(msg, width=120, placeholder="..."))
+                                err_counter[type(e).__name__] += 1
+                                batch_error = True
+            except Exception as e:
+                logger.error(f"안전 모드 분석 중 예외 발생: {e}")
+                # 예외 발생 시에도 진행률을 현재 상태로 유지
+                if 'detailed_analysis_progress' in st.session_state:
+                    st.session_state.detailed_analysis_status = f"분석 중단됨: {str(e)[:50]}..."
+                    self._safe_progress(progress_bar, st.session_state.detailed_analysis_progress, st.session_state.detailed_analysis_status)
+                st.error(f"안전 모드 분석 중 오류가 발생했습니다: {e}")
+                return
                 
                 # 진행률 업데이트
                 completed_count = batch_end
                 progress = completed_count / len(stock_items)
+                status_msg = f"{completed_count}/{len(stock_items)} • {progress*100:.1f}%"
+                
+                # ✅ 세션 상태 업데이트
+                st.session_state.detailed_analysis_progress = progress
+                st.session_state.detailed_analysis_status = status_msg
+                
                 # ✅ 진행률 텍스트 합치기 (rerender 최적화) + 버전 호환
-                self._safe_progress(progress_bar, progress, f"{completed_count}/{len(stock_items)} • {progress*100:.1f}%")
+                self._safe_progress(progress_bar, progress, status_msg)
                 
                 current_time = time.time()
                 if current_time - last_ui_update > self._get_ui_update_interval(len(stock_items)):
@@ -3726,17 +3778,67 @@ class ValueStockFinder:
             st.warning("⚠️ 빠른 모드는 API 호출 한도 초과 위험이 있습니다!")
             st.info(f"💡 레이트리미터 적용으로 실제 처리 속도는 초당 {self.rate_limiter.rate}개 종목으로 제한됩니다.")
             
-            with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
-                future_to_stock = {
-                    executor.submit(self.analyze_single_stock_parallel, (symbol, name), options): (symbol, name)
-                    for symbol, name in stock_items
-                }
+            try:
+                with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
+                    future_to_stock = {
+                        executor.submit(self.analyze_single_stock_parallel, (symbol, name), options): (symbol, name)
+                        for symbol, name in stock_items
+                    }
+                    
+                    completed_count = 0
+                    for future in concurrent.futures.as_completed(future_to_stock):
+                        symbol, name = future_to_stock[future]
+                        try:
+                            result = future.result()
+                            if result:
+                                results.append(result)
+                        except Exception as e:
+                            msg = f"{name} 분석 오류: {e}"
+                            logger.error(msg)
+                            if len(error_samples) < 3:
+                                # ✅ 메시지 길이 제한 (사용자 권장 - UI 깔끔화)
+                                error_samples.append(textwrap.shorten(msg, width=120, placeholder="..."))
+                            err_counter[type(e).__name__] += 1
+            except Exception as e:
+                logger.error(f"빠른 모드 분석 중 예외 발생: {e}")
+                # 예외 발생 시에도 진행률을 현재 상태로 유지
+                if 'detailed_analysis_progress' in st.session_state:
+                    st.session_state.detailed_analysis_status = f"분석 중단됨: {str(e)[:50]}..."
+                    self._safe_progress(progress_bar, st.session_state.detailed_analysis_progress, st.session_state.detailed_analysis_status)
+                st.error(f"빠른 모드 분석 중 오류가 발생했습니다: {e}")
+                return
+                    
+                completed_count += 1
+                progress = completed_count / len(stock_items)
+                status_msg = f"{completed_count}/{len(stock_items)} • {progress*100:.1f}%"
                 
-                completed_count = 0
-                for future in concurrent.futures.as_completed(future_to_stock):
-                    symbol, name = future_to_stock[future]
+                # ✅ 세션 상태 업데이트
+                st.session_state.detailed_analysis_progress = progress
+                st.session_state.detailed_analysis_status = status_msg
+                
+                # ✅ 진행률 텍스트 합치기 (rerender 최적화) + 버전 호환
+                self._safe_progress(progress_bar, progress, status_msg)
+                current_time = time.time()
+                if current_time - last_ui_update > self._get_ui_update_interval(len(stock_items)):
+                    status_text.text(f"📊 분석 진행: {completed_count}/{len(stock_items)} 완료 ({progress*100:.1f}%)")
+                    last_ui_update = current_time
+                
+                value_stocks = [r for r in results if r['is_value_stock']]
+                if value_stocks:
+                    results_container.info(f"🎯 현재까지 발견된 가치주: {len(value_stocks)}개")
+            
+            status_text.text("✅ 빠른 모드 분석 완료!")
+            
+        else:  # 순차 모드
+            # 순차 처리 방식
+            status_text.text(f"🐌 순차 모드 시작: {len(stock_universe)}개 종목")
+            
+            try:
+                for i, (symbol, name) in enumerate(stock_items):
+                    status_text.text(f"📊 분석 중: {name} ({symbol})")
+                    
                     try:
-                        result = future.result()
+                        result = self.analyze_single_stock_parallel((symbol, name), options)
                         if result:
                             results.append(result)
                     except Exception as e:
@@ -3747,57 +3849,43 @@ class ValueStockFinder:
                             error_samples.append(textwrap.shorten(msg, width=120, placeholder="..."))
                         err_counter[type(e).__name__] += 1
                     
-                    completed_count += 1
-                    progress = completed_count / len(stock_items)
+                    # 진행률 업데이트
+                    progress = (i + 1) / len(stock_items)
+                    status_msg = f"{i+1}/{len(stock_items)} • {progress*100:.1f}%"
+                    
+                    # ✅ 세션 상태 업데이트
+                    st.session_state.detailed_analysis_progress = progress
+                    st.session_state.detailed_analysis_status = status_msg
+                    
                     # ✅ 진행률 텍스트 합치기 (rerender 최적화) + 버전 호환
-                    self._safe_progress(progress_bar, progress, f"{completed_count}/{len(stock_items)} • {progress*100:.1f}%")
+                    self._safe_progress(progress_bar, progress, status_msg)
+                    
                     current_time = time.time()
                     if current_time - last_ui_update > self._get_ui_update_interval(len(stock_items)):
-                        status_text.text(f"📊 분석 진행: {completed_count}/{len(stock_items)} 완료 ({progress*100:.1f}%)")
+                        status_text.text(f"📊 순차 진행: {i+1}/{len(stock_items)} 완료 ({progress*100:.1f}%)")
                         last_ui_update = current_time
                     
                     value_stocks = [r for r in results if r['is_value_stock']]
                     if value_stocks:
                         results_container.info(f"🎯 현재까지 발견된 가치주: {len(value_stocks)}개")
-            
-            status_text.text("✅ 빠른 모드 분석 완료!")
-            
-        else:  # 순차 모드
-            # 순차 처리 방식
-            status_text.text(f"🐌 순차 모드 시작: {len(stock_universe)}개 종목")
-            
-            for i, (symbol, name) in enumerate(stock_items):
-                status_text.text(f"📊 분석 중: {name} ({symbol})")
-                
-                try:
-                    result = self.analyze_single_stock_parallel((symbol, name), options)
-                    if result:
-                        results.append(result)
-                except Exception as e:
-                    msg = f"{name} 분석 오류: {e}"
-                    logger.error(msg)
-                    if len(error_samples) < 3:
-                        # ✅ 메시지 길이 제한 (사용자 권장 - UI 깔끔화)
-                        error_samples.append(textwrap.shorten(msg, width=120, placeholder="..."))
-                    err_counter[type(e).__name__] += 1
-                
-                # 진행률 업데이트
-                progress = (i + 1) / len(stock_items)
-                # ✅ 진행률 텍스트 합치기 (rerender 최적화) + 버전 호환
-                self._safe_progress(progress_bar, progress, f"{i+1}/{len(stock_items)} • {progress*100:.1f}%")
-                
-                current_time = time.time()
-                if current_time - last_ui_update > self._get_ui_update_interval(len(stock_items)):
-                    status_text.text(f"📊 순차 진행: {i+1}/{len(stock_items)} 완료 ({progress*100:.1f}%)")
-                    last_ui_update = current_time
-                
-                value_stocks = [r for r in results if r['is_value_stock']]
-                if value_stocks:
-                    results_container.info(f"🎯 현재까지 발견된 가치주: {len(value_stocks)}개")
+            except Exception as e:
+                logger.error(f"순차 모드 분석 중 예외 발생: {e}")
+                # 예외 발생 시에도 진행률을 현재 상태로 유지
+                if 'detailed_analysis_progress' in st.session_state:
+                    st.session_state.detailed_analysis_status = f"분석 중단됨: {str(e)[:50]}..."
+                    self._safe_progress(progress_bar, st.session_state.detailed_analysis_progress, st.session_state.detailed_analysis_status)
+                st.error(f"순차 모드 분석 중 오류가 발생했습니다: {e}")
+                return
             
             status_text.text("✅ 순차 모드 분석 완료!")
         
         results_container.empty()
+        
+        # ✅ 상세 분석 완료 시 세션 상태 초기화
+        # ✅ 분석 완료 시 진행률을 100%로 설정 (초기화하지 않음)
+        st.session_state.detailed_analysis_progress = 1.0
+        st.session_state.detailed_analysis_status = "상세 분석 완료"
+        self._safe_progress(progress_bar, 1.0, "상세 분석 완료")
         
         # 에러 요약 표시
         if err_counter:
